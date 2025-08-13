@@ -4,7 +4,7 @@
 #include "bsp/display.h"
 
 static const char *TAG = "SETTINGS";
-static uint8_t brightness = 80;
+static uint8_t brightness = 50;
 static bool sound_enabled = true;
 
 void settings_init(void) {

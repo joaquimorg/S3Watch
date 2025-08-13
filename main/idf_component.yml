@@ -2,6 +2,10 @@
 dependencies:
   waveshare/esp32_s3_touch_amoled_2_06:
     version: "*"
+  waveshare/qmi8658: 
+    version: "*"
+  cfscn/sensorlib: 
+    version: "*"
   lvgl/lvgl:
     version: "9.3.0"
     public: true

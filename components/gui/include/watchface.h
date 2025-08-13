@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-lv_obj_t *watchface_create(void);
+void watchface_create(void);
 
 #ifdef __cplusplus
 }

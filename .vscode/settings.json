@@ -6,6 +6,7 @@
     "*.dbclient-js": "javascript",
     "*.embeddedhtml": "html",
     "*.sql": "oracle",
-    "freertos.h": "c"
+    "freertos.h": "c",
+    "settings_screen.h": "c"
   }
 }

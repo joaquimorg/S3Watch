@@ -1,5 +1,6 @@
 #include "settings.h"
 #include "esp_log.h"
+#include "esp_err.h"
 #include "bsp/display.h"
 
 static const char *TAG = "SETTINGS";

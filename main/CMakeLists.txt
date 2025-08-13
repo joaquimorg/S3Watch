@@ -1,18 +1,6 @@
-#set(LV_DEMO_DIR ../managed_components/lvgl__lvgl/demos)
-#file(GLOB_RECURSE LV_DEMOS_SOURCES ${LV_DEMO_DIR}/*.c)
-
-
 idf_component_register(
-    SRCS 
+    SRCS
         main.cpp
-        
-
-    INCLUDE_DIRS "." 
-)
-
-idf_component_get_property(LVGL_LIB lvgl__lvgl COMPONENT_LIB)
-target_compile_options(
-    ${LVGL_LIB} 
-    PRIVATE
-        
+    INCLUDE_DIRS "."
+    REQUIRES ble gui sensors settings
 )

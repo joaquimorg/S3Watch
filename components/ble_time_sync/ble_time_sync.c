@@ -8,6 +8,8 @@
 #include "nimble/nimble_port_freertos.h"
 #include "host/ble_hs.h"
 #include "host/util/util.h"
+#include "host/ble_uuid.h"
+#include "host/ble_store.h"
 #include "console/console.h"
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
@@ -23,15 +25,22 @@
 
 static uint8_t own_addr_type;
 
+static int gatt_svr_chr_access_time_sync(uint16_t conn_handle, uint16_t attr_handle,
+                                         struct ble_gatt_access_ctxt *ctxt, void *arg);
+static int gatt_svr_chr_access_notification(uint16_t conn_handle, uint16_t attr_handle,
+                                            struct ble_gatt_access_ctxt *ctxt, void *arg);
+static int ble_gap_event(struct ble_gap_event *event, void *arg);
+static int gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg);
+
 // GATT server definitions
 static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
     {
         // Time Synchronization Service
         .type = BLE_GATT_SVC_TYPE_PRIMARY,
-        .uuid = BLE_UUID_DECLARE(GATT_SVR_SVC_TIME_SYNC_UUID),
+        .uuid = BLE_UUID16_DECLARE(GATT_SVR_SVC_TIME_SYNC_UUID),
         .characteristics = (struct ble_gatt_chr_def[]){
             {
-                .uuid = BLE_UUID_DECLARE(GATT_SVR_CHR_TIME_SYNC_UUID),
+                .uuid = BLE_UUID16_DECLARE(GATT_SVR_CHR_TIME_SYNC_UUID),
                 .access_cb = gatt_svr_chr_access_time_sync,
                 .flags = BLE_GATT_CHR_F_WRITE,
             }, {
@@ -42,10 +51,10 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
     {
         // Notification Service
         .type = BLE_GATT_SVC_TYPE_PRIMARY,
-        .uuid = BLE_UUID_DECLARE(GATT_SVR_SVC_NOTIFICATION_UUID),
+        .uuid = BLE_UUID16_DECLARE(GATT_SVR_SVC_NOTIFICATION_UUID),
         .characteristics = (struct ble_gatt_chr_def[]){
             {
-                .uuid = BLE_UUID_DECLARE(GATT_SVR_CHR_NOTIFICATION_UUID),
+                .uuid = BLE_UUID16_DECLARE(GATT_SVR_CHR_NOTIFICATION_UUID),
                 .access_cb = gatt_svr_chr_access_notification,
                 .flags = BLE_GATT_CHR_F_WRITE,
             }, {
@@ -170,6 +179,30 @@ static int ble_gap_event(struct ble_gap_event *event, void *arg)
     return 0;
 }
 
+static int gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg)
+{
+    char buf[BLE_UUID_STR_LEN];
+
+    switch (ctxt->op) {
+    case BLE_GATT_REGISTER_OP_SVC:
+        ESP_LOGI(GATTS_TAG, "service registered: %s",
+                 ble_uuid_to_str(ctxt->svc.svc_def->uuid, buf));
+        break;
+    case BLE_GATT_REGISTER_OP_CHR:
+        ESP_LOGI(GATTS_TAG, "characteristic registered: %s",
+                 ble_uuid_to_str(ctxt->chr.chr_def->uuid, buf));
+        break;
+    case BLE_GATT_REGISTER_OP_DSC:
+        ESP_LOGI(GATTS_TAG, "descriptor registered: %s",
+                 ble_uuid_to_str(ctxt->dsc.dsc_def->uuid, buf));
+        break;
+    default:
+        break;
+    }
+
+    return 0;
+}
+
 static void ble_on_reset(int reason)
 {
     MODLOG_DFLT(ERROR, "Resetting state; reason=%d\n", reason);
@@ -219,7 +252,9 @@ esp_err_t ble_time_sync_init(void)
     ble_hs_cfg.reset_cb = ble_on_reset;
     ble_hs_cfg.sync_cb = ble_on_sync;
     ble_hs_cfg.gatts_register_cb = gatt_svr_register_cb;
-    ble_hs_cfg.store_status_cb = ble_store_config_ram;
+    ble_hs_cfg.store_status_cb = ble_store_util_status;
+
+    ble_store_config_init();
 
     // Set up the GATT server
     ble_svc_gap_init();

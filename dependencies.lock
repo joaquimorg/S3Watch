@@ -1,14 +1,4 @@
 dependencies:
-  cfscn/sensorlib:
-    component_hash: 8832ce734fbf5ce61757491d2aa8b2a2a52c6abf38cec512f8bf18c7e070517a
-    dependencies:
-    - name: idf
-      require: private
-      version: '>=5.0.0'
-    source:
-      registry_url: https://components.espressif.com/
-      type: service
-    version: 0.2.2
   espressif/cmake_utilities:
     component_hash: 351350613ceafba240b761b4ea991e0f231ac7a9f59a9ee901f751bddc0bb18f
     dependencies:
@@ -167,10 +157,10 @@ dependencies:
       type: service
     version: 1.0.1
 direct_dependencies:
-- cfscn/sensorlib
+- idf
 - lvgl/lvgl
 - waveshare/esp32_s3_touch_amoled_2_06
 - waveshare/qmi8658
-manifest_hash: 976a3acc44ee48d1b5294cbb071202e3a2251b4dc899d633c193e656a2a4b6d3
+manifest_hash: e8a9d681cb61731b64ae444bc5820907761d2146b71e3e9d6437b597042884fc
 target: esp32s3
 version: 2.0.0

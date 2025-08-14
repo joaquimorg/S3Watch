@@ -2,7 +2,7 @@
 #include "sensors.h"
 #include "settings_screen.h"
 #include "ui_private.h"
-
+#include "rtc_lib.h"
 
 LV_FONT_DECLARE(font_roboto_serif_bold_164)
 LV_FONT_DECLARE(font_inter_regular_28)
@@ -11,6 +11,9 @@ LV_FONT_DECLARE(font_inter_bold_28);
 static lv_obj_t * home_screen;
 static lv_obj_t * label_hour;
 static lv_obj_t * label_minute;
+static lv_obj_t * label_second;
+static lv_obj_t * label_date;
+static lv_obj_t * label_weekday;
 
 static bool inited = false;
 
@@ -229,6 +232,15 @@ static void home_screen_events(lv_event_t * e)
     }
 }
 
+static void update_time_task(lv_timer_t * timer)
+{
+    lv_label_set_text_fmt(label_hour, "%02d", rtc_get_hour());
+    lv_label_set_text_fmt(label_minute, "%02d", rtc_get_minute());
+    lv_label_set_text_fmt(label_second, "%02d", rtc_get_second());
+    lv_label_set_text_fmt(label_date, "%02d/%02d", rtc_get_day(), rtc_get_month());
+    lv_label_set_text(label_weekday, rtc_get_weekday_short_string());
+}
+
 void watchface_create(void) {
 
     lv_obj_remove_flag(lv_screen_active(), LV_OBJ_FLAG_SCROLLABLE);
@@ -272,21 +284,27 @@ void watchface_create(void) {
 
 
     label_hour = lv_label_create(home_screen);
-    lv_obj_set_y(label_hour, -60);
+    lv_obj_set_y(label_hour, -80);
     lv_obj_set_align(label_hour, LV_ALIGN_CENTER);
-    lv_label_set_text(label_hour, "23");
+    lv_label_set_text(label_hour, "--");
     lv_obj_set_style_text_letter_space(label_hour, 1, 0);
     lv_obj_set_style_text_font(label_hour, &font_roboto_serif_bold_164, 0);
     lv_obj_set_style_text_color(label_hour, lv_color_hex(0x909090), LV_PART_MAIN | LV_STATE_DEFAULT);
 
-
     label_minute = lv_label_create(home_screen);
-    lv_obj_set_y(label_minute, 70);
+    lv_obj_set_y(label_minute, 90);
     lv_obj_set_align(label_minute, LV_ALIGN_CENTER);
-    lv_label_set_text(label_minute, "34");
+    lv_label_set_text(label_minute, "--");
     lv_obj_set_style_text_letter_space(label_minute, 1, 0);
     lv_obj_set_style_text_font(label_minute, &font_roboto_serif_bold_164, 0);
     lv_obj_set_style_text_color(label_minute, lv_color_hex(0x909090), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    label_second = lv_label_create(home_screen);
+    lv_obj_set_align(label_second, LV_ALIGN_CENTER);
+    lv_label_set_text(label_second, "--");
+    lv_obj_set_style_text_letter_space(label_second, 1, 0);
+    lv_obj_set_style_text_font(label_second, &font_inter_bold_28, 0);
+    lv_obj_set_style_text_color(label_second, lv_color_hex(0x909090), LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t * date_cont = lv_obj_create(home_screen);
     lv_obj_remove_style_all(date_cont);
@@ -296,17 +314,17 @@ void watchface_create(void) {
     lv_obj_set_flex_flow(date_cont, LV_FLEX_FLOW_COLUMN);
 
     
-    lv_obj_t * label = lv_label_create(date_cont);
-    lv_label_set_text(label, "13/08");
-    lv_obj_set_style_text_letter_space(label, 1, 0);
-    lv_obj_set_style_text_font(label, &font_inter_regular_28, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(0x909090), LV_PART_MAIN | LV_STATE_DEFAULT);
+    label_date = lv_label_create(date_cont);
+    lv_label_set_text(label_date, "--/--");
+    lv_obj_set_style_text_letter_space(label_date, 1, 0);
+    lv_obj_set_style_text_font(label_date, &font_inter_regular_28, 0);
+    lv_obj_set_style_text_color(label_date, lv_color_hex(0x909090), LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    label = lv_label_create(date_cont);
-    lv_label_set_text(label, "WED");
-    lv_obj_set_style_text_letter_space(label, 3, 0);
-    lv_obj_set_style_text_font(label, &font_inter_bold_28, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(0x909090), LV_PART_MAIN | LV_STATE_DEFAULT);
+    label_weekday = lv_label_create(date_cont);
+    lv_label_set_text(label_weekday, "---");
+    lv_obj_set_style_text_letter_space(label_weekday, 3, 0);
+    lv_obj_set_style_text_font(label_weekday, &font_inter_bold_28, 0);
+    lv_obj_set_style_text_color(label_weekday, lv_color_hex(0x909090), LV_PART_MAIN | LV_STATE_DEFAULT);
 
     /* Container for the outer arcs */
     arc_cont = lv_obj_create(lv_screen_active());
@@ -335,7 +353,7 @@ void watchface_create(void) {
 
 
     /* The rotating arc */
-    main_arc = lv_arc_create(lv_screen_active());
+    /*main_arc = lv_arc_create(lv_screen_active());
     lv_obj_remove_style_all(main_arc);
     lv_obj_set_size(main_arc, lv_pct(100), lv_pct(100));
     lv_obj_set_align(main_arc, LV_ALIGN_CENTER);
@@ -349,16 +367,16 @@ void watchface_create(void) {
     lv_obj_set_style_arc_color(main_arc, lv_color_white(), 0);
     lv_obj_set_style_arc_opa(main_arc, 255, 0);
     lv_obj_set_style_blend_mode(main_arc, LV_BLEND_MODE_DIFFERENCE, 0);
-    lv_obj_set_style_opa(main_arc, 255, 0);
+    lv_obj_set_style_opa(main_arc, 255, 0);*/
 
     /* Animate the rotating arc */
-    lv_anim_init(&rotate);
+    /*lv_anim_init(&rotate);
     lv_anim_set_var(&rotate, main_arc);
     lv_anim_set_values(&rotate, 0, 360);
     lv_anim_set_duration(&rotate, 60000);
     lv_anim_set_exec_cb(&rotate, rotate_image);
     lv_anim_set_repeat_count(&rotate, LV_ANIM_REPEAT_INFINITE);
-    lv_anim_start(&rotate);
+    lv_anim_start(&rotate);*/
 
      /* Black overlay for screen transitions */
     overlay = lv_obj_create(home_screen);
@@ -371,4 +389,6 @@ void watchface_create(void) {
 
     lv_demo_smartwatch_control_create();
     lv_demo_smartwatch_health_create();
+
+    lv_timer_create(update_time_task, 1000, NULL);
 }

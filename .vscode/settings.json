@@ -7,6 +7,9 @@
     "*.embeddedhtml": "html",
     "*.sql": "oracle",
     "freertos.h": "c",
-    "settings_screen.h": "c"
+    "settings_screen.h": "c",
+    "sdmmc_host.h": "c",
+    "i2s_std.h": "c",
+    "pcf85063a.h": "c"
   }
 }

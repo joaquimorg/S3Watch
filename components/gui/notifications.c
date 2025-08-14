@@ -84,7 +84,7 @@ void lv_demo_smartwatch_health_create(void)
     lv_obj_set_x(label, 0);
     lv_obj_set_y(label, 25);
     lv_obj_set_align(label, LV_ALIGN_TOP_MID);
-    lv_label_set_text(label, "13:37");
+    lv_label_set_text(label, "--:--");
     lv_obj_set_style_text_font(label, &font_space_grotesk_regular_28, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t * info_cont = lv_obj_create(health_screen);

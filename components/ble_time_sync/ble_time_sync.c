@@ -16,6 +16,8 @@
 
 #define GATTS_TAG "BLE_GENERIC"
 
+void ble_store_config_init(void);
+
 // Custom Service UUIDs
 #define GATT_SVR_SVC_TIME_SYNC_UUID 0x00FF
 #define GATT_SVR_CHR_TIME_SYNC_UUID 0xFF01
@@ -252,7 +254,7 @@ esp_err_t ble_time_sync_init(void)
     ble_hs_cfg.reset_cb = ble_on_reset;
     ble_hs_cfg.sync_cb = ble_on_sync;
     ble_hs_cfg.gatts_register_cb = gatt_svr_register_cb;
-    ble_hs_cfg.store_status_cb = ble_store_util_status;
+    ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
 
     ble_store_config_init();
 

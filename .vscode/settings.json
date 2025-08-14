@@ -10,6 +10,8 @@
     "settings_screen.h": "c",
     "sdmmc_host.h": "c",
     "i2s_std.h": "c",
-    "pcf85063a.h": "c"
+    "pcf85063a.h": "c",
+    "complex": "c",
+    "format": "c"
   }
 }

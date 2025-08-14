@@ -14,8 +14,6 @@ void settings_init(void) {
     ESP_LOGI(TAG, "Settings initialization placeholder");
     bsp_display_brightness_set(brightness);
 
-    bsp_extra_init();
-
     struct tm time;
     if (rtc_get_time(&time) == ESP_OK) {
         if (time.tm_year < 2025) { // struct tm year is years since 1900

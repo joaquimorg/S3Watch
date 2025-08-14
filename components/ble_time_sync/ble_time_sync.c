@@ -36,6 +36,7 @@ static int ble_gap_event(struct ble_gap_event *event, void *arg);
 static void gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg);
 
 // GATT server definitions
+
 static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
     {
         // Time Synchronization Service
@@ -48,7 +49,7 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
                 .flags = BLE_GATT_CHR_F_WRITE,
             }, {
                 0,
-            } /* No more characteristics in this service */
+            } // No more characteristics in this service 
         },
     },
     {
@@ -62,13 +63,14 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
                 .flags = BLE_GATT_CHR_F_WRITE,
             }, {
                 0,
-            } /* No more characteristics in this service */
+            } // No more characteristics in this service 
         },
     },
     {
         0,
-    } /* No more services */
+    } // No more services
 };
+
 
 static int gatt_svr_chr_access_time_sync(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
@@ -221,7 +223,7 @@ void ble_host_task(void *param)
     nimble_port_freertos_deinit();
 }
 
-esp_err_t ble_time_sync_init(void)
+esp_err_t ble_sync_init(void)
 {
     esp_err_t ret;
 
@@ -232,22 +234,11 @@ esp_err_t ble_time_sync_init(void)
     }
     ESP_ERROR_CHECK(ret);
 
-    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
-
-    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    ret = esp_bt_controller_init(&bt_cfg);
-    if (ret) {
-        ESP_LOGE(GATTS_TAG, "%s initialize controller failed: %s\n", __func__, esp_err_to_name(ret));
+    ret = nimble_port_init();
+    if (ret != ESP_OK) {
+        ESP_LOGE(GATTS_TAG, "%s failed to init nimble %s\n", __func__, esp_err_to_name(ret));
         return ret;
     }
-
-    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
-    if (ret) {
-        ESP_LOGE(GATTS_TAG, "%s enable controller failed: %s\n", __func__, esp_err_to_name(ret));
-        return ret;
-    }
-
-    nimble_port_init();
 
     ble_hs_cfg.reset_cb = ble_on_reset;
     ble_hs_cfg.sync_cb = ble_on_sync;

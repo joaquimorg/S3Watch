@@ -12,6 +12,7 @@
 #include "bsp/esp-bsp.h"
 #include "bsp_board_extra.h"
 #include "pcf85063a.h"
+#include "ble_time_sync.h"
 
 #define I2C_MASTER_TIMEOUT_MS 1000
 
@@ -67,10 +68,28 @@ int rtc_register_write(uint8_t regAddr, uint8_t *data, uint8_t len) {
 
 esp_err_t bsp_extra_init(void)
 {
+    esp_err_t ret;
+
     bus_handle = bsp_i2c_get_handle();
 
-    bsp_rtc_init();
-    pcf85063a_init();
+    ret = bsp_rtc_init();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "RTC init failed");
+        return ret;
+    }
+
+    ret = pcf85063a_init();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "PCF85063A init failed");
+        return ret;
+    }
+
+    ret = ble_sync_init();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "BLE sync init failed");
+        return ret;
+    }
+
 
     return ESP_OK;
 }

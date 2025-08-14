@@ -1,5 +1,6 @@
 #include "ble_time_sync.h"
-#include "rtc.h"
+#include "esp_rtc_time.h"
+#include "rtc_lib.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "esp_bt.h"
@@ -30,7 +31,7 @@ static int gatt_svr_chr_access_time_sync(uint16_t conn_handle, uint16_t attr_han
 static int gatt_svr_chr_access_notification(uint16_t conn_handle, uint16_t attr_handle,
                                             struct ble_gatt_access_ctxt *ctxt, void *arg);
 static int ble_gap_event(struct ble_gap_event *event, void *arg);
-static int gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg);
+static void gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg);
 
 // GATT server definitions
 static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
@@ -161,17 +162,16 @@ static int ble_gap_event(struct ble_gap_event *event, void *arg)
 
         case BLE_GAP_EVENT_SUBSCRIBE:
             MODLOG_DFLT(INFO, "subscribe event; conn_handle=%d attr_handle=%d "
-                        "reason=%d prev_notify=%d cur_notify=%d
-",
+                        "reason=%d prev_notify=%d cur_notify=%d",
                         event->subscribe.conn_handle, event->subscribe.attr_handle,
                         event->subscribe.reason, event->subscribe.prev_notify,
                         event->subscribe.cur_notify);
             break;
 
-        case BLE_GAP_EVENT_MTU_CHANGED:
+        /*case BLE_GAP_EVENT_MTU_CHANGED:
             MODLOG_DFLT(INFO, "mtu change event; conn_handle=%d mtu=%d\n",
                         event->mtu_changed.conn_handle, event->mtu_changed.mtu);
-            break;
+            break;*/
 
         default:
             break;
@@ -179,7 +179,7 @@ static int ble_gap_event(struct ble_gap_event *event, void *arg)
     return 0;
 }
 
-static int gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg)
+static void gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg)
 {
     char buf[BLE_UUID_STR_LEN];
 
@@ -199,8 +199,6 @@ static int gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg)
     default:
         break;
     }
-
-    return 0;
 }
 
 static void ble_on_reset(int reason)
@@ -210,7 +208,7 @@ static void ble_on_reset(int reason)
 
 static void ble_on_sync(void)
 {
-    ble_hs_id_infer_auto(&own_addr_type);
+    ble_hs_id_infer_auto(0, &own_addr_type);
     ble_app_advertise();
 }
 

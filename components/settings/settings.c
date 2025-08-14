@@ -18,7 +18,7 @@ void settings_init(void) {
 
     struct tm time;
     if (rtc_get_time(&time) == ESP_OK) {
-        if (time.tm_year < 123) { // struct tm year is years since 1900
+        if (time.tm_year < 2025) { // struct tm year is years since 1900
             ESP_LOGI(TAG, "Time not set, setting to default");
             struct tm default_time = {
                 .tm_year = 2025, // 2024

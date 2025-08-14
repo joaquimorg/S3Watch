@@ -74,32 +74,28 @@ void lv_demo_smartwatch_control_create(void)
         lv_obj_add_flag(inner_cont, LV_OBJ_FLAG_SNAPPABLE);
         lv_obj_add_flag(inner_cont, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
 
+        lv_obj_t * item = lv_obj_create(inner_cont);
+        lv_obj_remove_style_all(item);
+        lv_obj_set_size(item, 102, 102);
 
-        /* Add 3 buttons to each row container */
-        //for(uint32_t j = 0; j < 1; j++) {
-            lv_obj_t * item = lv_obj_create(inner_cont);
-            lv_obj_remove_style_all(item);
-            lv_obj_set_size(item, 102, 102);
+        lv_obj_set_style_bg_color(item, lv_color_hex(0xffffffff), 0);
+        lv_obj_set_style_bg_opa(item, 46, 0);
+        lv_obj_set_style_radius(item, 50, 0);
+        lv_obj_set_style_bg_color(item, lv_color_hex(0xff438bff), LV_PART_MAIN | LV_STATE_CHECKED);
+        lv_obj_set_style_bg_opa(item, 255, LV_PART_MAIN | LV_STATE_CHECKED);
+        lv_obj_add_flag(item, LV_OBJ_FLAG_CHECKABLE);
 
-            lv_obj_set_style_bg_color(item, lv_color_hex(0xffffffff), 0);
-            lv_obj_set_style_bg_opa(item, 46, 0);
-            lv_obj_set_style_radius(item, 50, 0);
-            lv_obj_set_style_bg_color(item, lv_color_hex(0xff438bff), LV_PART_MAIN | LV_STATE_CHECKED);
-            lv_obj_set_style_bg_opa(item, 255, LV_PART_MAIN | LV_STATE_CHECKED);
-            lv_obj_add_flag(item, LV_OBJ_FLAG_CHECKABLE);
+        lv_obj_t * image = lv_image_create(item);
+        lv_image_set_src(image, control_icons[i]);
+        lv_obj_set_align(image, LV_ALIGN_CENTER);
+        lv_obj_remove_flag(image, LV_OBJ_FLAG_CLICKABLE);
 
-            lv_obj_t * image = lv_image_create(item);
-            lv_image_set_src(image, control_icons[i]);
-            lv_obj_set_align(image, LV_ALIGN_CENTER);
-            lv_obj_remove_flag(image, LV_OBJ_FLAG_CLICKABLE);
+        //lv_obj_t * label = lv_label_create(inner_cont);
+        //lv_label_set_text(label, "Example Label");
+        //lv_obj_set_style_text_letter_space(label, 1, 0);
+        //lv_obj_set_style_text_font(label, &font_inter_regular_28, 0);
+        //lv_obj_set_style_text_color(label, lv_color_hex(0x909090), LV_PART_MAIN | LV_STATE_DEFAULT);
 
-            //lv_obj_t * label = lv_label_create(inner_cont);
-            //lv_label_set_text(label, "Example Label");
-            //lv_obj_set_style_text_letter_space(label, 1, 0);
-            //lv_obj_set_style_text_font(label, &font_inter_regular_28, 0);
-            //lv_obj_set_style_text_color(label, lv_color_hex(0x909090), LV_PART_MAIN | LV_STATE_DEFAULT);
-
-        //}
     }
 
     lv_obj_update_snap(control_screen, LV_ANIM_ON);

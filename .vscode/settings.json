@@ -12,6 +12,8 @@
     "i2s_std.h": "c",
     "pcf85063a.h": "c",
     "complex": "c",
-    "format": "c"
+    "format": "c",
+    "ble_svc_gap.h": "c",
+    "regex": "cpp"
   }
 }

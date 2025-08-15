@@ -1,0 +1,15 @@
+menu "Nimble Nordic UART Configuration"
+    config NORDIC_UART_MAX_LINE_LENGTH
+        int "UART max receive line length (bytes)"
+        default 256
+        range 1 65536
+        help
+            Maximum number of characters per line. Anything beyond this number will be truncated.
+
+    config NORDIC_UART_RX_BUFFER_SIZE
+        int "UART transmition buffer size (bytes)"
+        default 4096
+        range 1 65536
+        help
+            Buffer size for transmission
+endmenu

@@ -1,4 +1,4 @@
-#include "ble_time_sync.h"
+#include "ble_sync.h"
 #include "esp_rtc_time.h"
 #include "rtc_lib.h"
 #include "esp_log.h"
@@ -16,6 +16,8 @@
 #include "services/gatt/ble_svc_gatt.h"
 
 #define GATTS_TAG "BLE_GENERIC"
+
+static const char *device_name = "esp32_s3_watch";
 
 void ble_store_config_init(void);
 
@@ -111,7 +113,7 @@ static int gatt_svr_chr_access_notification(uint16_t conn_handle, uint16_t attr_
 static void ble_app_advertise(void)
 {
     struct ble_hs_adv_fields fields;
-    const char *name = "S3Watch_BLE";
+    const char *name = "S3Watch";
     int rc;
 
     memset(&fields, 0, sizeof(fields));
@@ -252,6 +254,10 @@ esp_err_t ble_sync_init(void)
     ble_svc_gatt_init();
     ble_gatts_count_cfg(gatt_svr_svcs);
     ble_gatts_add_svcs(gatt_svr_svcs);
+
+    /* Set the default device name */
+    //int rc = ble_svc_gap_device_name_set(device_name);
+    //assert(rc == 0);
 
     // Start the NimBLE host task
     nimble_port_freertos_init(ble_host_task);

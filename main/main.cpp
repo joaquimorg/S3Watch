@@ -7,7 +7,7 @@
 #include "bsp/esp-bsp.h"
 #include "bsp/display.h"
 #include "bsp_board_extra.h"
-#include "ble_time_sync.h"
+#include "ble_sync.h"
 #include "sensors.h"
 #include "settings.h"
 #include "ui.h"

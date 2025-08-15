@@ -17,5 +17,5 @@ endforeach()
 idf_component_register(
     SRCS ${SRCS}
     INCLUDE_DIRS ${INCLUDE_DIRS}
-    PRIV_REQUIRES esp_timer esp_psram driver ble_time_sync
+    PRIV_REQUIRES esp_timer esp_psram driver ble_sync
 )

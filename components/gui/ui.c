@@ -8,10 +8,10 @@
 #include "esp_log.h"
 #include "bsp/esp-bsp.h"
 
-static const char *TAG = "UI";
+static const char* TAG = "UI";
 
 
-static lv_theme_t * theme_original;
+static lv_theme_t* theme_original;
 
 
 void init_theme(void) {
@@ -29,13 +29,99 @@ void init_theme(void) {
 
 }
 
-lv_obj_t *label;  
 
-void debug_screen(void) {
-    label = lv_label_create(lv_scr_act());
-    lv_label_set_text(label, "Initializing...");
-    lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+
+lv_obj_t* active_screen;
+lv_obj_t* mainTileView;
+lv_obj_t* tileClock;
+lv_obj_t* tileConfig;
+lv_obj_t* tileSteps;
+lv_obj_t* tileMotfication;
+
+lv_obj_t* ui_Clock01_Panel;
+lv_obj_t* ui_Config_Panel;
+lv_obj_t* ui_Steps_Panel;
+lv_obj_t* ui_Messages_Panel;
+
+void load_screen(lv_obj_t* current_screen, lv_screen_load_anim_t anim) {
+    if (active_screen != current_screen) {
+        lv_screen_load_anim(current_screen, anim, 400, 0, false);
+        active_screen = current_screen;
+    }
+};
+
+void create_main_screen(void) {
+    mainTileView = lv_tileview_create(NULL);
+    lv_obj_set_scrollbar_mode(mainTileView, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_add_flag(mainTileView, LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM);
+    lv_obj_set_style_bg_color(mainTileView, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    tileMotfication = lv_tileview_add_tile(mainTileView, 0, 0, LV_DIR_BOTTOM);
+    ui_Messages_Panel = lv_obj_create(tileMotfication);
+    lv_obj_set_width(ui_Messages_Panel, lv_pct(100));
+    lv_obj_set_height(ui_Messages_Panel, lv_pct(100));
+    lv_obj_set_align(ui_Messages_Panel, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Messages_Panel, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
+    lv_obj_set_scrollbar_mode(ui_Messages_Panel, LV_SCROLLBAR_MODE_OFF);
+    //lv_obj_set_style_radius(ui_Messages_Panel, 80, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Messages_Panel, lv_color_hex(0x570057), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    tileClock = lv_tileview_add_tile(mainTileView, 0, 1, LV_DIR_BOTTOM | LV_DIR_TOP | LV_DIR_RIGHT);
+    ui_Clock01_Panel = lv_obj_create(tileClock);
+    lv_obj_set_width(ui_Clock01_Panel, lv_pct(100));
+    lv_obj_set_height(ui_Clock01_Panel, lv_pct(100));
+    lv_obj_set_align(ui_Clock01_Panel, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Clock01_Panel, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
+    lv_obj_set_scrollbar_mode(ui_Clock01_Panel, LV_SCROLLBAR_MODE_OFF);
+    //lv_obj_set_style_radius(ui_Clock01_Panel, 80, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Clock01_Panel, lv_color_hex(0x570000), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    tileConfig = lv_tileview_add_tile(mainTileView, 0, 2, LV_DIR_TOP);
+    ui_Config_Panel = lv_obj_create(tileConfig);
+    lv_obj_set_width(ui_Config_Panel, lv_pct(100));
+    lv_obj_set_height(ui_Config_Panel, lv_pct(100));
+    lv_obj_set_align(ui_Config_Panel, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Config_Panel, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
+    lv_obj_set_scrollbar_mode(ui_Config_Panel, LV_SCROLLBAR_MODE_OFF);
+    //lv_obj_set_style_radius(ui_Config_Panel, 80, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Config_Panel, lv_color_hex(0x005700), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    tileSteps = lv_tileview_add_tile(mainTileView, 1, 1, LV_DIR_LEFT);
+    ui_Steps_Panel = lv_obj_create(tileSteps);
+    lv_obj_set_width(ui_Steps_Panel, lv_pct(100));
+    lv_obj_set_height(ui_Steps_Panel, lv_pct(100));
+    lv_obj_set_align(ui_Steps_Panel, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Steps_Panel, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
+    lv_obj_set_scrollbar_mode(ui_Steps_Panel, LV_SCROLLBAR_MODE_OFF);
+    //lv_obj_set_style_radius(ui_Steps_Panel, 80, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Steps_Panel, lv_color_hex(0x000057), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+
+
+
+    lv_obj_t* label = lv_label_create(ui_Clock01_Panel);
+    lv_label_set_text(label, "Clock");
+    lv_obj_center(label);
+
+    lv_obj_t* label2 = lv_label_create(ui_Config_Panel);
+    lv_label_set_text(label2, "Config");
+    lv_obj_center(label2);
+
+    lv_obj_t* label3 = lv_label_create(ui_Steps_Panel);
+    lv_label_set_text(label3, "Steps");
+    lv_obj_center(label3);
+
+    lv_obj_t* label4 = lv_label_create(ui_Messages_Panel);
+    lv_label_set_text(label4, "Messages");
+    lv_obj_center(label4);
+
+    lv_obj_set_tile_id(mainTileView, 0, 1, LV_ANIM_OFF);
+
+    lv_disp_load_scr(mainTileView);
+    active_screen = mainTileView;
 }
+
+
 
 
 void ui_init(void) {
@@ -43,7 +129,8 @@ void ui_init(void) {
 
     init_theme();
 
-    watchface_create();
+    create_main_screen();
+    //watchface_create();
     //notifications_create();
     //settings_screen_create();
 
@@ -52,7 +139,7 @@ void ui_init(void) {
     bsp_display_unlock();
 }
 
-void ui_task(void *pvParameters) {
+void ui_task(void* pvParameters) {
     ESP_LOGI(TAG, "UI task started");
     ui_init();
     while (1) {

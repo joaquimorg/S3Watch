@@ -12,7 +12,7 @@
 #include "bsp/esp-bsp.h"
 #include "bsp_board_extra.h"
 #include "pcf85063a.h"
-#include "ble_time_sync.h"
+#include "ble_sync.h"
 
 #define I2C_MASTER_TIMEOUT_MS 1000
 

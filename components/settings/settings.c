@@ -7,7 +7,7 @@
 #include <time.h>
 
 static const char *TAG = "SETTINGS";
-static uint8_t brightness = 50;
+static uint8_t brightness = 30;
 static bool sound_enabled = true;
 
 void settings_init(void) {

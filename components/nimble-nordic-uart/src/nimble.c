@@ -10,7 +10,7 @@
 #include "services/gatt/ble_svc_gatt.h"
 #include <freertos/FreeRTOS.h>
 
-static const char *_TAG = "NORDIC UART";
+static const char* _TAG = "NORDIC UART";
 
 // #define CONFIG_NORDIC_UART_MAX_LINE_LENGTH 256
 // #define CONFIG_NORDIC_UART_RX_BUFFER_SIZE 4096
@@ -34,8 +34,8 @@ static const char *_TAG = "NORDIC UART";
 // clang-format off
 
 static const ble_uuid128_t SERVICE_UUID = UUID128_CONST(0x6E400001, 0xB5A3, 0xF393, 0xE0A9, 0xE50E24DCCA9E);
-//static const ble_uuid128_t CHAR_UUID_RX = UUID128_CONST(0x6E400002, 0xB5A3, 0xF393, 0xE0A9, 0xE50E24DCCA9E);
-//static const ble_uuid128_t CHAR_UUID_TX = UUID128_CONST(0x6E400003, 0xB5A3, 0xF393, 0xE0A9, 0xE50E24DCCA9E);
+static const ble_uuid128_t CHAR_UUID_RX = UUID128_CONST(0x6E400002, 0xB5A3, 0xF393, 0xE0A9, 0xE50E24DCCA9E);
+static const ble_uuid128_t CHAR_UUID_TX = UUID128_CONST(0x6E400003, 0xB5A3, 0xF393, 0xE0A9, 0xE50E24DCCA9E);
 
 static uint8_t ble_addr_type;
 
@@ -50,10 +50,11 @@ esp_err_t nordic_uart_yield(uart_receive_callback_t uart_receive_callback) {
   return ESP_OK;
 }
 
-static int _uart_receive(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg) {
+static int _uart_receive(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt* ctxt, void* arg) {
   if (_uart_receive_callback) {
     _uart_receive_callback(ctxt);
-  } else {
+  }
+  else {
     for (int i = 0; i < ctxt->om->om_len; ++i) {
       const char c = ctxt->om->om_data[i];
       _nordic_uart_linebuf_append(c);
@@ -63,27 +64,27 @@ static int _uart_receive(uint16_t conn_handle, uint16_t attr_handle, struct ble_
 }
 
 // notify GATT callback is no operation.
-static int _uart_noop(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg) {
+static int _uart_noop(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt* ctxt, void* arg) {
   return 0;
 }
-/*
+
 static const struct ble_gatt_svc_def gat_svcs[] = {
     {.type = BLE_GATT_SVC_TYPE_PRIMARY,
      .uuid = &SERVICE_UUID.u,
      .characteristics =
          (struct ble_gatt_chr_def[]){
-             {.uuid = (ble_uuid_t *)&CHAR_UUID_RX,
+             {.uuid = (ble_uuid_t*)&CHAR_UUID_RX,
               .flags = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_WRITE_NO_RSP,
               .access_cb = _uart_receive},
-             {.uuid = (ble_uuid_t *)&CHAR_UUID_TX,
+             {.uuid = (ble_uuid_t*)&CHAR_UUID_TX,
               .flags = BLE_GATT_CHR_F_NOTIFY,
               .val_handle = &notify_char_attr_hdl,
               .access_cb = _uart_noop},
              {0},
          }},
-    {0}};
-*/
-static int ble_gap_event_cb(struct ble_gap_event *event, void *arg);
+    {0} };
+
+static int ble_gap_event_cb(struct ble_gap_event* event, void* arg);
 
 static void ble_app_advertise(void) {
   struct ble_hs_adv_fields fields, fields_ext;
@@ -95,17 +96,10 @@ static void ble_app_advertise(void) {
   fields.tx_pwr_lvl_is_present = 1;
   fields.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
 
-  char short_name[6]; // 5 plus zero byte
-  const char *name = ble_svc_gap_device_name();
-  strncpy(short_name, name, sizeof(short_name));
-  short_name[sizeof(short_name) - 1] = '\0';
-  fields.name = (uint8_t *)short_name;
-  fields.name_len = strlen(short_name);
-  if (strlen(name) <= sizeof(short_name) - 1) {
-    fields.name_is_complete = 1;
-  } else {
-    fields.name_is_complete = 0;
-  }
+  const char* name = ble_svc_gap_device_name();
+  /*fields.name = (uint8_t*)name;
+  fields.name_len = strlen(name);
+  fields.name_is_complete = 1;*/
 
   fields.uuids128_is_complete = 1;
   fields.uuids128 = &SERVICE_UUID;
@@ -116,15 +110,15 @@ static void ble_app_advertise(void) {
     ESP_LOGE(_TAG, "ble_gap_adv_set_fields, err %d", err);
   }
 
-  /*memset(&fields_ext, 0, sizeof(fields_ext));
+  memset(&fields_ext, 0, sizeof(fields_ext));
   fields_ext.flags = fields.flags;
-  fields_ext.name = (uint8_t *)name;
+  fields_ext.name = (uint8_t*)name;
   fields_ext.name_len = strlen(name);
   fields_ext.name_is_complete = 1;
   err = ble_gap_adv_rsp_set_fields(&fields_ext);
   if (err) {
     ESP_LOGE(_TAG, "ble_gap_adv_rsp_set_fields fields_ext, name might be too long, err %d", err);
-  }*/
+  }
 
   struct ble_gap_adv_params adv_params;
   memset(&adv_params, 0, sizeof(adv_params));
@@ -137,39 +131,40 @@ static void ble_app_advertise(void) {
   }
 }
 
-static int ble_gap_event_cb(struct ble_gap_event *event, void *arg) {
+static int ble_gap_event_cb(struct ble_gap_event* event, void* arg) {
   switch (event->type) {
   case BLE_GAP_EVENT_CONNECT:
     ESP_LOGI(_TAG, "BLE_GAP_EVENT_CONNECT %s", event->connect.status == 0 ? "OK" : "Failed");
     if (event->connect.status == 0) {
       ble_conn_hdl = event->connect.conn_handle;
-       /* Check connection handle */
+      /* Check connection handle */
       struct ble_gap_conn_desc desc;
       int rc = ble_gap_conn_find(event->connect.conn_handle, &desc);
       if (rc != 0) {
-          ESP_LOGE(_TAG,
-                   "failed to find connection by handle, error code: %d",
-                   rc);
-          return rc;
+        ESP_LOGE(_TAG,
+          "failed to find connection by handle, error code: %d",
+          rc);
+        return rc;
       }
 
       /* Try to update connection parameters! */
-      struct ble_gap_upd_params params = {.itvl_min = desc.conn_itvl,
+      struct ble_gap_upd_params params = { .itvl_min = desc.conn_itvl,
                                           .itvl_max = desc.conn_itvl,
                                           .latency = 3,
                                           .supervision_timeout =
-                                              desc.supervision_timeout};
+                                              desc.supervision_timeout };
       rc = ble_gap_update_params(event->connect.conn_handle, &params);
       if (rc != 0) {
-          ESP_LOGE(
-              _TAG,
-              "failed to update connection parameters, error code: %d",
-              rc);
-          return rc;
+        ESP_LOGE(
+          _TAG,
+          "failed to update connection parameters, error code: %d",
+          rc);
+        return rc;
       }
       if (_nordic_uart_callback)
         _nordic_uart_callback(NORDIC_UART_CONNECTED);
-    } else {
+    }
+    else {
       ble_app_advertise();
     }
     break;
@@ -202,7 +197,7 @@ static void ble_app_on_sync_cb(void) {
 }
 
 // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/nimble/index.html#_CPPv434esp_nimble_hci_and_controller_initv
-static void ble_host_task(void *param) {
+static void ble_host_task(void* param) {
   ESP_LOGI(_TAG, "BLE Host Task Started");
   nimble_port_run(); // This function will return only when nimble_port_stop() is executed.
   nimble_port_freertos_deinit();
@@ -210,14 +205,14 @@ static void ble_host_task(void *param) {
 }
 
 // Split the message in BLE_SEND_MTU and send it.
-esp_err_t _nordic_uart_send(const char *message) {
+esp_err_t _nordic_uart_send(const char* message) {
   const int len = strlen(message);
   if (len == 0)
     return ESP_OK;
   // Split the message in BLE_SEND_MTU and send it.
   for (int i = 0; i < len; i += BLE_SEND_MTU) {
     int err;
-    struct os_mbuf *om;
+    struct os_mbuf* om;
     int err_count = 0;
   do_notify:
     om = ble_hs_mbuf_from_flat(&message[i], MIN(BLE_SEND_MTU, len - i));
@@ -238,7 +233,7 @@ esp_err_t _nordic_uart_send(const char *message) {
  * Note:
  * https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/nimble/index.html
  */
-esp_err_t _nordic_uart_start(const char *device_name, void (*callback)(enum nordic_uart_callback_type callback_type)) {
+esp_err_t _nordic_uart_start(const char* device_name, void (*callback)(enum nordic_uart_callback_type callback_type)) {
 
   int rc;
 
@@ -261,26 +256,20 @@ esp_err_t _nordic_uart_start(const char *device_name, void (*callback)(enum nord
   if (ret != ESP_OK) {
     ESP_LOGE(_TAG, "nimble_port_init() failed with error: %d", ret);
   }
-  
+
   // Initialize the NimBLE Host configuration
   // Bluetooth device name for advertisement
-  //ble_svc_gap_device_name_set(device_name);
-  //ble_svc_gap_init();
-  //ble_svc_gatt_init();
-
-  //ble_gatts_count_cfg(gat_svcs);
-  //ble_gatts_add_svcs(gat_svcs);
 
   ble_hs_cfg.sync_cb = ble_app_on_sync_cb;
 
-  /*ble_svc_gap_init();
+  ble_svc_gap_init();
   ble_svc_gatt_init();
 
   rc = ble_gatts_count_cfg(gat_svcs);
   assert(rc == 0);
 
   rc = ble_gatts_add_svcs(gat_svcs);
-  assert(rc == 0);*/
+  assert(rc == 0);
 
   /* Set the default device name */
   rc = ble_svc_gap_device_name_set(device_name);
@@ -313,6 +302,6 @@ esp_err_t _nordic_uart_stop(void) {
   _nordic_uart_buf_deinit();
 
   _nordic_uart_callback = NULL;
-  
+
   return ESP_OK;
 }

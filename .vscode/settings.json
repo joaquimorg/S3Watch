@@ -15,5 +15,19 @@
     "format": "c",
     "ble_svc_gap.h": "c",
     "regex": "cpp"
-  }
+  },
+  "idf.openOcdConfigs": [
+    "board/esp32s3-builtin.cfg"
+  ],
+  "idf.customExtraVars": {
+    "OPENOCD_SCRIPTS": "D:\\Tools\\esp-idf\\.espressif\\tools\\openocd-esp32\\v0.11.0-esp32-20220411/openocd-esp32/share/openocd/scripts",
+    "IDF_CCACHE_ENABLE": "1",
+    "IDF_TARGET": "esp32s3"
+  },
+  "clangd.path": "D:\\Tools\\esp-idf\\.espressif\\tools\\esp-clang\\esp-19.1.2_20250312\\esp-clang\\bin\\clangd.exe",
+  "clangd.arguments": [
+    "--background-index",
+    "--query-driver=D:\\Tools\\esp-idf\\.espressif\\tools\\xtensa-esp-elf\\esp-14.2.0_20241119\\xtensa-esp-elf\\bin\\xtensa-esp32s3-elf-gcc.exe",
+    "--compile-commands-dir=d:\\Work\\ESP32-S3-Touch-AMOLED\\S3Watch\\Firmware\\S3Watch\\build"
+  ]
 }

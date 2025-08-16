@@ -43,6 +43,8 @@ lv_obj_t* ui_Config_Panel;
 lv_obj_t* ui_Steps_Panel;
 lv_obj_t* ui_Messages_Panel;
 
+lv_style_t main_style;
+
 void load_screen(lv_obj_t* current_screen, lv_screen_load_anim_t anim) {
     if (active_screen != current_screen) {
         lv_screen_load_anim(current_screen, anim, 400, 0, false);
@@ -51,10 +53,19 @@ void load_screen(lv_obj_t* current_screen, lv_screen_load_anim_t anim) {
 };
 
 void create_main_screen(void) {
+
+    lv_style_init(&main_style);
+    lv_style_set_text_color(&main_style, lv_color_white());
+    lv_style_set_bg_color(&main_style, lv_color_black());
+    lv_style_set_bg_opa(&main_style, LV_OPA_100);
+
     mainTileView = lv_tileview_create(NULL);
+    lv_obj_set_width(mainTileView, lv_pct(100));
+    lv_obj_set_height(mainTileView, lv_pct(100));
     lv_obj_set_scrollbar_mode(mainTileView, LV_SCROLLBAR_MODE_OFF);
     lv_obj_add_flag(mainTileView, LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM);
-    lv_obj_set_style_bg_color(mainTileView, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+    //lv_obj_set_style_bg_color(mainTileView, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_style(mainTileView, &main_style, 0);
 
     tileMotfication = lv_tileview_add_tile(mainTileView, 0, 0, LV_DIR_BOTTOM);
     ui_Messages_Panel = lv_obj_create(tileMotfication);
@@ -64,7 +75,8 @@ void create_main_screen(void) {
     lv_obj_clear_flag(ui_Messages_Panel, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
     lv_obj_set_scrollbar_mode(ui_Messages_Panel, LV_SCROLLBAR_MODE_OFF);
     //lv_obj_set_style_radius(ui_Messages_Panel, 80, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_Messages_Panel, lv_color_hex(0x570057), LV_PART_MAIN | LV_STATE_DEFAULT);
+    //lv_obj_set_style_bg_color(ui_Messages_Panel, lv_color_hex(0x570057), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Messages_Panel, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
 
     tileClock = lv_tileview_add_tile(mainTileView, 0, 1, LV_DIR_BOTTOM | LV_DIR_TOP | LV_DIR_RIGHT);
     ui_Clock01_Panel = lv_obj_create(tileClock);
@@ -74,7 +86,8 @@ void create_main_screen(void) {
     lv_obj_clear_flag(ui_Clock01_Panel, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
     lv_obj_set_scrollbar_mode(ui_Clock01_Panel, LV_SCROLLBAR_MODE_OFF);
     //lv_obj_set_style_radius(ui_Clock01_Panel, 80, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_Clock01_Panel, lv_color_hex(0x570000), LV_PART_MAIN | LV_STATE_DEFAULT);
+    //lv_obj_set_style_bg_color(ui_Clock01_Panel, lv_color_hex(0x570000), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Clock01_Panel, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
 
     tileConfig = lv_tileview_add_tile(mainTileView, 0, 2, LV_DIR_TOP);
     ui_Config_Panel = lv_obj_create(tileConfig);
@@ -84,7 +97,8 @@ void create_main_screen(void) {
     lv_obj_clear_flag(ui_Config_Panel, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
     lv_obj_set_scrollbar_mode(ui_Config_Panel, LV_SCROLLBAR_MODE_OFF);
     //lv_obj_set_style_radius(ui_Config_Panel, 80, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_Config_Panel, lv_color_hex(0x005700), LV_PART_MAIN | LV_STATE_DEFAULT);
+    //lv_obj_set_style_bg_color(ui_Config_Panel, lv_color_hex(0x005700), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Config_Panel, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
 
     tileSteps = lv_tileview_add_tile(mainTileView, 1, 1, LV_DIR_LEFT);
     ui_Steps_Panel = lv_obj_create(tileSteps);
@@ -94,7 +108,8 @@ void create_main_screen(void) {
     lv_obj_clear_flag(ui_Steps_Panel, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
     lv_obj_set_scrollbar_mode(ui_Steps_Panel, LV_SCROLLBAR_MODE_OFF);
     //lv_obj_set_style_radius(ui_Steps_Panel, 80, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_Steps_Panel, lv_color_hex(0x000057), LV_PART_MAIN | LV_STATE_DEFAULT);
+    //lv_obj_set_style_bg_color(ui_Steps_Panel, lv_color_hex(0x000057), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Steps_Panel, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
 
 
 

@@ -99,9 +99,11 @@ void create_main_screen(void) {
 
 
 
-    lv_obj_t* label = lv_label_create(ui_Clock01_Panel);
+    /*lv_obj_t* label = lv_label_create(ui_Clock01_Panel);
     lv_label_set_text(label, "Clock");
-    lv_obj_center(label);
+    lv_obj_center(label);*/
+
+    watchface_create(ui_Clock01_Panel);
 
     lv_obj_t* label2 = lv_label_create(ui_Config_Panel);
     lv_label_set_text(label2, "Config");

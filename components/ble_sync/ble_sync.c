@@ -34,6 +34,8 @@ void uartTask(void *parameter) {
         mbuf[item_size] = '\0';
         vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void *)item);
 
+        ESP_LOGI(TAG, "Received: %s", mbuf);
+
         cJSON *root = cJSON_Parse(mbuf);
         if (!root) {
           ESP_LOGW(TAG, "Invalid JSON: %s", mbuf);
@@ -45,8 +47,8 @@ void uartTask(void *parameter) {
           int year, month, day, hour, minute, second;
           if (sscanf(datetime->valuestring, "%d-%d-%dT%d:%d:%d", &year, &month, &day, &hour, &minute, &second) == 6) {
             struct tm t = {
-                .tm_year = year - 1900,
-                .tm_mon = month - 1,
+                .tm_year = year,
+                .tm_mon = month,
                 .tm_mday = day,
                 .tm_hour = hour,
                 .tm_min = minute,
@@ -84,7 +86,7 @@ static void nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
 
 esp_err_t ble_sync_init(void)
 {
-    nordic_uart_start("Espruino S3 Watch", nordic_uart_callback);
+    nordic_uart_start("ESP32 S3 Watch", nordic_uart_callback);
 
     xTaskCreate(uartTask, "uartTask", 4000, NULL, 5, NULL);
 

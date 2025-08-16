@@ -241,27 +241,27 @@ static void update_time_task(lv_timer_t * timer)
     lv_label_set_text(label_weekday, rtc_get_weekday_short_string());
 }
 
-void watchface_create(void) {
+void watchface_create(lv_obj_t * screen) {
 
-    lv_obj_remove_flag(lv_screen_active(), LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x000000), 0);
+    //lv_obj_remove_flag(lv_screen_active(), LV_OBJ_FLAG_SCROLLABLE);
+    //lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x000000), 0);
 
-    if(!inited) {
+    /*if(!inited) {
         lv_style_init(&main_style);
         lv_style_set_text_color(&main_style, lv_color_white());
         lv_style_set_bg_color(&main_style, lv_color_black());
         lv_style_set_bg_opa(&main_style, LV_OPA_100);
-        lv_style_set_radius(&main_style, LV_RADIUS_CIRCLE);     
-    }
+        //lv_style_set_radius(&main_style, LV_RADIUS_CIRCLE);     
+    }*/
 
-    home_screen = lv_obj_create(lv_screen_active());
+    home_screen = lv_obj_create(screen);
     lv_obj_remove_style_all(home_screen);
     lv_obj_set_size(home_screen, lv_pct(100), lv_pct(100));
-    lv_obj_add_style(home_screen, &main_style, 0);
+    //lv_obj_add_style(home_screen, &main_style, 0);
     lv_obj_remove_flag(home_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_remove_flag(home_screen, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_add_event_cb(home_screen, home_screen_events, LV_EVENT_ALL, NULL);
+    //lv_obj_add_event_cb(home_screen, home_screen_events, LV_EVENT_ALL, NULL);
 
     /* Create background arcs */
     /*
@@ -309,7 +309,7 @@ void watchface_create(void) {
     lv_obj_t * date_cont = lv_obj_create(home_screen);
     lv_obj_remove_style_all(date_cont);
     lv_obj_set_size(date_cont, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_x(date_cont, -40);
+    lv_obj_set_x(date_cont, -20);
     lv_obj_set_align(date_cont, LV_ALIGN_RIGHT_MID);
     lv_obj_set_flex_flow(date_cont, LV_FLEX_FLOW_COLUMN);
 
@@ -338,7 +338,7 @@ void watchface_create(void) {
         lv_obj_remove_style_all(obj);
         lv_obj_set_size(obj, lv_pct(100), lv_pct(100));
         lv_obj_set_align(obj, LV_ALIGN_CENTER);
-        lv_obj_set_y(obj, 50);
+        //lv_obj_set_y(obj, 50);
         lv_arc_set_bg_start_angle(obj, 0);
         lv_arc_set_bg_end_angle(obj, 30);
         lv_arc_set_rotation(obj, ARC_POS(i));
@@ -379,7 +379,7 @@ void watchface_create(void) {
     lv_anim_start(&rotate);*/
 
      /* Black overlay for screen transitions */
-    overlay = lv_obj_create(home_screen);
+    /*overlay = lv_obj_create(home_screen);
     lv_obj_remove_style_all(overlay);
     lv_obj_set_size(overlay, lv_pct(100), lv_pct(100));
     lv_obj_remove_flag(overlay, LV_OBJ_FLAG_SCROLLABLE);
@@ -388,7 +388,7 @@ void watchface_create(void) {
     lv_obj_set_style_opa(overlay, 0, 0);
 
     lv_demo_smartwatch_control_create();
-    lv_demo_smartwatch_health_create();
+    lv_demo_smartwatch_health_create();*/
 
     lv_timer_create(update_time_task, 1000, NULL);
 }

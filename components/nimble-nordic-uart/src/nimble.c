@@ -68,21 +68,42 @@ static int _uart_noop(uint16_t conn_handle, uint16_t attr_handle, struct ble_gat
   return 0;
 }
 
+// Callback para acesso ao descritor CCCD (implemente conforme sua necessidade)
+/*static int _cccd_access_cb(uint16_t conn_handle, uint16_t attr_handle,
+                           struct ble_gatt_access_ctxt *ctxt, void *arg) {
+    // Implemente a leitura e escrita do CCCD aqui.
+    return 0;
+}*/
+
 static const struct ble_gatt_svc_def gat_svcs[] = {
-    {.type = BLE_GATT_SVC_TYPE_PRIMARY,
-     .uuid = &SERVICE_UUID.u,
-     .characteristics =
-         (struct ble_gatt_chr_def[]){
-             {.uuid = (ble_uuid_t*)&CHAR_UUID_RX,
-              .flags = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_WRITE_NO_RSP,
-              .access_cb = _uart_receive},
-             {.uuid = (ble_uuid_t*)&CHAR_UUID_TX,
-              .flags = BLE_GATT_CHR_F_NOTIFY,
-              .val_handle = &notify_char_attr_hdl,
-              .access_cb = _uart_noop},
-             {0},
-         }},
-    {0} };
+    {
+        .type = BLE_GATT_SVC_TYPE_PRIMARY,
+        .uuid = &SERVICE_UUID.u,
+        .characteristics = (struct ble_gatt_chr_def[]){
+            {
+                .uuid = (ble_uuid_t*)&CHAR_UUID_RX,
+                .flags = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_WRITE_NO_RSP,
+                .access_cb = _uart_receive,
+                /*.descriptors = (struct ble_gatt_dsc_def[]){
+                    {
+                        .uuid = BLE_UUID16_DECLARE(0x2902),
+                        .att_flags = BLE_ATT_F_READ | BLE_ATT_F_WRITE,
+                        .access_cb = _cccd_access_cb,
+                    },
+                    { 0 },
+                },*/
+            },
+            {
+                .uuid = (ble_uuid_t*)&CHAR_UUID_TX,
+                .flags = BLE_GATT_CHR_F_NOTIFY,
+                .val_handle = &notify_char_attr_hdl,
+                .access_cb = _uart_noop,                
+            },
+            { 0 },
+        },
+    },
+    { 0 }
+};
 
 static int ble_gap_event_cb(struct ble_gap_event* event, void* arg);
 

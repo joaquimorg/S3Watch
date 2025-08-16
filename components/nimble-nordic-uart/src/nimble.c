@@ -268,10 +268,18 @@ esp_err_t _nordic_uart_start(const char* device_name, void (*callback)(enum nord
   _nordic_uart_callback = callback;
   _nordic_uart_buf_init();
 
-  // Initialize NimBLE
-  esp_err_t ret = nimble_port_init();
+  // Initialize controller and NimBLE host
+  esp_err_t ret = esp_nimble_hci_and_controller_init();
+  if (ret != ESP_OK) {
+    ESP_LOGE(_TAG, "esp_nimble_hci_and_controller_init() failed with error: %d", ret);
+    return ESP_FAIL;
+  }
+
+  ret = nimble_port_init();
   if (ret != ESP_OK) {
     ESP_LOGE(_TAG, "nimble_port_init() failed with error: %d", ret);
+    esp_nimble_hci_and_controller_deinit();
+    return ESP_FAIL;
   }
 
   // Initialize the NimBLE Host configuration
@@ -316,6 +324,7 @@ esp_err_t _nordic_uart_stop(void) {
       return ESP_FAIL;
     }
   }
+  esp_nimble_hci_and_controller_deinit();
   _nordic_uart_buf_deinit();
 
   _nordic_uart_callback = NULL;

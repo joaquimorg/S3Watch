@@ -66,7 +66,16 @@ void uartTask(void *parameter) {
 
         cJSON *notification = cJSON_GetObjectItem(root, "notification");
         if (cJSON_IsString(notification)) {
+          ESP_LOGI(TAG, "Notification");
           handle_notification(notification->valuestring);
+        }
+
+        cJSON *status = cJSON_GetObjectItem(root, "status");
+        if (cJSON_IsString(status)) {
+          //handle_notification(status->valuestring);
+          ESP_LOGI(TAG, "Status");
+          ble_sync_send_status(50, false);
+
         }
 
         cJSON_Delete(root);
@@ -82,7 +91,8 @@ void uartTask(void *parameter) {
 static void nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
     switch (callback_type) {
     case NORDIC_UART_CONNECTED:
-        ESP_LOGI(TAG, "Nordic UART connected");
+        ESP_LOGI(TAG, "Nordic UART connected");        
+
         break;
     case NORDIC_UART_DISCONNECTED:
         ESP_LOGI(TAG, "Nordic UART disconnected");

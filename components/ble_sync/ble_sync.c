@@ -34,6 +34,11 @@ void uartTask(void *parameter) {
         mbuf[item_size] = '\0';
         vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void *)item);
 
+        // Ignore control messages (e.g., disconnect marker)
+        if (mbuf[0] == '\003') {
+          continue;
+        }
+
         ESP_LOGI(TAG, "Received: %s", mbuf);
 
         cJSON *root = cJSON_Parse(mbuf);

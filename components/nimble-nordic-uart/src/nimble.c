@@ -68,41 +68,6 @@ static int _uart_noop(uint16_t conn_handle, uint16_t attr_handle, struct ble_gat
   return 0;
 }
 
-// Callback para acesso ao descritor CCCD (implemente conforme sua necessidade)
-
-static int _cccd_access_cb(uint16_t conn_handle, uint16_t attr_handle,
-                           struct ble_gatt_access_ctxt *ctxt, void *arg) {
-    
-    if (ctxt->op == BLE_GATT_ACCESS_OP_READ_DSC) { // This line is not part of the original selection.
-        // Retorne o valor do CCCD
-        ESP_LOGI(_TAG, "Return CCCD");
-        uint16_t cccd_value = 0; // Valor padrão, notificação desativada
-        if (ble_gatts_find_dsc(NULL, NULL, NULL, &cccd_value) == 0) {
-            ctxt->om = os_mbuf_get_pkthdr(NULL, sizeof(cccd_value));
-            if (ctxt->om) {
-                os_mbuf_append(ctxt->om, &cccd_value, sizeof(cccd_value));
-                return 0;
-            }
-        }
-        return BLE_ATT_ERR_INSUFFICIENT_RES;
-    } else if (ctxt->op == BLE_GATT_ACCESS_OP_WRITE_DSC) {
-        // Atualize o CCCD com o novo valor
-        ESP_LOGI(_TAG, "Update CCCD");
-        uint16_t new_cccd_value;
-        int rc = ble_hs_mbuf_to_flat(ctxt->om, &new_cccd_value, sizeof(new_cccd_value), NULL);
-        if (rc != 0) {
-            return rc;
-        }
-        // Aqui você pode armazenar o novo valor do CCCD conforme necessário
-        ESP_LOGI(_TAG, "CCCD : %d", new_cccd_value);
-        return 0; // Sucesso
-    } else {
-        return BLE_ATT_ERR_UNLIKELY;
-    }
-    return 0;
-}
-
-
 static const struct ble_gatt_svc_def gat_svcs[] = {
     {
         .type = BLE_GATT_SVC_TYPE_PRIMARY,
@@ -112,28 +77,12 @@ static const struct ble_gatt_svc_def gat_svcs[] = {
                 .uuid = (ble_uuid_t*)&CHAR_UUID_RX,
                 .flags = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_WRITE_NO_RSP,
                 .access_cb = _uart_receive,
-                .descriptors = (struct ble_gatt_dsc_def[]){
-                    {
-                        .uuid = BLE_UUID16_DECLARE(0x2902),
-                        .att_flags = HA_FLAG_PERM_RW,
-                        .access_cb = _cccd_access_cb,
-                    },
-                    { 0 },
-                },
             },
             {
                 .uuid = (ble_uuid_t*)&CHAR_UUID_TX,
                 .flags = BLE_GATT_CHR_F_NOTIFY,
                 .val_handle = &notify_char_attr_hdl,
                 .access_cb = _uart_noop,
-                .descriptors = (struct ble_gatt_dsc_def[]){
-                    {
-                        .uuid = BLE_UUID16_DECLARE(0x2902),
-                        .att_flags = HA_FLAG_PERM_RW,
-                        .access_cb = _cccd_access_cb,
-                    },
-                    { 0 },
-                },
             },
             { 0 },
         },

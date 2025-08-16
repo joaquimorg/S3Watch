@@ -186,6 +186,17 @@ static int ble_gap_event_cb(struct ble_gap_event* event, void* arg) {
     ble_app_advertise();
     break;
   case BLE_GAP_EVENT_SUBSCRIBE:
+    if (event->subscribe.attr_handle == notify_char_attr_hdl) {
+      if (event->subscribe.cur_notify == 0) {
+        ESP_LOGI(_TAG, "Client unsubscribed from notifications");
+      }
+      else {
+        ESP_LOGI(_TAG, "Client subscribed to notifications");
+      }
+    }
+    else {
+      ESP_LOGW(_TAG, "Unknown subscribe event for attr_handle %d", event->subscribe.attr_handle);
+    }
     ESP_LOGI(_TAG, "BLE_GAP_EVENT_SUBSCRIBE");
     break;
   default:

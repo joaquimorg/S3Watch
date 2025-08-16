@@ -92,7 +92,10 @@ static void nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
 
 esp_err_t ble_sync_init(void)
 {
-    nordic_uart_start("ESP32 S3 Watch", nordic_uart_callback);
+    esp_err_t err = nordic_uart_start("ESP32 S3 Watch", nordic_uart_callback);
+    if (err != ESP_OK) {
+        return err;
+    }
 
     xTaskCreate(uartTask, "uartTask", 4000, NULL, 5, NULL);
 

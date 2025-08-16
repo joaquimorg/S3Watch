@@ -115,7 +115,7 @@ static const struct ble_gatt_svc_def gat_svcs[] = {
                 .descriptors = (struct ble_gatt_dsc_def[]){
                     {
                         .uuid = BLE_UUID16_DECLARE(0x2902),
-                        .att_flags = BLE_ATT_F_READ | BLE_ATT_F_WRITE,
+                        .att_flags = HA_FLAG_PERM_RW,
                         .access_cb = _cccd_access_cb,
                     },
                     { 0 },
@@ -129,7 +129,7 @@ static const struct ble_gatt_svc_def gat_svcs[] = {
                 .descriptors = (struct ble_gatt_dsc_def[]){
                     {
                         .uuid = BLE_UUID16_DECLARE(0x2902),
-                        .att_flags = BLE_ATT_F_READ | BLE_ATT_F_WRITE,
+                        .att_flags = HA_FLAG_PERM_RW,
                         .access_cb = _cccd_access_cb,
                     },
                     { 0 },

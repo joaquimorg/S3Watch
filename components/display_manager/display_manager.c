@@ -1,11 +1,18 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include "esp_check.h"
+#include "esp_err.h"
+#include "esp_log.h"
 #include "display_manager.h"
 #include "bsp/display.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "lvgl.h"
+#include "esp_lvgl_port.h"
 #include "settings.h"
-#include "esp_log.h"
+
 
 #define DISPLAY_BUTTON GPIO_NUM_0
 
@@ -19,6 +26,10 @@ static void display_turn_off_internal(void) {
         return;
     }
     ESP_LOGI(TAG, "Turning display off");
+    // Stop LVGL timers to pause flushing while panel sleeps
+    lvgl_port_stop();
+    // Put panel into low-power sleep and ensure backlight is off
+    bsp_display_sleep();
     bsp_display_brightness_set(0);
     display_on = false;
 }
@@ -30,6 +41,9 @@ void display_manager_turn_off(void) {
 void display_manager_turn_on(void) {
     if (!display_on) {
         ESP_LOGI(TAG, "Turning display on");
+        // Wake the panel first, then resume LVGL and restore brightness
+        bsp_display_wake();
+        lvgl_port_resume();
         bsp_display_brightness_set(settings_get_brightness());
         display_on = true;
     }
@@ -45,10 +59,24 @@ void display_manager_reset_timer(void) {
 }
 
 static void touch_event_cb(lv_event_t *e) {
-    display_manager_reset_timer();
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+        case LV_EVENT_PRESSED:
+        case LV_EVENT_PRESSING:
+        case LV_EVENT_RELEASED:
+        case LV_EVENT_CLICKED:
+        case LV_EVENT_LONG_PRESSED:
+        case LV_EVENT_LONG_PRESSED_REPEAT:
+        case LV_EVENT_GESTURE:
+            display_manager_reset_timer();
+            break;
+        default:
+            break; // ignore non-input/render events
+    }
 }
 
 static void display_manager_task(void *arg) {
+    ESP_LOGI(TAG, "Display manager task started");
     while (1) {
         if (display_on) {
             uint32_t inactive = lv_disp_get_inactive_time(NULL);

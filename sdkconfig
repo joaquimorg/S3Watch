@@ -2356,6 +2356,47 @@ CONFIG_WL_SECTOR_SIZE=4096
 # end of Wear Levelling
 
 #
+# Board Support Package
+#
+CONFIG_BSP_ERROR_CHECK=y
+
+#
+# I2C
+#
+CONFIG_BSP_I2C_NUM=1
+CONFIG_BSP_I2C_FAST_MODE=y
+CONFIG_BSP_I2C_CLK_SPEED_HZ=400000
+# end of I2C
+
+#
+# SPIFFS - Virtual File System
+#
+# CONFIG_BSP_SPIFFS_FORMAT_ON_MOUNT_FAIL is not set
+CONFIG_BSP_SPIFFS_MOUNT_POINT="/spiffs"
+CONFIG_BSP_SPIFFS_PARTITION_LABEL="storage"
+CONFIG_BSP_SPIFFS_MAX_FILES=2
+# end of SPIFFS - Virtual File System
+
+#
+# uSD card - Virtual File System
+#
+# CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL is not set
+CONFIG_BSP_SD_MOUNT_POINT="/sdcard"
+# end of uSD card - Virtual File System
+
+#
+# Display
+#
+CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_HEIGHT=20
+CONFIG_BSP_LCD_RGB_BUFFER_NUMS=1
+CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH=1
+CONFIG_BSP_DISPLAY_LVGL_BUF_HEIGHT=100
+# end of Display
+
+CONFIG_BSP_I2S_NUM=1
+# end of Board Support Package
+
+#
 # Nimble Nordic UART Configuration
 #
 CONFIG_NORDIC_UART_MAX_LINE_LENGTH=256
@@ -2810,47 +2851,6 @@ CONFIG_LVGL_VERSION_PATCH=0
 # CONFIG_LV_BUILD_DEMOS is not set
 # end of Demos
 # end of LVGL configuration
-
-#
-# Board Support Package
-#
-CONFIG_BSP_ERROR_CHECK=y
-
-#
-# I2C
-#
-CONFIG_BSP_I2C_NUM=1
-CONFIG_BSP_I2C_FAST_MODE=y
-CONFIG_BSP_I2C_CLK_SPEED_HZ=400000
-# end of I2C
-
-#
-# SPIFFS - Virtual File System
-#
-# CONFIG_BSP_SPIFFS_FORMAT_ON_MOUNT_FAIL is not set
-CONFIG_BSP_SPIFFS_MOUNT_POINT="/spiffs"
-CONFIG_BSP_SPIFFS_PARTITION_LABEL="storage"
-CONFIG_BSP_SPIFFS_MAX_FILES=2
-# end of SPIFFS - Virtual File System
-
-#
-# uSD card - Virtual File System
-#
-# CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL is not set
-CONFIG_BSP_SD_MOUNT_POINT="/sdcard"
-# end of uSD card - Virtual File System
-
-#
-# Display
-#
-CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_HEIGHT=20
-CONFIG_BSP_LCD_RGB_BUFFER_NUMS=1
-CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH=1
-CONFIG_BSP_DISPLAY_LVGL_BUF_HEIGHT=100
-# end of Display
-
-CONFIG_BSP_I2S_NUM=1
-# end of Board Support Package
 # end of Component config
 
 CONFIG_IDF_EXPERIMENTAL_FEATURES=y

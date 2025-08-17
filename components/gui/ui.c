@@ -163,7 +163,6 @@ void ui_task(void* pvParameters) {
     ui_init();
     display_manager_init();
     while (1) {
-        lv_timer_handler();
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 }

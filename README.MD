@@ -39,7 +39,7 @@ This project uses the ESP-IDF framework. To build and flash the firmware, follow
 
 The project utilizes several components managed by the ESP-IDF Component Manager, as defined in `main/idf_component.yml` and `dependencies.lock`:
 
-- `waveshare/esp32_s3_touch_amoled_2_06`: Board support package for the Waveshare ESP32-S3-Touch-AMOLED-2.06.
+- `esp32_s3_touch_amoled_2_06`: Board support package for the Waveshare ESP32-S3-Touch-AMOLED-2.06.
 - `lvgl/lvgl`: LVGL graphics library for UI development.
 
 These dependencies are automatically fetched by the ESP-IDF build system.

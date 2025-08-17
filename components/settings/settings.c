@@ -8,7 +8,7 @@
 
 static const char *TAG = "SETTINGS";
 static uint8_t brightness = 30;
-static uint32_t display_timeout_ms = 30000;
+static uint32_t display_timeout_ms = 10000;
 static bool sound_enabled = true;
 
 void settings_init(void) {

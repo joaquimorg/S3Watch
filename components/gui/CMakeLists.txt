@@ -24,5 +24,6 @@ idf_component_register(
     "icons/image_heart_bg_large.c"
     
     INCLUDE_DIRS "include" 
-    REQUIRES lvgl sensors settings display_manager
+    REQUIRES lvgl sensors settings display_manager ble_sync esp32_s3_touch_amoled_2_06
+    PRIV_REQUIRES esp_event
 )

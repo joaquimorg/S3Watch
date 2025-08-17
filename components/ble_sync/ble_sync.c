@@ -14,8 +14,13 @@
 #include "rtc_lib.h"
 #include "esp-bsp.h"
 #include "sensors.h"
+#include "esp_event.h"
+#include "bsp/esp32_s3_touch_amoled_2_06.h"
 
 static const char *TAG = "BLE_SYNC";
+
+// Define event base for BLE connection status
+ESP_EVENT_DEFINE_BASE(BLE_SYNC_EVENT_BASE);
 
 static void handle_notification(const char *message) {
   ESP_LOGI(TAG, "Notification: %s", message);
@@ -92,12 +97,26 @@ void uartTask(void *parameter) {
 static void nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
     switch (callback_type) {
     case NORDIC_UART_CONNECTED:
-        ESP_LOGI(TAG, "Nordic UART connected");        
+        ESP_LOGI(TAG, "Nordic UART connected");
+        (void)esp_event_post(BLE_SYNC_EVENT_BASE, BLE_SYNC_EVT_CONNECTED, NULL, 0, 0);
 
         break;
     case NORDIC_UART_DISCONNECTED:
         ESP_LOGI(TAG, "Nordic UART disconnected");
+        (void)esp_event_post(BLE_SYNC_EVENT_BASE, BLE_SYNC_EVT_DISCONNECTED, NULL, 0, 0);
         break;
+    }
+}
+
+// Enviar estado em cada evento de energia (file-scope C function, not nested)
+static void power_ble_evt(void* handler_arg, esp_event_base_t base, int32_t id, void* event_data)
+{
+    (void)handler_arg;
+    (void)base;
+    (void)id;
+    bsp_power_event_payload_t* pl = (bsp_power_event_payload_t*)event_data;
+    if (pl) {
+        ble_sync_send_status(pl->battery_percent, pl->charging);
     }
 }
 
@@ -109,6 +128,9 @@ esp_err_t ble_sync_init(void)
     }
 
     xTaskCreate(uartTask, "uartTask", 4000, NULL, 5, NULL);
+
+    // Enviar estado em cada evento de energia
+    esp_event_handler_register(BSP_POWER_EVENT_BASE, ESP_EVENT_ANY_ID, power_ble_evt, NULL);
 
     return ESP_OK;
 }
@@ -122,6 +144,9 @@ esp_err_t ble_sync_send_status(int battery_percent, bool charging)
 
     cJSON_AddNumberToObject(root, "battery", battery_percent);
     cJSON_AddBoolToObject(root, "charging", charging);
+    // Include VBUS presence for richer client status
+    bool vbus = (bsp_power_get_vbus_voltage_mv() > 0);
+    cJSON_AddBoolToObject(root, "vbus", vbus);
     cJSON_AddNumberToObject(root, "steps", sensors_get_step_count());
 
     char *json_str = cJSON_PrintUnformatted(root);

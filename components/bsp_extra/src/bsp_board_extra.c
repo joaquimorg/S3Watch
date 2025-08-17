@@ -8,6 +8,7 @@
 #include "driver/i2s_std.h"
 #include "driver/gpio.h"
 #include "driver/ledc.h"
+#include "esp_event.h"
 
 #include "bsp/esp-bsp.h"
 #include "bsp_board_extra.h"
@@ -27,7 +28,7 @@ esp_err_t bsp_rtc_init(void)
     i2c_device_config_t dev_config = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = 0x51,
-        .scl_speed_hz = CONFIG_I2C_MASTER_FREQUENCY,
+        .scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ,
         .scl_wait_us = 0,
         .flags = {
             .disable_ack_check = 0
@@ -70,6 +71,9 @@ esp_err_t bsp_extra_init(void)
 {
     esp_err_t ret;
 
+    // Ensure default event loop exists for cross-component events
+    (void)esp_event_loop_create_default();
+
     bus_handle = bsp_i2c_get_handle();
     
     ret = bsp_rtc_init();
@@ -97,4 +101,3 @@ esp_err_t bsp_extra_init(void)
 
     return ESP_OK;
 }
-

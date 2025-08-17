@@ -4,12 +4,19 @@
 #include "settings_screen.h"
 #include "sensors.h"
 #include "display_manager.h"
+#include "watchface.h"
+#include "bsp/esp32_s3_touch_amoled_2_06.h"
+#include "esp_event.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
 #include "bsp/esp-bsp.h"
+#include "lvgl.h"
+#include "ble_sync.h"
 
 static const char* TAG = "UI";
+
+int estimate_percent_from_mv(int mv);
 
 
 static lv_theme_t* theme_original;
@@ -155,13 +162,85 @@ void ui_init(void) {
 
     //debug_screen();
 
+    // Atualizar estado de energia inicial (usar estimativa por tensão)
+    {
+        bool vbus = bsp_power_is_vbus_in();
+        bool chg  = bsp_power_is_charging();
+        int  mv   = bsp_power_get_batt_voltage_mv();
+        int  pct  = estimate_percent_from_mv(mv);
+        if (pct < 0) pct = bsp_power_get_battery_percent();
+        watchface_set_power_state(vbus, chg, pct);
+    }
+
     bsp_display_unlock();
+}
+
+// Callback de eventos de energia (file-scope, não aninhada)
+static void power_ui_evt(void* handler_arg, esp_event_base_t base, int32_t id, void* event_data)
+{
+    (void)handler_arg;
+    (void)base;
+    (void)id;
+    bsp_power_event_payload_t* pl = (bsp_power_event_payload_t*)event_data;
+    if (pl && bsp_display_lock(10)) {
+        int mv = bsp_power_get_batt_voltage_mv();
+        int pct = estimate_percent_from_mv(mv);
+        if (pct < 0) pct = pl->battery_percent;
+        watchface_set_power_state(pl->vbus_in, pl->charging, pct);
+        bsp_display_unlock();
+    }
+}
+
+// Callback BLE: atualiza ícone de ligação
+static void ble_ui_evt(void* handler_arg, esp_event_base_t base, int32_t id, void* event_data)
+{
+    (void)handler_arg; (void)base; (void)event_data;
+    bool connected = (id == BLE_SYNC_EVT_CONNECTED);
+    if (bsp_display_lock(10)) {
+        watchface_set_ble_connected(connected);
+        bsp_display_unlock();
+    }
+}
+
+// Simple voltage->percent estimator for Li-ion (linear 3.30V..4.20V)
+int estimate_percent_from_mv(int mv)
+{
+    if (mv <= 0) return -1;
+    int est = (mv - 3300) * 100 / (4200 - 3300);
+    if (est < 0) est = 0;
+    if (est > 100) est = 100;
+    return est;
+}
+
+// Timer callback: periodic power refresh
+static void power_poll_cb(lv_timer_t* t)
+{
+    (void)t;
+    bool vbus = bsp_power_is_vbus_in();
+    bool chg  = bsp_power_is_charging();
+    int  mv   = bsp_power_get_batt_voltage_mv();
+    int  pct  = estimate_percent_from_mv(mv);
+    if (pct < 0) {
+        pct = bsp_power_get_battery_percent();
+    }
+    if (bsp_display_lock(10)) {
+        watchface_set_power_state(vbus, chg, pct);
+        bsp_display_unlock();
+    }
 }
 
 void ui_task(void* pvParameters) {
     ESP_LOGI(TAG, "UI task started");
     ui_init();
     display_manager_init();
+    // Subscrever eventos de energia e atualizar UI
+    esp_event_handler_register(BSP_POWER_EVENT_BASE, ESP_EVENT_ANY_ID, power_ui_evt, NULL);
+    esp_event_handler_register(BLE_SYNC_EVENT_BASE, ESP_EVENT_ANY_ID, ble_ui_evt, NULL);
+
+    // Periodic fallback: refresh power state every 5s in case no events fire
+    lv_timer_t* t = lv_timer_create(power_poll_cb, 5000, NULL);
+    // Trigger once immediately to avoid initial 0%
+    lv_timer_ready(t);
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(50));
     }

@@ -8,20 +8,29 @@
 #include "bsp/esp-bsp.h"
 #include "bsp/display.h"
 #include "bsp_board_extra.h"
-#include "ble_sync.h"
 #include "sensors.h"
 #include "settings.h"
 #include "ui.h"
+#include "display_manager.h"
+#include "esp_event.h"
+// UI/BLE reagem a eventos de energia; remover ponte direta aqui
 
 static const char *TAG = "MAIN";
 
 extern "C" void app_main(void) {
     
+    // Create default event loop for component event handlers
+    esp_event_loop_create_default();
+
     bsp_display_start();
 
     bsp_extra_init();
 
     settings_init();
+
+    // UI task chama display_manager_init() após criar o ecrã
+
+    // UI e BLE subscrevem eventos diretamente; sem acoplamento no main
 
     sensors_init();
 

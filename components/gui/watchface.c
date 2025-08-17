@@ -14,6 +14,10 @@ static lv_obj_t * label_minute;
 static lv_obj_t * label_second;
 static lv_obj_t * label_date;
 static lv_obj_t * label_weekday;
+static lv_obj_t * img_battery;
+static lv_obj_t * lbl_batt_pct;
+static lv_obj_t * lbl_charge_icon;
+static lv_obj_t * img_ble;
 
 static bool inited = false;
 
@@ -390,5 +394,82 @@ void watchface_create(lv_obj_t * screen) {
     lv_demo_smartwatch_control_create();
     lv_demo_smartwatch_health_create();*/
 
+    // Battery icon on top-left
+    extern const lv_image_dsc_t image_battery_icon;
+    img_battery = lv_image_create(home_screen);
+    lv_image_set_src(img_battery, &image_battery_icon);
+    lv_obj_set_align(img_battery, LV_ALIGN_TOP_LEFT);
+    lv_obj_set_pos(img_battery, 8, 8);
+    lv_obj_set_style_img_recolor_opa(img_battery, LV_OPA_COVER, 0);
+    lv_obj_set_style_img_recolor(img_battery, lv_color_hex(0x909090), 0);
+
+    // Battery percent label next to icon
+    lbl_batt_pct = lv_label_create(home_screen);
+    lv_obj_set_align(lbl_batt_pct, LV_ALIGN_TOP_LEFT);
+    lv_obj_set_pos(lbl_batt_pct, 8 + 53 + 8, 16); // icon width + padding
+    lv_label_set_text(lbl_batt_pct, "--%");
+
+    // Charging lightning overlay on top of battery icon
+    lbl_charge_icon = lv_label_create(img_battery);
+#ifdef LV_SYMBOL_CHARGE
+    lv_label_set_text(lbl_charge_icon, LV_SYMBOL_CHARGE);
+#else
+    lv_label_set_text(lbl_charge_icon, "⚡");
+#endif
+    lv_obj_center(lbl_charge_icon);
+    // Use default LVGL font to ensure symbol glyphs are present
+    lv_obj_set_style_text_font(lbl_charge_icon, LV_FONT_DEFAULT, 0);
+    lv_obj_set_style_text_color(lbl_charge_icon, lv_color_white(), 0);
+    lv_obj_add_flag(lbl_charge_icon, LV_OBJ_FLAG_HIDDEN);
+
+    // BLE status icon on top-right
+    extern const lv_image_dsc_t image_bluetooth_icon;
+    img_ble = lv_image_create(home_screen);
+    lv_image_set_src(img_ble, &image_bluetooth_icon);
+    lv_obj_set_align(img_ble, LV_ALIGN_TOP_RIGHT);
+    lv_obj_set_pos(img_ble, -8, 8);
+    lv_obj_set_style_img_recolor_opa(img_ble, LV_OPA_COVER, 0);
+    // Default to disconnected (grey)
+    lv_obj_set_style_img_recolor(img_ble, lv_color_hex(0x606060), 0);
+
     lv_timer_create(update_time_task, 1000, NULL);
+}
+
+void watchface_set_power_state(bool vbus_in, bool charging, int battery_percent)
+{
+    (void)battery_percent; // future: render %, or change icon fill
+    if (!img_battery) return;
+    lv_color_t col = lv_color_hex(0x909090); // default: grey
+    if (vbus_in) {
+        col = lv_color_hex(0x00BFFF); // USB plugged: blue
+    }
+    if (charging) {
+        col = lv_color_hex(0x00FF00); // Charging: green
+    }
+    lv_obj_set_style_img_recolor(img_battery, col, 0);
+    // Update percent text
+    if (lbl_batt_pct) {
+        if (battery_percent >= 0 && battery_percent <= 100) {
+            static char buf[8];
+            lv_snprintf(buf, sizeof(buf), "%d%%", battery_percent);
+            lv_label_set_text(lbl_batt_pct, buf);
+        } else {
+            lv_label_set_text(lbl_batt_pct, "--%");
+        }
+    }
+    // Toggle lightning overlay: show if VBUS present or charging
+    if (lbl_charge_icon) {
+        if (vbus_in || charging) {
+            lv_obj_clear_flag(lbl_charge_icon, LV_OBJ_FLAG_HIDDEN);
+        } else {
+            lv_obj_add_flag(lbl_charge_icon, LV_OBJ_FLAG_HIDDEN);
+        }
+    }
+}
+
+void watchface_set_ble_connected(bool connected)
+{
+    if (!img_ble) return;
+    lv_color_t col = connected ? lv_color_hex(0x3B82F6) /* blue */ : lv_color_hex(0x606060) /* grey */;
+    lv_obj_set_style_img_recolor(img_ble, col, 0);
 }

@@ -69,6 +69,7 @@ void create_main_screen(void) {
 
     tileMotfication = lv_tileview_add_tile(mainTileView, 0, 0, LV_DIR_BOTTOM);
     ui_Messages_Panel = lv_obj_create(tileMotfication);
+    lv_obj_add_style(ui_Messages_Panel, &main_style, 0);
     lv_obj_set_width(ui_Messages_Panel, lv_pct(100));
     lv_obj_set_height(ui_Messages_Panel, lv_pct(100));
     lv_obj_set_align(ui_Messages_Panel, LV_ALIGN_CENTER);
@@ -76,7 +77,7 @@ void create_main_screen(void) {
     lv_obj_set_scrollbar_mode(ui_Messages_Panel, LV_SCROLLBAR_MODE_OFF);
     //lv_obj_set_style_radius(ui_Messages_Panel, 80, LV_PART_MAIN | LV_STATE_DEFAULT);
     //lv_obj_set_style_bg_color(ui_Messages_Panel, lv_color_hex(0x570057), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_Messages_Panel, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+    //lv_obj_set_style_bg_color(ui_Messages_Panel, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
 
     tileClock = lv_tileview_add_tile(mainTileView, 0, 1, LV_DIR_BOTTOM | LV_DIR_TOP | LV_DIR_RIGHT);
     ui_Clock01_Panel = lv_obj_create(tileClock);

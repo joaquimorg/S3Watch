@@ -1,8 +1,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "esp_log.h"
+#include "esp_check.h"
 #include "esp_err.h"
+#include "esp_log.h"
 #include "lvgl.h"
 #include "bsp/esp-bsp.h"
 #include "bsp/display.h"
@@ -11,6 +12,8 @@
 #include "sensors.h"
 #include "settings.h"
 #include "ui.h"
+
+static const char *TAG = "MAIN";
 
 extern "C" void app_main(void) {
     

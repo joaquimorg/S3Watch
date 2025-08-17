@@ -111,6 +111,6 @@ void display_manager_init(void) {
 
     lv_obj_add_event_cb(lv_scr_act(), touch_event_cb, LV_EVENT_ALL, NULL);
 
-    xTaskCreate(display_manager_task, "display_mgr", 2048, NULL, 5, NULL);
+    xTaskCreate(display_manager_task, "display_mgr", 4000, NULL, 5, NULL);
 }
 

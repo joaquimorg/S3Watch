@@ -71,7 +71,7 @@ esp_err_t bsp_extra_init(void)
     esp_err_t ret;
 
     bus_handle = bsp_i2c_get_handle();
-
+    
     ret = bsp_rtc_init();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "RTC init failed");
@@ -82,14 +82,18 @@ esp_err_t bsp_extra_init(void)
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "PCF85063A init failed");
         return ret;
-    }
+    }    
 
     ret = ble_sync_init();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "BLE sync init failed");
         return ret;
-    }
+    }       
 
+    ret = bsp_power_init();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Power init failed");
+    }
 
     return ESP_OK;
 }

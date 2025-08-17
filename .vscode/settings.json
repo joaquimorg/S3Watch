@@ -14,7 +14,9 @@
     "complex": "c",
     "format": "c",
     "ble_svc_gap.h": "c",
-    "regex": "cpp"
+    "regex": "cpp",
+    "*.tpp": "cpp",
+    "esp_check.h": "c"
   },
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"

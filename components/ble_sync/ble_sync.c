@@ -12,6 +12,7 @@
 #include "freertos/task.h"
 #include "nimble-nordic-uart.h"
 #include "rtc_lib.h"
+#include "esp-bsp.h"
 #include "sensors.h"
 
 static const char *TAG = "BLE_SYNC";
@@ -74,7 +75,7 @@ void uartTask(void *parameter) {
         if (cJSON_IsString(status)) {
           //handle_notification(status->valuestring);
           ESP_LOGI(TAG, "Status");
-          ble_sync_send_status(50, false);
+          ble_sync_send_status(bsp_power_get_battery_percent(), bsp_power_is_charging());
 
         }
 

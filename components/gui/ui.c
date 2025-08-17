@@ -3,6 +3,7 @@
 #include "notifications.h"
 #include "settings_screen.h"
 #include "sensors.h"
+#include "display_manager.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -159,8 +160,9 @@ void ui_init(void) {
 void ui_task(void* pvParameters) {
     ESP_LOGI(TAG, "UI task started");
     ui_init();
+    display_manager_init();
     while (1) {
-        //lv_timer_handler();
+        lv_timer_handler();
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 }

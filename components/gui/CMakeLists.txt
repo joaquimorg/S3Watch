@@ -24,5 +24,5 @@ idf_component_register(
     "icons/image_heart_bg_large.c"
     
     INCLUDE_DIRS "include" 
-    REQUIRES lvgl sensors settings
+    REQUIRES lvgl sensors settings display_manager
 )

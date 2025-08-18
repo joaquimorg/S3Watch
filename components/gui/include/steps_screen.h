@@ -4,7 +4,8 @@
 extern "C" {
 #endif
 
-    void lv_smartwatch_control_create(lv_obj_t * screen);
+void steps_screen_create(lv_obj_t* parent);
+void steps_screen_set_goal(uint32_t goal_steps);
 
 #ifdef __cplusplus
 }

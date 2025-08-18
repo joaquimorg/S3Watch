@@ -4,10 +4,7 @@
 extern "C" {
 #endif
 
-void lv_demo_smartwatch_health_create(void);
-
-lv_obj_t * lv_demo_smartwatch_get_health_screen(void);
-
+void lv_smartwatch_notifications_create(lv_obj_t * screen);
 
 #ifdef __cplusplus
 }

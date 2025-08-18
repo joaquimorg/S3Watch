@@ -15,8 +15,6 @@
 #include "pcf85063a.h"
 #include "ble_sync.h"
 
-#define I2C_MASTER_TIMEOUT_MS 1000
-
 static const char *TAG = "bsp_extra_board";
 
 static i2c_master_bus_handle_t bus_handle;
@@ -28,7 +26,7 @@ esp_err_t bsp_rtc_init(void)
     i2c_device_config_t dev_config = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = 0x51,
-        .scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ,
+        .scl_speed_hz = CONFIG_I2C_MASTER_FREQUENCY,
         .scl_wait_us = 0,
         .flags = {
             .disable_ack_check = 0

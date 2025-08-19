@@ -10,21 +10,112 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/ringbuf.h"
 #include "freertos/task.h"
+#include "freertos/timers.h"
 #include "nimble-nordic-uart.h"
 #include "rtc_lib.h"
 #include "esp-bsp.h"
 #include "sensors.h"
 #include "esp_event.h"
 #include "bsp/esp32_s3_touch_amoled_2_06.h"
+#include "notifications.h"
+#include "display_manager.h"
+#include "ui.h"
 
 static const char *TAG = "BLE_SYNC";
 
 // Define event base for BLE connection status
 ESP_EVENT_DEFINE_BASE(BLE_SYNC_EVENT_BASE);
 
-static void handle_notification(const char *message) {
-  ESP_LOGI(TAG, "Notification: %s", message);
-  // TODO: display notification on the screen
+// Track BLE connection state to gate periodic status updates
+static volatile bool s_ble_connected = false;
+static TimerHandle_t s_status_timer = NULL;
+
+static void status_timer_cb(TimerHandle_t xTimer)
+{
+    (void)xTimer;
+    if (s_ble_connected) {
+        ble_sync_send_status(bsp_power_get_battery_percent(), bsp_power_is_charging());
+    }
+}
+
+static void handle_notification_fields(const char* timestamp,
+                                       const char* app,
+                                       const char* title,
+                                       const char* message)
+{
+    ESP_LOGI(TAG, "Notification: app='%s' title='%s' message='%s' ts='%s'",
+             app ? app : "", title ? title : "", message ? message : "", timestamp ? timestamp : "");
+
+    // Wake display for visibility
+    display_manager_turn_on();
+    if (bsp_display_lock(10)) {
+        notifications_show(app, title, message, timestamp);
+        ui_show_messages_tile();
+        bsp_display_unlock();
+    }
+}
+
+// --- Streaming JSON framing -------------------------------------------------
+// Some phones concatenate multiple JSON objects in one BLE write, or split
+// large ones across multiple writes. We accumulate chunks and extract one
+// complete JSON object at a time using cJSON_ParseWithOpts to know how much
+// was consumed.
+
+#define RX_ACCUM_MAX 4096
+static char   rx_accum[RX_ACCUM_MAX + 1];
+static size_t rx_len = 0;
+
+static void process_one_json_object(const char* json, size_t len)
+{
+    // cJSON requires a C-string; ensure local null-terminated copy for parsing
+    char* tmp = (char*)malloc(len + 1);
+    if (!tmp) return;
+    memcpy(tmp, json, len);
+    tmp[len] = '\0';
+
+    cJSON* root = cJSON_Parse(tmp);
+    if (!root) {
+        free(tmp);
+        return;
+    }
+
+    // Existing handlers (datetime, notification, status)
+    cJSON *datetime = cJSON_GetObjectItem(root, "datetime");
+    if (cJSON_IsString(datetime)) {
+        int year, month, day, hour, minute, second;
+        if (sscanf(datetime->valuestring, "%d-%d-%dT%d:%d:%d", &year, &month, &day, &hour, &minute, &second) == 6) {
+            struct tm t = {
+                .tm_year = year,
+                .tm_mon = month,
+                .tm_mday = day,
+                .tm_hour = hour,
+                .tm_min = minute,
+                .tm_sec = second};
+            rtc_set_time(&t);
+            ESP_LOGI(TAG, "RTC updated");
+        }
+    }
+
+    cJSON *notification = cJSON_GetObjectItem(root, "notification");
+    if (cJSON_IsString(notification)) {
+        ESP_LOGI(TAG, "Notification");
+        cJSON *app = cJSON_GetObjectItem(root, "app");
+        cJSON *title = cJSON_GetObjectItem(root, "title");
+        cJSON *message = cJSON_GetObjectItem(root, "message");
+        const char* app_s = cJSON_IsString(app) ? app->valuestring : "";
+        const char* title_s = cJSON_IsString(title) ? title->valuestring : "";
+        const char* msg_s = cJSON_IsString(message) ? message->valuestring : "";
+        handle_notification_fields(notification->valuestring, app_s, title_s, msg_s);
+    }
+
+    cJSON *status = cJSON_GetObjectItem(root, "status");
+    if (cJSON_IsString(status)) {
+        ESP_LOGI(TAG, "Status");
+        ble_sync_send_status(bsp_power_get_battery_percent(), bsp_power_is_charging());
+    }
+
+    cJSON_Delete(root);
+    free(tmp);
 }
 
 void uartTask(void *parameter) {
@@ -40,51 +131,11 @@ void uartTask(void *parameter) {
         mbuf[item_size] = '\0';
         vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void *)item);
 
-        
-        ESP_LOGI(TAG, "Received: %s", mbuf);
+        ESP_LOGI(TAG, "Received chunk: %u bytes", (unsigned)item_size);
+        ESP_LOGI(TAG, "Received buffer: %s", mbuf);
 
-        // Ignore control messages (e.g., disconnect marker)
-        if (mbuf[0] == '\003') {
-          continue;
-        }
+        process_one_json_object(mbuf, item_size);
 
-        cJSON *root = cJSON_Parse(mbuf);
-        if (!root) {
-          ESP_LOGW(TAG, "Invalid JSON: %s", mbuf);
-          continue;
-        }
-
-        cJSON *datetime = cJSON_GetObjectItem(root, "datetime");
-        if (cJSON_IsString(datetime)) {
-          int year, month, day, hour, minute, second;
-          if (sscanf(datetime->valuestring, "%d-%d-%dT%d:%d:%d", &year, &month, &day, &hour, &minute, &second) == 6) {
-            struct tm t = {
-                .tm_year = year,
-                .tm_mon = month,
-                .tm_mday = day,
-                .tm_hour = hour,
-                .tm_min = minute,
-                .tm_sec = second};
-            rtc_set_time(&t);
-            ESP_LOGI(TAG, "RTC updated");
-          }
-        }
-
-        cJSON *notification = cJSON_GetObjectItem(root, "notification");
-        if (cJSON_IsString(notification)) {
-          ESP_LOGI(TAG, "Notification");
-          handle_notification(notification->valuestring);
-        }
-
-        cJSON *status = cJSON_GetObjectItem(root, "status");
-        if (cJSON_IsString(status)) {
-          //handle_notification(status->valuestring);
-          ESP_LOGI(TAG, "Status");
-          ble_sync_send_status(bsp_power_get_battery_percent(), bsp_power_is_charging());
-
-        }
-
-        cJSON_Delete(root);
       }
     } else {
       vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -98,11 +149,15 @@ static void nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
     switch (callback_type) {
     case NORDIC_UART_CONNECTED:
         ESP_LOGI(TAG, "Nordic UART connected");
+        s_ble_connected = true;
         (void)esp_event_post(BLE_SYNC_EVENT_BASE, BLE_SYNC_EVT_CONNECTED, NULL, 0, 0);
+        // Optionally send immediate status upon connect
+        ble_sync_send_status(bsp_power_get_battery_percent(), bsp_power_is_charging());
 
         break;
     case NORDIC_UART_DISCONNECTED:
         ESP_LOGI(TAG, "Nordic UART disconnected");
+        s_ble_connected = false;
         (void)esp_event_post(BLE_SYNC_EVENT_BASE, BLE_SYNC_EVT_DISCONNECTED, NULL, 0, 0);
         break;
     }
@@ -128,6 +183,14 @@ esp_err_t ble_sync_init(void)
     }
 
     xTaskCreate(uartTask, "uartTask", 4000, NULL, 5, NULL);
+
+    // Periodic status every 5 minutes when connected
+    if (!s_status_timer) {
+        s_status_timer = xTimerCreate("ble_status_5m", pdMS_TO_TICKS(5 * 60 * 1000), pdTRUE, NULL, status_timer_cb);
+        if (s_status_timer) {
+            xTimerStart(s_status_timer, 0);
+        }
+    }
 
     // Enviar estado em cada evento de energia
     esp_event_handler_register(BSP_POWER_EVENT_BASE, ESP_EVENT_ANY_ID, power_ble_evt, NULL);

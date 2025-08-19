@@ -30,7 +30,7 @@ static void display_turn_off_internal(void) {
     }
     ESP_LOGI(TAG, "Turning display off");
     // Stop LVGL timers to pause flushing while panel sleeps
-    //lvgl_port_stop();
+    lvgl_port_stop();
     // Put panel into low-power sleep and ensure backlight is off
     bsp_display_sleep();
     bsp_display_brightness_set(0);
@@ -44,9 +44,9 @@ void display_manager_turn_off(void) {
 void display_manager_turn_on(void) {
     if (!display_on) {
         ESP_LOGI(TAG, "Turning display on");
-        // Wake the panel first, then resume LVGL and restore brightness
+        // Wake the panel first, then resume LVGL and restore brightness        
         bsp_display_wake();
-        //lvgl_port_resume();
+        lvgl_port_resume();
         bsp_display_brightness_set(settings_get_brightness());
         display_on = true;
     }

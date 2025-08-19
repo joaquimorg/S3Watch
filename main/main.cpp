@@ -34,6 +34,6 @@ extern "C" void app_main(void) {
 
     sensors_init();
 
-    xTaskCreate(ui_task, "ui", 4096, NULL, 5, NULL);
-    xTaskCreate(sensors_task, "sensors", 4096, NULL, 5, NULL);
+    xTaskCreate(ui_task, "ui", 8000, NULL, 5, NULL);
+    xTaskCreate(sensors_task, "sensors", 2048, NULL, 5, NULL);
 }

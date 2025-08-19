@@ -117,6 +117,13 @@ void create_main_screen(void) {
     active_screen = mainTileView;
 }
 
+void ui_show_messages_tile(void)
+{
+    if (!mainTileView) return;
+    // Messages tile is at (0,0)
+    lv_obj_set_tile_id(mainTileView, 0, 0, LV_ANIM_ON);
+}
+
 
 
 

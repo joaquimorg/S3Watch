@@ -9,7 +9,7 @@ static lv_obj_t* s_value_label = NULL;
 static lv_obj_t* s_goal_label = NULL;
 static lv_obj_t* s_bar = NULL;
 static lv_obj_t* s_ticks[4] = {0};
-static lv_obj_t* s_pct_label = NULL;
+
 static lv_obj_t* s_icon_left = NULL;
 static lv_obj_t* s_icon_right = NULL;
 static lv_timer_t* s_timer = NULL;
@@ -28,11 +28,6 @@ static void steps_timer_cb(lv_timer_t* t)
     uint32_t goal = s_goal_steps ? s_goal_steps : 1;
     uint32_t pct = (steps >= goal) ? 100 : (steps * 100u) / goal;
     if (s_bar) lv_bar_set_value(s_bar, (int32_t)pct, LV_ANIM_OFF);
-    if (s_pct_label) {
-        char pbuf[8];
-        lv_snprintf(pbuf, sizeof(pbuf), "%u%%", (unsigned)pct);
-        lv_label_set_text(s_pct_label, pbuf);
-    }
 }
 
 void steps_screen_create(lv_obj_t* parent)
@@ -84,12 +79,6 @@ void steps_screen_create(lv_obj_t* parent)
     lv_obj_set_style_bg_opa(s_bar, LV_OPA_100, LV_PART_MAIN);
     lv_obj_set_style_bg_color(s_bar, lv_color_hex(0x3B82F6), LV_PART_INDICATOR);
     lv_obj_set_style_bg_opa(s_bar, LV_OPA_100, LV_PART_INDICATOR);
-
-    // Percent label at right of bar
-    s_pct_label = lv_label_create(s_container);
-    lv_label_set_text(s_pct_label, "0%");
-    lv_obj_set_style_text_color(s_pct_label, lv_color_white(), 0);
-    lv_obj_align_to(s_pct_label, s_bar, LV_ALIGN_OUT_RIGHT_MID, 10, 0);
 
     // Icons on bar ends
     s_icon_left = lv_label_create(s_container);

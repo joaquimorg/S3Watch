@@ -14,7 +14,7 @@ static const char* _TAG = "NORDIC UART";
 
 // #define CONFIG_NORDIC_UART_MAX_LINE_LENGTH 256
 // #define CONFIG_NORDIC_UART_RX_BUFFER_SIZE 4096
-#define BLE_SEND_MTU 128
+#define BLE_SEND_MTU 203
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define B0(x) ((x) & 0xFF)

@@ -61,7 +61,6 @@ void create_main_screen(void) {
     lv_obj_add_style(mainTileView, &main_style, 0);
 
     tileMotfication = lv_tileview_add_tile(mainTileView, 0, 0, LV_DIR_BOTTOM);
-
     ui_Messages_Panel = lv_obj_create(tileMotfication);
     lv_obj_add_style(ui_Messages_Panel, &main_style, 0);
     lv_obj_set_width(ui_Messages_Panel, lv_pct(100));

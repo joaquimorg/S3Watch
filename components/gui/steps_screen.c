@@ -42,10 +42,9 @@ void steps_screen_create(lv_obj_t* parent)
     lv_obj_t* title = lv_label_create(s_container);
     
     lv_label_set_text(title, "Steps");
-    lv_obj_set_style_text_font(title, &font_normal_32, 0);
+    lv_obj_set_style_text_font(title, &font_bold_42, 0);
     lv_obj_set_style_text_letter_space(title, 1, 0);
     lv_obj_set_style_text_color(title, lv_color_white(), 0);
-    lv_obj_set_style_text_font(title, LV_FONT_DEFAULT, 0);
     lv_obj_set_align(title, LV_ALIGN_TOP_MID);
     lv_obj_set_y(title, 10);
 

@@ -1,6 +1,7 @@
 #include "settings_screen.h"
 #include "settings.h"
 #include "ui_private.h"
+#include "nimble-nordic-uart.h"
 
 LV_IMAGE_DECLARE(image_mute_icon);
 LV_IMAGE_DECLARE(image_flashlight_icon);
@@ -13,18 +14,36 @@ LV_IMAGE_DECLARE(image_settings_icon);
 LV_FONT_DECLARE(font_inter_regular_28)
 
 static void control_screen_events(lv_event_t* e);
-static void scroll_event_cb(lv_event_t* e);
+static void toggle_event_cb(lv_event_t* e);
 
 static lv_obj_t* control_screen;
 
 static const lv_image_dsc_t* control_icons[] = {
-    &image_mute_icon,
-    &image_flashlight_icon,
-    &image_brightness_icon,
-    &image_battery_icon,
+    &image_brightness_icon,    
     &image_silence_icon,
+    &image_flashlight_icon,
+    &image_battery_icon,
     &image_bluetooth_icon,
     &image_settings_icon
+};
+
+static const char *control_labels[] = {
+    "Brightness",    
+    "Silence",
+    "Flashlight",    
+    "Battery",    
+    "Bluetooth",
+    "Settings"
+};
+
+enum control_id {
+    CTRL_MUTE = 0,
+    CTRL_FLASHLIGHT,
+    CTRL_BRIGHTNESS,
+    CTRL_BATTERY,
+    CTRL_SILENCE,
+    CTRL_BLUETOOTH,
+    CTRL_SETTINGS,
 };
 
 void lv_smartwatch_control_create(lv_obj_t* screen)
@@ -41,66 +60,65 @@ void lv_smartwatch_control_create(lv_obj_t* screen)
     //lv_style_set_translate_y(&cmain_style, -SCREEN_SIZE);
 
     lv_style_set_layout(&cmain_style, LV_LAYOUT_FLEX);
-    lv_style_set_flex_flow(&cmain_style, LV_FLEX_FLOW_COLUMN);
+    lv_style_set_flex_flow(&cmain_style, LV_FLEX_FLOW_ROW_WRAP);
     lv_style_set_flex_main_place(&cmain_style, LV_FLEX_ALIGN_START);
     lv_style_set_flex_cross_place(&cmain_style, LV_FLEX_ALIGN_CENTER);
-    lv_style_set_flex_track_place(&cmain_style, LV_FLEX_ALIGN_CENTER);
-    //lv_style_set_pad_top(&cmain_style, 80);
-    //lv_style_set_pad_bottom(&cmain_style, 0);
-    lv_style_set_pad_row(&cmain_style, 20);
+    lv_style_set_flex_track_place(&cmain_style, LV_FLEX_ALIGN_START);
+    lv_style_set_pad_row(&cmain_style, 16);
+    lv_style_set_pad_column(&cmain_style, 16);
+    lv_style_set_pad_top(&cmain_style, 25);
 
 
     control_screen = lv_obj_create(screen);
     lv_obj_remove_style_all(control_screen);
     lv_obj_add_style(control_screen, &cmain_style, 0);
     lv_obj_set_size(control_screen, lv_pct(100), lv_pct(100));
-    lv_obj_set_scroll_dir(control_screen, LV_DIR_VER);
-    lv_obj_set_scroll_snap_y(control_screen, LV_SCROLL_SNAP_START);
     lv_obj_remove_flag(control_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
-
-    //lv_obj_add_event_cb(control_screen, control_screen_events, LV_EVENT_ALL, NULL);
-    lv_obj_add_event_cb(control_screen, scroll_event_cb, LV_EVENT_SCROLL, NULL);
+    lv_obj_clear_flag(control_screen, LV_OBJ_FLAG_SCROLLABLE);
 
 
-    /* Create the 5 row containers */
-    for (uint32_t i = 0; i < 7; i++) {
-        lv_obj_t* inner_cont = lv_obj_create(control_screen);
-        lv_obj_remove_style_all(inner_cont);
-        //lv_obj_set_style_bg_color(inner_cont, lv_color_hex(0x2a2a2a), 0);
-        lv_obj_set_size(inner_cont, 390, 102);
-
-        lv_obj_set_flex_flow(inner_cont, LV_FLEX_FLOW_ROW);
-        lv_obj_set_flex_align(inner_cont, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-        lv_obj_add_flag(inner_cont, LV_OBJ_FLAG_SNAPPABLE);
-        lv_obj_add_flag(inner_cont, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
-
-        lv_obj_t* item = lv_obj_create(inner_cont);
+    /* Create grid-like items (flex row wrap, non-scrollable) */
+    for (uint32_t i = 0; i < 6; i++) {
+        lv_obj_t* item = lv_obj_create(control_screen);
         lv_obj_remove_style_all(item);
-        lv_obj_set_size(item, 102, 102);
-
+        lv_obj_set_width(item, lv_pct(48));
+        lv_obj_set_height(item, 120);
         lv_obj_set_style_bg_color(item, lv_color_hex(0xffffff), 0);
-        lv_obj_set_style_bg_opa(item, 46, 0);
-        lv_obj_set_style_radius(item, 50, 0);
-        lv_obj_set_style_bg_color(item, lv_color_hex(0x438bff), LV_PART_MAIN | LV_STATE_CHECKED);
-        lv_obj_set_style_bg_opa(item, 255, LV_PART_MAIN | LV_STATE_CHECKED);
-        lv_obj_add_flag(item, LV_OBJ_FLAG_CHECKABLE);
+        lv_obj_set_style_bg_opa(item, 38, 0);
+        lv_obj_set_style_radius(item, 16, 0);
+        lv_obj_set_style_pad_all(item, 8, 0);
+        lv_obj_set_style_text_align(item, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_set_flex_flow(item, LV_FLEX_FLOW_COLUMN);
+        lv_obj_set_flex_align(item, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
+        /* Make Silence and Bluetooth toggles */
+        if (i == CTRL_SILENCE || i == CTRL_BLUETOOTH) {
+            lv_obj_add_flag(item, LV_OBJ_FLAG_CHECKABLE);
+            lv_obj_set_style_bg_color(item, lv_color_hex(0x438bff), LV_PART_MAIN | LV_STATE_CHECKED);
+            lv_obj_set_style_bg_opa(item, 255, LV_PART_MAIN | LV_STATE_CHECKED);
+            lv_obj_add_event_cb(item, toggle_event_cb, LV_EVENT_VALUE_CHANGED, (void*)(uintptr_t)i);
+
+            if (i == CTRL_SILENCE) {
+                bool sound_on = settings_get_sound();
+                bool silent = !sound_on;
+                if (silent) lv_obj_add_state(item, LV_STATE_CHECKED);
+                else lv_obj_clear_state(item, LV_STATE_CHECKED);
+            }
+            if (i == CTRL_BLUETOOTH) {
+                /* Default to enabled (unchecked = off? we make checked=enabled for consistency) */
+                lv_obj_add_state(item, LV_STATE_CHECKED);
+            }
+        }
 
         lv_obj_t* image = lv_image_create(item);
         lv_image_set_src(image, control_icons[i]);
-        lv_obj_set_align(image, LV_ALIGN_CENTER);
+        lv_obj_set_align(image, LV_ALIGN_TOP_MID);
         lv_obj_remove_flag(image, LV_OBJ_FLAG_CLICKABLE);
 
-        lv_obj_t * label = lv_label_create(inner_cont);
-        lv_label_set_text(label, "Example Label");
-        lv_obj_align_to(label, item, LV_ALIGN_OUT_LEFT_MID, 0, 0);
-        //lv_obj_set_style_text_letter_space(label, 1, 0);
-        //lv_obj_set_style_text_font(label, &font_inter_regular_28, 0);
-        //lv_obj_set_style_text_color(label, lv_color_hex(0x909090), LV_PART_MAIN | LV_STATE_DEFAULT);
-
+        lv_obj_t * label = lv_label_create(item);
+        lv_label_set_text(label, control_labels[i]);
+        lv_obj_set_style_text_color(label, lv_color_hex(0xD0D0D0), 0);
     }
-
-    lv_obj_update_snap(control_screen, LV_ANIM_ON);
-    lv_obj_scroll_by(control_screen, 0, -1, LV_ANIM_ON);
 
 }
 
@@ -130,58 +148,28 @@ static void control_screen_events(lv_event_t* e)
     }*/
 }
 
-static void scroll_event_cb(lv_event_t* e)
+static void toggle_event_cb(lv_event_t* e)
 {
-    lv_obj_t* cont = (lv_obj_t*)lv_event_get_target(e);
+    lv_obj_t* obj = lv_event_get_target(e);
+    int ctrl = (int)(uintptr_t)lv_event_get_user_data(e);
+    bool checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
 
-    lv_area_t cont_a;
-    lv_obj_get_coords(cont, &cont_a);
-    int32_t cont_y_center = cont_a.y1 + lv_area_get_height(&cont_a) / 2;
-
-    int32_t r = lv_obj_get_height(cont) * 7 / 10;
-    uint32_t i;
-    uint32_t child_cnt = lv_obj_get_child_count(cont);
-    for (i = 0; i < child_cnt; i++) {
-        lv_obj_t* child = lv_obj_get_child(cont, i);
-        lv_area_t child_a;
-        lv_obj_get_coords(child, &child_a);
-
-        int32_t child_y_center = child_a.y1 + lv_area_get_height(&child_a) / 2;
-
-        int32_t diff_y = child_y_center - cont_y_center;
-        diff_y = LV_ABS(diff_y);
-
-        /* Smallest size default parameters */
-        int32_t icon_size = 82; /* Full size is 102 */
-        int32_t cont_width = 300; /* Full size is 345 */
-        int32_t img_scale = 208; /* Full size is 256 */
-
-        /*If diff_y is within the circle calculate size */
-        if (diff_y < r) {
-            /* Calculate sizes the based on diff_y and radius */
-            icon_size = (int32_t)(82 + (20 * lv_pow(lv_trigo_cos((90 * diff_y) / r), 2) / LV_TRIGO_SIN_MAX / LV_TRIGO_SIN_MAX));
-            cont_width = (int32_t)(300 + (83 * lv_pow(lv_trigo_cos((90 * diff_y) / r), 2) / LV_TRIGO_SIN_MAX / LV_TRIGO_SIN_MAX));
-            img_scale = (int32_t)(208 + (48 * lv_pow(lv_trigo_cos((90 * diff_y) / r), 2) / LV_TRIGO_SIN_MAX / LV_TRIGO_SIN_MAX));
-
+    switch (ctrl) {
+    case CTRL_SILENCE:
+        /* Silence ON means sound OFF */
+        settings_set_sound(!checked);
+        break;
+    case CTRL_BLUETOOTH:
+        /* Simple enable/disable of BLE Nordic UART */
+        if (checked) {
+            nordic_uart_start("ESP32 S3 Watch", NULL);
+        } else {
+            nordic_uart_stop();
         }
-        /* Adjust the width of the container */
-        lv_obj_set_width(child, cont_width);
-
-        for (uint32_t c = 0; c < lv_obj_get_child_count(child); c++) {
-            lv_obj_t* grand = lv_obj_get_child(child, c);
-            if(grand) {
-                const lv_obj_class_t * cls = lv_obj_get_class(grand);
-                if(cls == &lv_label_class) {
-
-                } else {
-                    // Adjust the size of icon container
-                    lv_obj_set_size(grand, icon_size, icon_size);
-
-                    // Adjust the scale of the image inside the icon container
-                    lv_image_set_scale(lv_obj_get_child(grand, 0), img_scale);
-                }
-            }
-            
-        }
+        break;
+    default:
+        break;
     }
 }
+
+/* Scroll callback removed: screen is static and non-scrollable */

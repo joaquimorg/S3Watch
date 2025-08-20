@@ -55,16 +55,6 @@ static void handle_notification_fields(const char* timestamp,
     }
 }
 
-// --- Streaming JSON framing -------------------------------------------------
-// Some phones concatenate multiple JSON objects in one BLE write, or split
-// large ones across multiple writes. We accumulate chunks and extract one
-// complete JSON object at a time using cJSON_ParseWithOpts to know how much
-// was consumed.
-
-#define RX_ACCUM_MAX 4096
-static char   rx_accum[RX_ACCUM_MAX + 1];
-static size_t rx_len = 0;
-
 static void process_one_json_object(const char* json, size_t len)
 {
     // cJSON requires a C-string; ensure local null-terminated copy for parsing

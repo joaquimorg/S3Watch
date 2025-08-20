@@ -169,8 +169,8 @@ static void build_single_card(lv_obj_t* parent)
     hdr_row = lv_obj_create(card);
     lv_obj_remove_style_all(hdr_row);
     lv_obj_set_size(hdr_row, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_flex_flow(hdr_row, LV_FLEX_FLOW_ROW);
-    lv_obj_set_flex_align(hdr_row, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_flex_flow(hdr_row, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(hdr_row, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_AROUND);
 
     avatar = lv_obj_create(hdr_row);
     lv_obj_remove_style_all(avatar);
@@ -190,13 +190,16 @@ static void build_single_card(lv_obj_t* parent)
     lbl_app = lv_label_create(hdr_row);
     lv_obj_set_style_text_color(lbl_app, lv_color_hex(0xE0E0E0), 0);
     lv_obj_set_style_text_font(lbl_app, &font_normal_26, 0);
-    lv_obj_set_style_pad_left(lbl_app, 8, 0);
+    lv_obj_set_style_pad_top(lbl_app, 12, 0);
     lv_label_set_text(lbl_app, "Notifications");
     lv_label_set_long_mode(lbl_app, LV_LABEL_LONG_DOT);
+    lv_obj_set_size(lbl_app, lv_pct(100), 52);
 
     lbl_title = lv_label_create(card);
-    lv_label_set_text(lbl_title, "You don't have new notifications...");
+    lv_label_set_text(lbl_title, "You don't have\nnew notifications...");
+    lv_obj_set_width(lbl_title, lv_pct(100));
     lv_label_set_long_mode(lbl_title, LV_LABEL_LONG_WRAP);
+    lv_obj_set_style_text_align(lbl_title, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_style_text_color(lbl_title, lv_color_hex(0xF6F6C2), 0);
     lv_obj_set_style_text_font(lbl_title, &font_bold_26, 0);
 

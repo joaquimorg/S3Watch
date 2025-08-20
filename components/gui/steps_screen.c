@@ -1,8 +1,8 @@
 #include "lvgl.h"
 #include "steps_screen.h"
 #include "sensors.h"
+#include "ui_fonts.h"
 
-LV_FONT_DECLARE(font_numbers_80)
 
 static lv_obj_t* s_container = NULL;
 static lv_obj_t* s_value_label = NULL;
@@ -42,7 +42,7 @@ void steps_screen_create(lv_obj_t* parent)
     lv_obj_t* title = lv_label_create(s_container);
     
     lv_label_set_text(title, "Steps");
-    lv_obj_set_style_text_font(title, &lv_font_montserrat_32, 0);
+    lv_obj_set_style_text_font(title, &font_normal_32, 0);
     lv_obj_set_style_text_letter_space(title, 1, 0);
     lv_obj_set_style_text_color(title, lv_color_white(), 0);
     lv_obj_set_style_text_font(title, LV_FONT_DEFAULT, 0);
@@ -64,6 +64,7 @@ void steps_screen_create(lv_obj_t* parent)
     lv_label_set_text(s_goal_label, gbuf);
     lv_obj_set_style_text_color(s_goal_label, lv_color_hex(0x909090), 0);
     lv_obj_align_to(s_goal_label, s_value_label, LV_ALIGN_OUT_BOTTOM_MID, 0, 8);
+    lv_obj_set_style_text_font(s_goal_label, &font_normal_32, 0);
 
     // Horizontal progress bar near bottom
     s_bar = lv_bar_create(s_container);

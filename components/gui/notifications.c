@@ -1,5 +1,5 @@
 #include "notifications.h"
-#include "ui_private.h"
+#include "ui_fonts.h"
 #include <string.h>
 
 // Keep the last N notifications and allow swipe left/right
@@ -20,6 +20,7 @@ static int notif_count = 0; // valid items in buffer
 static lv_obj_t *notif_cont;      // root container (fills panel)
 static lv_obj_t *tv;              // inner tileview for swiping
 static lv_obj_t *tiles[MAX_NOTIFICATIONS];
+static lv_obj_t *cards[MAX_NOTIFICATIONS];
 static lv_obj_t *lbl_num[MAX_NOTIFICATIONS];
 static lv_obj_t *lbl_app[MAX_NOTIFICATIONS];
 static lv_obj_t *lbl_time[MAX_NOTIFICATIONS];
@@ -75,45 +76,61 @@ static void create_tile(int idx)
     lv_obj_set_style_pad_all(page, 16, 0);
     lv_obj_clear_flag(page, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_t* col = lv_obj_create(page);
-    lv_obj_remove_style_all(col);
-    lv_obj_set_style_bg_color(col, lv_color_black(), 0);
-    lv_obj_set_size(col, lv_pct(100), lv_pct(100));
-    //lv_obj_set_style_pad_all(col, 0, 0);
-    lv_obj_set_flex_flow(col, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(col, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_BETWEEN);
+    // Card container with rounded corners, subtle gradient and shadow
+    lv_obj_t* card = lv_obj_create(page);
+    cards[idx] = card;
+    lv_obj_remove_style_all(card);
+    lv_obj_set_size(card, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_style_radius(card, 18, 0);
+    lv_obj_set_style_bg_color(card, lv_color_hex(0x1A1A1A), 0);
+    lv_obj_set_style_bg_grad_color(card, lv_color_hex(0x101010), 0);
+    lv_obj_set_style_bg_grad_dir(card, LV_GRAD_DIR_VER, 0);
+    lv_obj_set_style_bg_opa(card, 240, 0);
+    lv_obj_set_style_shadow_width(card, 16, 0);
+    lv_obj_set_style_shadow_color(card, lv_color_hex(0x000000), 0);
+    lv_obj_set_style_shadow_opa(card, 80, 0);
+    lv_obj_set_style_pad_all(card, 16, 0);
+    lv_obj_set_style_pad_row(card, 10, 0);
+    lv_obj_set_flex_flow(card, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(card, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
-    /*lbl_num[idx] = lv_label_create(col);
+    /*lbl_num[idx] = lv_label_create(card);
     lv_obj_set_style_text_color(lbl_num[idx], lv_color_hex(0xF0B000), 0);
     lv_obj_set_style_text_font(lbl_num[idx], &lv_font_montserrat_26, 0);
     lv_label_set_text(lbl_num[idx], "");*/
 
-    lbl_app[idx] = lv_label_create(col);
-    lv_obj_set_style_text_color(lbl_app[idx], lv_color_white(), 0);
-    lv_obj_set_style_text_font(lbl_app[idx], &lv_font_montserrat_26, 0);
-    //lv_obj_align_to(lbl_app[idx], lbl_num[idx], LV_ALIGN_OUT_RIGHT_MID, 10, 0);
-    //lv_obj_set_flex_grow(lbl_app[idx], 1);
+    // Header row: app (left) + time (right)
+    lv_obj_t* hdr = lv_obj_create(card);
+    lv_obj_remove_style_all(hdr);
+    lv_obj_set_size(hdr, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(hdr, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(hdr, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_all(hdr, 0, 0);
+
+    lbl_app[idx] = lv_label_create(hdr);
+    lv_obj_set_style_text_color(lbl_app[idx], lv_color_hex(0xE0E0E0), 0);
+    lv_obj_set_style_text_font(lbl_app[idx], &font_normal_26, 0);
     lv_label_set_text(lbl_app[idx], "");
 
+    lbl_time[idx] = lv_label_create(hdr);
+    lv_obj_set_style_text_color(lbl_time[idx], lv_color_hex(0xA0A0A0), 0);
+    lv_obj_set_style_text_font(lbl_time[idx], &font_normal_26, 0);
+    lv_label_set_text(lbl_time[idx], "");
+
     // Title (prominent)
-    lbl_title[idx] = lv_label_create(col);
+    lbl_title[idx] = lv_label_create(card);
     lv_label_set_text(lbl_title[idx], (idx == 0) ? "No notifications" : "");
-    //lv_obj_set_width(lbl_title[idx], lv_pct(100));
     lv_label_set_long_mode(lbl_title[idx], LV_LABEL_LONG_WRAP);
-    lv_obj_set_style_text_color(lbl_title[idx], lv_color_hex(0xF0F0A0), 0);
-    lv_obj_set_style_text_font(lbl_title[idx], &lv_font_montserrat_32, 0);
+    lv_obj_set_style_text_color(lbl_title[idx], lv_color_hex(0xF6F6C2), 0);
+    lv_obj_set_style_text_font(lbl_title[idx], &font_bold_26, 0);
 
     // Message body
-    lbl_message[idx] = lv_label_create(col);
+    lbl_message[idx] = lv_label_create(card);
     lv_label_set_text(lbl_message[idx], "");
     lv_obj_set_width(lbl_message[idx], lv_pct(100));
     lv_label_set_long_mode(lbl_message[idx], LV_LABEL_LONG_WRAP);
-    lv_obj_set_style_text_color(lbl_message[idx], lv_color_hex(0xB0B0B0), 0);
-    lv_obj_set_style_text_font(lbl_message[idx], &lv_font_montserrat_32, 0);
-
-    lbl_time[idx] = lv_label_create(col);
-    lv_obj_set_style_text_color(lbl_time[idx], lv_color_hex(0xA0A0A0), 0);
-    lv_label_set_text(lbl_time[idx], "");
+    lv_obj_set_style_text_color(lbl_message[idx], lv_color_hex(0xC8C8C8), 0);
+    lv_obj_set_style_text_font(lbl_message[idx], &font_normal_26, 0);
 }
 
 static void update_pager(int active_idx)
@@ -129,6 +146,16 @@ static void update_pager(int active_idx)
     char buf[16];
     lv_snprintf(buf, sizeof(buf), "%d/%d", pos, notif_count);
     lv_label_set_text(lbl_pager, buf);
+}
+
+// Animation helpers (file scope)
+static void notif_anim_set_y(void *var, int32_t v)
+{
+    lv_obj_set_style_translate_y((lv_obj_t*)var, v, 0);
+}
+static void notif_anim_set_opa(void *var, int32_t v)
+{
+    lv_obj_set_style_opa((lv_obj_t*)var, (lv_opa_t)v, 0);
 }
 
 static void tv_event_cb(lv_event_t* e)
@@ -169,12 +196,13 @@ void lv_smartwatch_notifications_create(lv_obj_t * screen)
     // Pager indicator at bottom-center (overlay on top of tv)
     lbl_pager = lv_label_create(notif_cont);
     lv_obj_set_style_text_color(lbl_pager, lv_color_hex(0x808080), 0);
-    lv_obj_set_style_text_font(lbl_pager, &lv_font_montserrat_26, 0);
+    lv_obj_set_style_text_font(lbl_pager, &font_normal_26, 0);
     lv_obj_set_align(lbl_pager, LV_ALIGN_BOTTOM_MID);
     lv_obj_set_y(lbl_pager, -6);
     lv_label_set_text(lbl_pager, "");
     lv_obj_add_flag(lbl_pager, LV_OBJ_FLAG_HIDDEN);
 }
+
 
 void notifications_show(const char* app,
                         const char* title,
@@ -209,4 +237,25 @@ void notifications_show(const char* app,
     // Jump to latest
     lv_obj_set_tile_id(tv, 0, 0, LV_ANIM_ON);
     update_pager(0);
+
+    // Subtle entrance animation for the newest card
+    if (cards[0]) {
+        // Start with slight offset + fade
+        lv_obj_set_style_translate_y(cards[0], 16, 0);
+        lv_obj_set_style_opa(cards[0], 0, 0);
+
+        lv_anim_t a1; lv_anim_init(&a1);
+        lv_anim_set_var(&a1, cards[0]);
+        lv_anim_set_values(&a1, 16, 0);
+        lv_anim_set_time(&a1, 180);
+        lv_anim_set_exec_cb(&a1, notif_anim_set_y);
+        lv_anim_start(&a1);
+
+        lv_anim_t a2; lv_anim_init(&a2);
+        lv_anim_set_var(&a2, cards[0]);
+        lv_anim_set_values(&a2, 0, 255);
+        lv_anim_set_time(&a2, 220);
+        lv_anim_set_exec_cb(&a2, notif_anim_set_opa);
+        lv_anim_start(&a2);
+    }
 }

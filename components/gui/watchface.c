@@ -1,11 +1,9 @@
 #include "watchface.h"
 #include "sensors.h"
 #include "settings_screen.h"
-#include "ui_private.h"
+#include "ui_fonts.h"
 #include "rtc_lib.h"
 
-LV_FONT_DECLARE(font_numbers_160)
-LV_FONT_DECLARE(font_numbers_80)
 
 static lv_obj_t * home_screen;
 static lv_obj_t * label_hour;
@@ -114,13 +112,13 @@ void watchface_create(lv_obj_t * screen) {
     label_date = lv_label_create(date_cont);
     lv_label_set_text(label_date, "--/--");
     lv_obj_set_style_text_letter_space(label_date, 1, 0);
-    lv_obj_set_style_text_font(label_date, &lv_font_montserrat_32, 0);
+    lv_obj_set_style_text_font(label_date, &font_normal_32, 0);
     lv_obj_set_style_text_color(label_date, lv_color_hex(0xc0c0c0), LV_PART_MAIN | LV_STATE_DEFAULT);
 
     label_weekday = lv_label_create(date_cont);
     lv_label_set_text(label_weekday, "---");
     lv_obj_set_style_text_letter_space(label_weekday, 3, 0);
-    lv_obj_set_style_text_font(label_weekday, &lv_font_montserrat_32, 0);
+    lv_obj_set_style_text_font(label_weekday, &font_bold_32, 0);
     lv_obj_set_style_text_color(label_weekday, lv_color_hex(0xc0c0c0), LV_PART_MAIN | LV_STATE_DEFAULT);
 
     // Battery icon on top-left
@@ -137,6 +135,7 @@ void watchface_create(lv_obj_t * screen) {
     lv_obj_set_align(lbl_batt_pct, LV_ALIGN_TOP_LEFT);
     lv_obj_set_pos(lbl_batt_pct, 8 + 53 + 8, 16); // icon width + padding
     lv_label_set_text(lbl_batt_pct, "--%");
+    lv_obj_set_style_text_font(lbl_batt_pct, &font_normal_26, 0);
 
     // Charging lightning overlay on top of battery icon
     lbl_charge_icon = lv_label_create(img_battery);

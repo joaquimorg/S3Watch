@@ -14,6 +14,7 @@
 #include "bsp/esp-bsp.h"
 #include "lvgl.h"
 #include "ble_sync.h"
+#include "ui_fonts.h"
 
 static const char* TAG = "UI";
 

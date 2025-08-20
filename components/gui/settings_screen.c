@@ -1,7 +1,8 @@
 #include "settings_screen.h"
 #include "settings.h"
-#include "ui_private.h"
-#include "nimble-nordic-uart.h"
+#include "ui_fonts.h"
+//#include "nimble-nordic-uart.h"
+
 
 LV_IMAGE_DECLARE(image_mute_icon);
 LV_IMAGE_DECLARE(image_flashlight_icon);
@@ -10,8 +11,6 @@ LV_IMAGE_DECLARE(image_battery_icon);
 LV_IMAGE_DECLARE(image_silence_icon);
 LV_IMAGE_DECLARE(image_bluetooth_icon);
 LV_IMAGE_DECLARE(image_settings_icon);
-
-LV_FONT_DECLARE(font_inter_regular_28)
 
 static void control_screen_events(lv_event_t* e);
 static void toggle_event_cb(lv_event_t* e);
@@ -36,12 +35,11 @@ static const char *control_labels[] = {
     "Settings"
 };
 
-enum control_id {
-    CTRL_MUTE = 0,
-    CTRL_FLASHLIGHT,
-    CTRL_BRIGHTNESS,
-    CTRL_BATTERY,
+enum control_id {   
+    CTRL_BRIGHTNESS = 0, 
     CTRL_SILENCE,
+    CTRL_FLASHLIGHT,    
+    CTRL_BATTERY,    
     CTRL_BLUETOOTH,
     CTRL_SETTINGS,
 };
@@ -118,6 +116,7 @@ void lv_smartwatch_control_create(lv_obj_t* screen)
         lv_obj_t * label = lv_label_create(item);
         lv_label_set_text(label, control_labels[i]);
         lv_obj_set_style_text_color(label, lv_color_hex(0xD0D0D0), 0);
+        lv_obj_set_style_text_font(label, &font_normal_26, 0);
     }
 
 }
@@ -161,11 +160,11 @@ static void toggle_event_cb(lv_event_t* e)
         break;
     case CTRL_BLUETOOTH:
         /* Simple enable/disable of BLE Nordic UART */
-        if (checked) {
+        /*if (checked) {
             nordic_uart_start("ESP32 S3 Watch", NULL);
         } else {
             nordic_uart_stop();
-        }
+        }*/
         break;
     default:
         break;

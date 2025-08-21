@@ -74,19 +74,60 @@ LV_IMAGE_DECLARE(image_outlook_48);
 LV_IMAGE_DECLARE(image_youtube_48);
 LV_IMAGE_DECLARE(image_teams_48);
 
+typedef struct AppMeta {
+    const char* id;
+    const char* friendly;
+    uint32_t color;
+    char letter;
+    const lv_image_dsc_t* icon;
+} AppMeta;
+
+static const AppMeta k_known_apps[] = {
+    { "sms",                           "SMS",       0x10B981, 'S', &image_sms_48 },
+    { "com.android.messaging",        "SMS",       0x10B981, 'S', &image_sms_48 },
+    { "com.google.android.apps.messaging", "SMS",  0x10B981, 'S', &image_sms_48 },
+    { "call",                          "Call",      0x22C55E, 'C', &image_call_48 },
+    { "com.android.dialer",           "Call",      0x22C55E, 'C', &image_call_48 },
+    { "com.google.android.gm",        "Gmail",     0xEF4444, 'G', &image_gmail_48 },
+    { "com.google.android.youtube",   "YouTube",   0xFF0000, 'Y', &image_youtube_48 },
+    { "com.whatsapp",                 "WhatsApp",  0x25D366, 'W', &image_whatsapp_48 },
+    { "com.facebook.katana",          "Facebook",  0x1877F2, 'F', &image_messenger_48 },
+    { "org.telegram.messenger",       "Telegram",  0x229ED9, 'T', &image_telegram_48 },
+    { "com.microsoft.office.outlook", "Outlook",   0x0078D4, 'O', &image_outlook_48 },
+    { "com.microsoft.teams",          "Teams",     0x5C2D91, 'T', &image_teams_48 },
+};
+
+static const AppMeta* get_app_meta(const char* app_id)
+{
+    static AppMeta dyn; // for unknown apps
+    if (app_id && *app_id) {
+        for (size_t i = 0; i < sizeof(k_known_apps)/sizeof(k_known_apps[0]); ++i) {
+            if (strcasecmp(app_id, k_known_apps[i].id) == 0) {
+                return &k_known_apps[i];
+            }
+        }
+        // Unknown app: compute friendly, color, letter, and use default icon
+        static const uint32_t palette[] = { 0x3B82F6, 0x10B981, 0xF59E0B, 0xEF4444, 0x8B5CF6, 0x06B6D4, 0x22C55E, 0xEAB308, 0x5C2D91 };
+        uint32_t sum = 0; for (const char* p = app_id; *p; ++p) sum += (uint8_t)(*p);
+        uint32_t color = palette[ sum % (sizeof(palette)/sizeof(palette[0])) ];
+        char letter = '?';
+        for (const char* p = app_id; *p; ++p) { if (*p != ' ') { letter = *p; break; } }
+        if (letter >= 'a' && letter <= 'z') letter = (char)(letter - 'a' + 'A');
+        dyn.id = app_id;
+        dyn.friendly = app_id;
+        dyn.color = color;
+        dyn.letter = letter;
+        dyn.icon = &image_notification_48;
+        return &dyn;
+    }
+    static const AppMeta unknown = { "", "Notifications", 0x3B82F6, 'N', &image_notification_48 };
+    return &unknown;
+}
+
 static const lv_image_dsc_t* pick_app_icon(const char* app_id)
 {
-    if (!app_id) return &image_notification_48; /* may be NULL if not linked */
-    if (strcasecmp(app_id, "sms") == 0 || strcmp(app_id, "com.android.messaging") == 0 || strcmp(app_id, "com.google.android.apps.messaging") == 0) return &image_sms_48;
-    if (strcasecmp(app_id, "call") == 0 || strcmp(app_id, "com.android.dialer") == 0) return &image_call_48;
-    if (strcmp(app_id, "com.google.android.gm") == 0) return &image_gmail_48;
-    if (strcmp(app_id, "com.google.android.youtube") == 0) return &image_youtube_48;
-    if (strcmp(app_id, "com.whatsapp") == 0) return &image_whatsapp_48;
-    if (strcmp(app_id, "com.facebook.orca") == 0) return &image_messenger_48;
-    if (strcmp(app_id, "org.telegram.messenger") == 0) return &image_telegram_48;
-    if (strcmp(app_id, "com.microsoft.office.outlook") == 0) return &image_outlook_48;
-    if (strcmp(app_id, "com.microsoft.teams") == 0) return &image_teams_48;
-    return &image_notification_48;
+    const AppMeta* m = get_app_meta(app_id);
+    return (m && m->icon) ? m->icon : &image_notification_48;
 }
 
 static void update_card_content(int idx)
@@ -99,30 +140,10 @@ static void update_card_content(int idx)
         lv_snprintf(num, sizeof(num), "# %d", idx + 1); // Latest is 1
         lv_label_set_text(lbl_num[idx], num);
     }*/
-    // Choose friendly app name and avatar by known IDs
+    // Unified metadata for name, color, icon
     const char* app_id = notif_buf[idx].app;
-    const char* friendly = app_id;
-    uint32_t color = 0; char letter = 0;
-    if (app_id) {
-        if (strcasecmp(app_id, "sms") == 0 || strcmp(app_id, "com.android.messaging") == 0 || strcmp(app_id, "com.google.android.apps.messaging") == 0) {
-            friendly = "SMS"; color = 0x10B981; letter = 'S';
-        } else if (strcasecmp(app_id, "call") == 0 || strcmp(app_id, "com.android.dialer") == 0) {
-            friendly = "Call"; color = 0x22C55E; letter = 'C';
-        } else if (strcmp(app_id, "com.google.android.gm") == 0) {
-            friendly = "Gmail"; color = 0xEF4444; letter = 'G';
-        } else if (strcmp(app_id, "com.whatsapp") == 0) {
-            friendly = "WhatsApp"; color = 0x25D366; letter = 'W';
-        } else if (strcmp(app_id, "com.facebook.orca") == 0) {
-            friendly = "Messenger"; color = 0x0084FF; letter = 'M';
-        } else if (strcmp(app_id, "org.telegram.messenger") == 0) {
-            friendly = "Telegram"; color = 0x229ED9; letter = 'T';
-        } else if (strcmp(app_id, "com.microsoft.office.outlook") == 0) {
-            friendly = "Outlook"; color = 0x0078D4; letter = 'O';
-        } else if (strcmp(app_id, "com.microsoft.teams") == 0) {
-            friendly = "Teams"; color = 0x5C2D91; letter = 'T';
-        }
-    }
-    set_label_text(lbl_app, friendly);
+    const AppMeta* meta = get_app_meta(app_id);
+    set_label_text(lbl_app, meta ? meta->friendly : app_id);
     set_label_text(lbl_title, notif_buf[idx].title);
     set_label_text(lbl_message, notif_buf[idx].message);
     set_label_text(lbl_time, dt);
@@ -130,23 +151,11 @@ static void update_card_content(int idx)
     // Update avatar (image if available; otherwise colored monogram)
     //if (avatar) {
 
-        // Always show an icon: try app-specific, fallback to default
-        const lv_image_dsc_t* icon = pick_app_icon(app_id);
-        if (icon == NULL) icon = &image_notification_48;
-        lv_image_set_src(avatar_img, icon);
-
-        static const uint32_t palette[] = { 0x3B82F6, 0x10B981, 0xF59E0B, 0xEF4444, 0x8B5CF6, 0x06B6D4, 0x22C55E, 0xEAB308, 0x5C2D91 };
-        const char *s = app_id && *app_id ? app_id : "?";
-        if (color == 0) {
-            uint32_t sum = 0; for (const char *p = s; *p; ++p) sum += (uint8_t)(*p);
-            color = palette[ sum % (sizeof(palette)/sizeof(palette[0])) ];
-        }
-        /*if (letter == 0) {
-            for (const char *p = s; *p; ++p) { if (*p != ' ') { letter = *p; break; } }
-            if (letter >= 'a' && letter <= 'z') letter = (char)(letter - 'a' + 'A');
-            if (letter == 0) letter = '?';
-        }*/
-        //lv_obj_set_style_bg_color(avatar, lv_color_hex(color), 0);
+        // Always show an icon per metadata
+        const lv_image_dsc_t* icon = (meta && meta->icon) ? meta->icon : &image_notification_48;
+        if (icon) lv_image_set_src(avatar_img, icon);
+        // Use color from metadata
+        uint32_t color = meta ? meta->color : 0x3B82F6;
         lv_obj_set_style_bg_color(lbl_app, lv_color_hex(color), 0);
         
         // Letter avatar is no longer used (always show icon)

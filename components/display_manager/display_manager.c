@@ -30,8 +30,13 @@ static void display_turn_off_internal(void) {
         return;
     }
     ESP_LOGI(TAG, "Turning display off");
-    // Stop LVGL timers to pause flushing while panel sleeps
-    lvgl_port_stop();
+    // Stop LVGL timers to pause flushing while panel sleeps. Take LVGL lock to avoid in-flight flush.
+    if (lvgl_port_lock(200)) {
+        lvgl_port_stop();
+        lvgl_port_unlock();
+    } else {
+        lvgl_port_stop();
+    }
     // Disable touch input polling and optionally hold touch in reset
     lv_indev_t* indev = bsp_display_get_input_dev();
     if (indev) {

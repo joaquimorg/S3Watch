@@ -16,12 +16,13 @@
 #include "ble_sync.h"
 #include "ui_fonts.h"
 
+#include "batt_screen.h"
+
 static const char* TAG = "UI";
 
+static lv_obj_t* active_screen;
+static lv_obj_t* mainTileView;
 
-
-lv_obj_t* active_screen;
-lv_obj_t* mainTileView;
 lv_obj_t* tileClock;
 lv_obj_t* tileConfig;
 lv_obj_t* tileSteps;
@@ -111,6 +112,8 @@ void create_main_screen(void) {
     // Create Steps screen under the Steps panel
     steps_screen_create(ui_Steps_Panel);
 
+    lv_smartwatch_batt_create(NULL);
+
     lv_obj_set_tile_id(mainTileView, 0, 1, LV_ANIM_OFF);
 
     lv_disp_load_scr(mainTileView);
@@ -122,6 +125,11 @@ void ui_show_messages_tile(void)
     if (!mainTileView) return;
     // Messages tile is at (0,0)
     lv_obj_set_tile_id(mainTileView, 0, 0, LV_ANIM_ON);
+}
+
+lv_obj_t* ui_get_main_tileview(void)
+{
+    return mainTileView;
 }
 
 

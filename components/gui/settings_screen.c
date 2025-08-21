@@ -1,8 +1,14 @@
 #include "settings_screen.h"
 #include "settings.h"
 #include "ui_fonts.h"
-//#include "nimble-nordic-uart.h"
+#include "ui.h"
+#include "batt_screen.h"
+#include "brightness_screen.h"
+#include "esp_log.h"
 
+static const char* TAG = "SETTINGS SCREEN";
+
+// Use accessor from batt_screen instead of extern symbol
 
 LV_IMAGE_DECLARE(image_mute_icon);
 LV_IMAGE_DECLARE(image_flashlight_icon);
@@ -12,13 +18,13 @@ LV_IMAGE_DECLARE(image_silence_icon);
 LV_IMAGE_DECLARE(image_bluetooth_icon);
 LV_IMAGE_DECLARE(image_settings_icon);
 
-static void control_screen_events(lv_event_t* e);
+static void click_event_cb(lv_event_t* e);
 static void toggle_event_cb(lv_event_t* e);
 
 static lv_obj_t* control_screen;
 
 static const lv_image_dsc_t* control_icons[] = {
-    &image_brightness_icon,    
+    &image_brightness_icon,
     &image_silence_icon,
     &image_flashlight_icon,
     &image_battery_icon,
@@ -26,20 +32,20 @@ static const lv_image_dsc_t* control_icons[] = {
     &image_settings_icon
 };
 
-static const char *control_labels[] = {
-    "Brightness",    
+static const char* control_labels[] = {
+    "Brightness",
     "Silence",
-    "Flashlight",    
-    "Battery",    
+    "Flashlight",
+    "Battery",
     "Bluetooth",
     "Settings"
 };
 
-enum control_id {   
-    CTRL_BRIGHTNESS = 0, 
+enum control_id {
+    CTRL_BRIGHTNESS = 0,
     CTRL_SILENCE,
-    CTRL_FLASHLIGHT,    
-    CTRL_BATTERY,    
+    CTRL_FLASHLIGHT,
+    CTRL_BATTERY,
     CTRL_BLUETOOTH,
     CTRL_SETTINGS,
 };
@@ -107,13 +113,17 @@ void lv_smartwatch_control_create(lv_obj_t* screen)
                 lv_obj_add_state(item, LV_STATE_CHECKED);
             }
         }
+        else {
+            lv_obj_add_flag(item, LV_OBJ_FLAG_CLICKABLE);
+            lv_obj_add_event_cb(item, click_event_cb, LV_EVENT_CLICKED, (void*)(uintptr_t)i);
+        }
 
         lv_obj_t* image = lv_image_create(item);
         lv_image_set_src(image, control_icons[i]);
         lv_obj_set_align(image, LV_ALIGN_TOP_MID);
         lv_obj_remove_flag(image, LV_OBJ_FLAG_CLICKABLE);
 
-        lv_obj_t * label = lv_label_create(item);
+        lv_obj_t* label = lv_label_create(item);
         lv_label_set_text(label, control_labels[i]);
         lv_obj_set_style_text_color(label, lv_color_hex(0xD0D0D0), 0);
         lv_obj_set_style_text_font(label, &font_normal_26, 0);
@@ -126,25 +136,23 @@ void lv_smartwatch_control_create(lv_obj_t* screen)
  *   STATIC FUNCTIONS
  **********************/
 
-static void control_screen_events(lv_event_t* e)
+static void click_event_cb(lv_event_t* e)
 {
-    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t* obj = lv_event_get_target(e);
+    int ctrl = (int)(uintptr_t)lv_event_get_user_data(e);
 
-    if (event_code == LV_EVENT_GESTURE) {
-        lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
-
-        /*if(dir == LV_DIR_LEFT) {
-            lv_smartwatch_animate_y(lv_demo_smartwatch_get_control_screen(), -SCREEN_SIZE, 1000, 0);
-            //lv_smartwatch_animate_arc(arc_cont, ARC_EXPAND_UP, 700, 300);
-            //lv_smartwatch_anim_opa(main_arc, 255, 500, 500);
-        }*/
-
+    switch (ctrl) {
+    case CTRL_BRIGHTNESS:
+        ESP_LOGI(TAG, "Brightness control clicked");
+        load_screen(brightness_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+        break;
+    case CTRL_BATTERY:
+        ESP_LOGI(TAG, "Battery control clicked");
+        load_screen(batt_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+        break;
+    default:
+        break;
     }
-    /*if(event_code == LV_EVENT_LONG_PRESSED) {
-        lv_smartwatch_animate_y(lv_demo_smartwatch_get_control_screen(), -SCREEN_SIZE, 1000, 0);
-        lv_smartwatch_animate_arc(arc_cont, ARC_EXPAND_UP, 700, 300);
-        lv_smartwatch_anim_opa(main_arc, 255, 500, 500);
-    }*/
 }
 
 static void toggle_event_cb(lv_event_t* e)

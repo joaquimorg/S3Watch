@@ -18,7 +18,10 @@
     "*.tpp": "cpp",
     "esp_check.h": "c",
     "tuple": "c",
-    "type_traits": "c"
+    "type_traits": "c",
+    "ui.h": "c",
+    "esp-bsp.h": "c",
+    "batt_screen.h": "c"
   },
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"

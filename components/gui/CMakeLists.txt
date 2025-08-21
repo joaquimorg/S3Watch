@@ -5,6 +5,8 @@ idf_component_register(
     "notifications.c" 
     "settings_screen.c" 
     "steps_screen.c" 
+    "batt_screen.c" 
+    "brightness_screen.c" 
     "font/font_numbers_160.c"
     "font/font_numbers_80.c"
     "font/font_normal_26.c"

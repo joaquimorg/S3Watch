@@ -87,7 +87,7 @@ static const AppMeta k_known_apps[] = {
     { "com.android.messaging",              "SMS",          0x10B981, 'S', &image_sms_48 },
     { "com.google.android.apps.messaging",  "SMS",          0x10B981, 'S', &image_sms_48 },
     { "call",                               "Call",         0x22C55E, 'C', &image_call_48 },
-    { "com.android.dialer",                 "Call",         0x22C55E, 'C', &image_call_48 },
+    { "com.google.android.dialer",          "Call",         0x22C55E, 'C', &image_call_48 },
     { "com.google.android.gm",              "Gmail",        0xEF4444, 'G', &image_gmail_48 },
     { "com.google.android.youtube",         "YouTube",      0xFF0000, 'Y', &image_youtube_48 },
     { "com.whatsapp",                       "WhatsApp",     0x25D366, 'W', &image_whatsapp_48 },

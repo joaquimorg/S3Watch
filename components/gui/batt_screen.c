@@ -126,7 +126,7 @@ static void batt_screen_events(lv_event_t* e)
     if (event_code == LV_EVENT_GESTURE) {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
 
-        if(dir == LV_DIR_RIGHT || dir == LV_DIR_LEFT) {
+        if(dir == LV_DIR_RIGHT) {
             // Swipe right to go back to the main screen
             lv_obj_t* main = ui_get_main_tileview();
             if (main) {

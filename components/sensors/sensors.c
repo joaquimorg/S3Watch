@@ -63,7 +63,7 @@ static esp_err_t imu_setup_irq(void)
         .pin_bit_mask = 1ULL << IMU_IRQ_GPIO,
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_ENABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_ENABLE,
         // Some QMI8658 boards use active-low pulse; use any edge to be safe
         .intr_type = GPIO_INTR_ANYEDGE,
     };
@@ -167,7 +167,7 @@ void sensors_task(void *pvParameters)
             continue;
         }
         // Display is on: prefer normal sampling, disable WoM to avoid extra interrupts
-        if (wom_enabled) {
+        if (screen_on && wom_enabled) {
             (void)qmi8658_disable_wake_on_motion(&s_imu);
             wom_enabled = false;
         }
@@ -180,7 +180,7 @@ void sensors_task(void *pvParameters)
             lp = alpha * lp + (1.0f - alpha) * hp;
 
             // Peak detection
-            const float THRESH = 120.0f; // mg
+            const float THRESH = 80.0f; // mg (more sensitive)
             uint32_t now_ms = (uint32_t)(esp_timer_get_time() / 1000ULL);
             uint32_t dt = now_ms - last_step_ms;
             if (lp > THRESH && dt > 280 && dt < 2000) {

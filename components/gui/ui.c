@@ -154,9 +154,7 @@ void ui_init(void) {
         watchface_set_power_state(vbus, chg, pct);
     }
 
-    // Start sensors (QMI8658) for steps/activity and raise-to-wake
-    sensors_init();
-    xTaskCreate(sensors_task, "sensors_task", 4096, NULL, 5, NULL);
+    // Sensors are initialized and task started in main. Avoid duplicating here.
 
     bsp_display_unlock();
 }

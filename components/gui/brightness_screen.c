@@ -16,11 +16,20 @@ static void update_label_from_value(int val);
 void lv_smartwatch_brightness_create(lv_obj_t* screen)
 {
     static lv_style_t cmain_style;
+    static lv_style_t style_knob;
+
     lv_style_init(&cmain_style);
     lv_style_set_text_color(&cmain_style, lv_color_white());
     lv_style_set_bg_color(&cmain_style, lv_color_hex(0x000000));
     lv_style_set_bg_opa(&cmain_style, LV_OPA_100);
 
+    lv_style_init(&style_knob);
+    lv_style_set_bg_opa(&style_knob, LV_OPA_COVER);
+    lv_style_set_bg_color(&style_knob, lv_color_hex(0xFFFF10));    
+    lv_style_set_border_width(&style_knob, 0);
+    lv_style_set_radius(&style_knob, LV_RADIUS_CIRCLE);
+    lv_style_set_pad_all(&style_knob, 8); /*Makes the knob larger*/
+    
     brightness_screen = lv_obj_create(screen);
     lv_obj_remove_style_all(brightness_screen);
     lv_obj_add_style(brightness_screen, &cmain_style, 0);
@@ -44,14 +53,15 @@ void lv_smartwatch_brightness_create(lv_obj_t* screen)
     // Big percent label
     percent_label = lv_label_create(brightness_screen);
     lv_obj_set_style_text_font(percent_label, &font_bold_42, 0);
-    lv_obj_set_style_text_color(percent_label, lv_color_hex(0xBFFF5F), 0);
+    lv_obj_set_style_text_color(percent_label, lv_color_hex(0xFFFF10), 0);
     lv_label_set_text(percent_label, "--%");
 
     // Slider 0..100
     slider = lv_slider_create(brightness_screen);
     lv_obj_set_width(slider, lv_pct(90));
-    lv_obj_set_height(slider, 40);
-    lv_slider_set_range(slider, 0, 100);
+    lv_obj_set_height(slider, 30);
+    lv_slider_set_range(slider, 5, 100);
+    lv_obj_add_style(slider, &style_knob, LV_PART_KNOB);
     lv_obj_add_event_cb(slider, slider_event, LV_EVENT_VALUE_CHANGED, NULL);
 
     // Set initial value from settings
@@ -96,7 +106,7 @@ static void screen_events(lv_event_t* e)
     lv_event_code_t code = lv_event_get_code(e);
     if (code == LV_EVENT_GESTURE) {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
-        if (dir == LV_DIR_RIGHT || dir == LV_DIR_LEFT) {
+        if (dir == LV_DIR_RIGHT) {
             lv_obj_t* main = ui_get_main_tileview();
             if (main) {
                 load_screen(main, LV_SCR_LOAD_ANIM_MOVE_RIGHT);

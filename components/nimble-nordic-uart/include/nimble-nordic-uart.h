@@ -55,6 +55,11 @@ esp_err_t _nordic_uart_start(const char *device_name, void (*callback)(enum nord
 esp_err_t _nordic_uart_stop(void);
 esp_err_t _nordic_uart_send(const char *message);
 
+// Hint to adjust connection parameters for power saving while keeping link alive.
+// When enabled, prefers longer intervals and higher slave latency.
+// Safe to call anytime; takes effect on the next connection or immediately if connected.
+void nordic_uart_set_low_power_mode(bool enable);
+
 #ifdef __cplusplus
 }
 #endif

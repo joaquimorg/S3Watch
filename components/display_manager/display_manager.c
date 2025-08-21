@@ -13,6 +13,7 @@
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
 #include "settings.h"
+#include "nimble-nordic-uart.h"
 
 
 // If the board provides simple GPIO buttons, use one as wake key.
@@ -31,9 +32,20 @@ static void display_turn_off_internal(void) {
     ESP_LOGI(TAG, "Turning display off");
     // Stop LVGL timers to pause flushing while panel sleeps
     lvgl_port_stop();
+    // Disable touch input polling and optionally hold touch in reset
+    lv_indev_t* indev = bsp_display_get_input_dev();
+    if (indev) {
+        lv_indev_enable(indev, false);
+    }
+#if defined(BSP_LCD_TOUCH_RST)
+    gpio_set_direction(BSP_LCD_TOUCH_RST, GPIO_MODE_OUTPUT);
+    gpio_set_level(BSP_LCD_TOUCH_RST, 0);
+#endif
     // Put panel into low-power sleep and ensure backlight is off
     bsp_display_sleep();
     bsp_display_brightness_set(0);
+    // Hint BLE to prefer low-power connection parameters while screen is off
+    nordic_uart_set_low_power_mode(true);
     display_on = false;
 }
 
@@ -48,8 +60,20 @@ void display_manager_turn_on(void) {
         bsp_display_wake();
         lvgl_port_resume();
         bsp_display_brightness_set(settings_get_brightness());
+        // Re-enable touch input and release touch reset
+        lv_indev_t* indev = bsp_display_get_input_dev();
+        if (indev) {
+            lv_indev_enable(indev, true);
+        }
+#if defined(BSP_LCD_TOUCH_RST)
+        gpio_set_direction(BSP_LCD_TOUCH_RST, GPIO_MODE_OUTPUT);
+        gpio_set_level(BSP_LCD_TOUCH_RST, 1);
+        vTaskDelay(pdMS_TO_TICKS(5));
+#endif
         display_on = true;
     }
+    // Restore more responsive BLE params when screen is on
+    nordic_uart_set_low_power_mode(false);
     display_manager_reset_timer();
 }
 

@@ -1,0 +1,19 @@
+python .\LVGLImage.py .\image_notification_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
+
+python .\LVGLImage.py .\image_call_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
+
+python .\LVGLImage.py .\image_gmail_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
+
+python .\LVGLImage.py .\image_messenger_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
+
+python .\LVGLImage.py .\image_outlook_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
+
+python .\LVGLImage.py .\image_sms_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
+
+python .\LVGLImage.py .\image_telegram_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
+
+python .\LVGLImage.py .\image_whatsapp_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
+
+python .\LVGLImage.py .\image_youtube_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
+
+python .\LVGLImage.py .\image_teams_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons

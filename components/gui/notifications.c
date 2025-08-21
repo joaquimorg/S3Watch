@@ -20,9 +20,8 @@ static int notif_count = 0; // valid items in buffer
 // Container and single reusable card (low memory)
 static lv_obj_t *notif_cont;      // root container (fills panel)
 static lv_obj_t *card;            // single card reused for all items
-static lv_obj_t *hdr_row;         // header row container
+static lv_obj_t *hdr_card;         // header row container
 static lv_obj_t *avatar;          // avatar circle
-static lv_obj_t *avatar_letter;   // monogram letter
 static lv_obj_t *avatar_img;      // optional image icon
 static lv_obj_t *lbl_app;
 static lv_obj_t *lbl_time;
@@ -55,7 +54,7 @@ static void format_datetime_ymd_hhmm(const char* iso_ts, char* out, size_t out_s
 }
 
 /* Optional app icons (compiled if present). Symbols declared weak so missing files don't break the build. */
-extern const lv_image_dsc_t image_notification_48 __attribute__((weak));
+/*extern const lv_image_dsc_t image_notification_48 __attribute__((weak));
 extern const lv_image_dsc_t image_sms_48 __attribute__((weak));
 extern const lv_image_dsc_t image_call_48 __attribute__((weak));
 extern const lv_image_dsc_t image_gmail_48 __attribute__((weak));
@@ -63,7 +62,17 @@ extern const lv_image_dsc_t image_whatsapp_48 __attribute__((weak));
 extern const lv_image_dsc_t image_messenger_48 __attribute__((weak));
 extern const lv_image_dsc_t image_telegram_48 __attribute__((weak));
 extern const lv_image_dsc_t image_outlook_48 __attribute__((weak));
-extern const lv_image_dsc_t image_youtube_48 __attribute__((weak));
+extern const lv_image_dsc_t image_youtube_48 __attribute__((weak));*/
+LV_IMAGE_DECLARE(image_notification_48);
+LV_IMAGE_DECLARE(image_sms_48);
+LV_IMAGE_DECLARE(image_call_48);
+LV_IMAGE_DECLARE(image_gmail_48);
+LV_IMAGE_DECLARE(image_whatsapp_48);
+LV_IMAGE_DECLARE(image_messenger_48);
+LV_IMAGE_DECLARE(image_telegram_48);
+LV_IMAGE_DECLARE(image_outlook_48);
+LV_IMAGE_DECLARE(image_youtube_48);
+LV_IMAGE_DECLARE(image_teams_48);
 
 static const lv_image_dsc_t* pick_app_icon(const char* app_id)
 {
@@ -76,6 +85,7 @@ static const lv_image_dsc_t* pick_app_icon(const char* app_id)
     if (strcmp(app_id, "com.facebook.orca") == 0) return &image_messenger_48;
     if (strcmp(app_id, "org.telegram.messenger") == 0) return &image_telegram_48;
     if (strcmp(app_id, "com.microsoft.office.outlook") == 0) return &image_outlook_48;
+    if (strcmp(app_id, "com.microsoft.teams") == 0) return &image_teams_48;
     return &image_notification_48;
 }
 
@@ -108,6 +118,8 @@ static void update_card_content(int idx)
             friendly = "Telegram"; color = 0x229ED9; letter = 'T';
         } else if (strcmp(app_id, "com.microsoft.office.outlook") == 0) {
             friendly = "Outlook"; color = 0x0078D4; letter = 'O';
+        } else if (strcmp(app_id, "com.microsoft.teams") == 0) {
+            friendly = "Teams"; color = 0x5C2D91; letter = 'T';
         }
     }
     set_label_text(lbl_app, friendly);
@@ -116,42 +128,29 @@ static void update_card_content(int idx)
     set_label_text(lbl_time, dt);
 
     // Update avatar (image if available; otherwise colored monogram)
-    if (avatar && avatar_letter) {
-        // Create image holder on first use
-        if (!avatar_img) {
-            avatar_img = lv_image_create(avatar);
-            lv_obj_center(avatar_img);
-            lv_obj_add_flag(avatar_img, LV_OBJ_FLAG_HIDDEN);
-        }
+    //if (avatar) {
 
-        // Try compiled icon
+        // Always show an icon: try app-specific, fallback to default
         const lv_image_dsc_t* icon = pick_app_icon(app_id);
-        bool have_icon = (icon != NULL);
-        if (have_icon) {
-            lv_image_set_src(avatar_img, icon);
-            lv_obj_clear_flag(avatar_img, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(avatar_letter, LV_OBJ_FLAG_HIDDEN);
-        } else {
-            lv_obj_add_flag(avatar_img, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(avatar_letter, LV_OBJ_FLAG_HIDDEN);
-        }
-        static const uint32_t palette[] = { 0x3B82F6, 0x10B981, 0xF59E0B, 0xEF4444, 0x8B5CF6, 0x06B6D4, 0x22C55E, 0xEAB308 };
+        if (icon == NULL) icon = &image_notification_48;
+        lv_image_set_src(avatar_img, icon);
+
+        static const uint32_t palette[] = { 0x3B82F6, 0x10B981, 0xF59E0B, 0xEF4444, 0x8B5CF6, 0x06B6D4, 0x22C55E, 0xEAB308, 0x5C2D91 };
         const char *s = app_id && *app_id ? app_id : "?";
         if (color == 0) {
             uint32_t sum = 0; for (const char *p = s; *p; ++p) sum += (uint8_t)(*p);
             color = palette[ sum % (sizeof(palette)/sizeof(palette[0])) ];
         }
-        if (letter == 0) {
+        /*if (letter == 0) {
             for (const char *p = s; *p; ++p) { if (*p != ' ') { letter = *p; break; } }
             if (letter >= 'a' && letter <= 'z') letter = (char)(letter - 'a' + 'A');
             if (letter == 0) letter = '?';
-        }
-        lv_obj_set_style_bg_color(avatar, lv_color_hex(color), 0);
-        if (!have_icon) {
-            char txt[2] = { letter, '\0' };
-            lv_label_set_text(avatar_letter, txt);
-        }
-    }
+        }*/
+        //lv_obj_set_style_bg_color(avatar, lv_color_hex(color), 0);
+        lv_obj_set_style_bg_color(lbl_app, lv_color_hex(color), 0);
+        
+        // Letter avatar is no longer used (always show icon)
+    //}
 }
 
 static void create_tile(int idx) { (void)idx; }
@@ -166,31 +165,30 @@ static void build_single_card(lv_obj_t* parent)
     lv_obj_set_flex_flow(card, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(card, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_BETWEEN);
 
-    /*hdr_row = lv_obj_create(card);
-    lv_obj_remove_style_all(hdr_row);
-    lv_obj_set_size(hdr_row, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_flex_flow(hdr_row, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(hdr_row, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_AROUND);*/
+    hdr_card = lv_obj_create(card);
+    lv_obj_remove_style_all(hdr_card);
+    //lv_obj_set_size(hdr_card, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(hdr_card, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(hdr_card, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_AROUND);
+    lv_obj_set_size(hdr_card, lv_pct(100), LV_SIZE_CONTENT);
 
-    avatar = lv_obj_create(card);
+    /*avatar = lv_obj_create(hdr_card);
     lv_obj_remove_style_all(avatar);
-    lv_obj_set_size(avatar, 52, 52);
+    lv_obj_set_size(avatar, 62, 62);
     lv_obj_set_style_radius(avatar, 18, 0);
     lv_obj_set_style_bg_color(avatar, lv_color_hex(0x444444), 0);
     lv_obj_set_style_bg_opa(avatar, LV_OPA_COVER, 0);
     lv_obj_set_style_border_width(avatar, 0, 0);
-    lv_obj_set_style_pad_all(avatar, 0, 0);
+    lv_obj_set_style_pad_all(avatar, 0, 0);*/
 
-    avatar_letter = lv_label_create(avatar);
-    lv_obj_center(avatar_letter);
-    lv_obj_set_style_text_color(avatar_letter, lv_color_white(), 0);
-    lv_obj_set_style_text_font(avatar_letter, &font_bold_42, 0);
-    lv_label_set_text(avatar_letter, "N");
+    avatar_img = lv_image_create(hdr_card);
+    lv_image_set_src(avatar_img, &image_notification_48);
+    //lv_obj_set_size(avatar_img, 62, 62);    
 
-    lbl_app = lv_label_create(card);
+    lbl_app = lv_label_create(hdr_card);
     lv_obj_set_style_text_color(lbl_app, lv_color_hex(0xE0E0E0), 0);
     lv_obj_set_style_text_font(lbl_app, &font_normal_26, 0);
-    //lv_obj_set_style_pad_top(lbl_app, 12, 0);
+    lv_obj_set_style_pad_top(lbl_app, 12, 0);
     lv_label_set_text(lbl_app, "Notifications");
     lv_label_set_long_mode(lbl_app, LV_LABEL_LONG_DOT);
     //lv_obj_set_size(lbl_app, lv_pct(100), 52);
@@ -241,6 +239,92 @@ static void notif_anim_set_opa(void *var, int32_t v)
 {
     lv_obj_set_style_opa((lv_obj_t*)var, (lv_opa_t)v, 0);
 }
+static void notif_anim_set_x(void *var, int32_t v)
+{
+    lv_obj_set_style_translate_x((lv_obj_t*)var, v, 0);
+}
+
+// Simple slide transition state
+static bool notif_is_animating = false;
+static int slide_target_idx = 0;
+static int slide_dir = 0; // +1 = to left (next), -1 = to right (prev)
+
+static void slide_phase2_ready_cb(lv_anim_t* a)
+{
+    (void)a;
+    notif_is_animating = false;
+}
+
+static void slide_phase1_ready_cb(lv_anim_t* a)
+{
+    (void)a;
+    // Swap content to target item
+    active_idx = slide_target_idx;
+    update_card_content(active_idx);
+    update_pager(active_idx);
+
+    // Prepare for slide-in from opposite side
+    int32_t start_x = (slide_dir > 0) ? 30 : -30;
+    if (card) {
+        lv_obj_set_style_translate_x(card, start_x, 0);
+        lv_obj_set_style_opa(card, 0, 0);
+
+        // Slide-in
+        lv_anim_t a_in; lv_anim_init(&a_in);
+        lv_anim_set_var(&a_in, card);
+        lv_anim_set_values(&a_in, start_x, 0);
+        lv_anim_set_time(&a_in, 140);
+        lv_anim_set_exec_cb(&a_in, notif_anim_set_x);
+        lv_anim_set_ready_cb(&a_in, slide_phase2_ready_cb);
+        lv_anim_start(&a_in);
+
+        // Fade-in
+        lv_anim_t a_in_f; lv_anim_init(&a_in_f);
+        lv_anim_set_var(&a_in_f, card);
+        lv_anim_set_values(&a_in_f, 0, 255);
+        lv_anim_set_time(&a_in_f, 140);
+        lv_anim_set_exec_cb(&a_in_f, notif_anim_set_opa);
+        lv_anim_start(&a_in_f);
+    } else {
+        notif_is_animating = false;
+    }
+}
+
+static void start_slide_to(int new_idx, int dir)
+{
+    if (!card || new_idx == active_idx) {
+        // Fallback: no animation
+        active_idx = new_idx;
+        update_card_content(active_idx);
+        update_pager(active_idx);
+        notif_is_animating = false;
+        return;
+    }
+    notif_is_animating = true;
+    slide_target_idx = new_idx;
+    slide_dir = dir;
+
+    // Ensure in known state
+    lv_obj_set_style_translate_x(card, 0, 0);
+    lv_obj_set_style_opa(card, 255, 0);
+
+    // Phase 1: slide-out slightly and fade-out
+    int32_t end_x = (dir > 0) ? -30 : 30;
+    lv_anim_t a_out; lv_anim_init(&a_out);
+    lv_anim_set_var(&a_out, card);
+    lv_anim_set_values(&a_out, 0, end_x);
+    lv_anim_set_time(&a_out, 120);
+    lv_anim_set_exec_cb(&a_out, notif_anim_set_x);
+    lv_anim_set_ready_cb(&a_out, slide_phase1_ready_cb);
+    lv_anim_start(&a_out);
+
+    lv_anim_t a_out_f; lv_anim_init(&a_out_f);
+    lv_anim_set_var(&a_out_f, card);
+    lv_anim_set_values(&a_out_f, 255, 0);
+    lv_anim_set_time(&a_out_f, 120);
+    lv_anim_set_exec_cb(&a_out_f, notif_anim_set_opa);
+    lv_anim_start(&a_out_f);
+}
 
 static void gesture_event_cb(lv_event_t* e)
 {
@@ -248,17 +332,15 @@ static void gesture_event_cb(lv_event_t* e)
     static lv_point_t press_start = {0,0};
     if (code == LV_EVENT_GESTURE) {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
-        if (dir == LV_DIR_LEFT) {
-            if (active_idx + 1 < notif_count) {
-                active_idx++;
-                update_card_content(active_idx);
-                update_pager(active_idx);
-            }
-        } else if (dir == LV_DIR_RIGHT) {
-            if (active_idx > 0) {
-                active_idx--;
-                update_card_content(active_idx);
-                update_pager(active_idx);
+        if (!notif_is_animating) {
+            if (dir == LV_DIR_LEFT) {
+                if (active_idx + 1 < notif_count) {
+                    start_slide_to(active_idx + 1, +1);
+                }
+            } else if (dir == LV_DIR_RIGHT) {
+                if (active_idx > 0) {
+                    start_slide_to(active_idx - 1, -1);
+                }
             }
         }
         return;
@@ -270,17 +352,15 @@ static void gesture_event_cb(lv_event_t* e)
     if (code == LV_EVENT_RELEASED) {
         lv_point_t now; lv_indev_get_point(lv_indev_active(), &now);
         int dx = now.x - press_start.x;
-        if (dx <= -30) { // swipe left
-            if (active_idx + 1 < notif_count) {
-                active_idx++;
-                update_card_content(active_idx);
-                update_pager(active_idx);
-            }
-        } else if (dx >= 30) { // swipe right
-            if (active_idx > 0) {
-                active_idx--;
-                update_card_content(active_idx);
-                update_pager(active_idx);
+        if (!notif_is_animating) {
+            if (dx <= -30) { // swipe left
+                if (active_idx + 1 < notif_count) {
+                    start_slide_to(active_idx + 1, +1);
+                }
+            } else if (dx >= 30) { // swipe right
+                if (active_idx > 0) {
+                    start_slide_to(active_idx - 1, -1);
+                }
             }
         }
         return;
@@ -297,16 +377,16 @@ void lv_smartwatch_notifications_create(lv_obj_t * screen)
     lv_obj_set_style_bg_opa(notif_cont, LV_OPA_COVER, 0);
     lv_obj_clear_flag(notif_cont, LV_OBJ_FLAG_SCROLLABLE);
 
-    // Build one reusable card and enable swipe gestures on container
-    lv_obj_add_event_cb(notif_cont, gesture_event_cb, LV_EVENT_GESTURE, NULL);
+    // Build one reusable card and enable swipe/press events on container
+    // Listen to all events here; the handler filters by code.
+    lv_obj_add_event_cb(notif_cont, gesture_event_cb, LV_EVENT_ALL, NULL);
     lv_obj_add_flag(notif_cont, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
     build_single_card(notif_cont);
 
-    // Ensure gestures on the card bubble up and/or are handled
-    //if (card) {
-    //    lv_obj_add_flag(card, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
-     //   lv_obj_add_event_cb(notif_cont, gesture_event_cb, LV_EVENT_GESTURE, NULL);
-    //}
+    // Ensure gestures on the card bubble up to the container (where handler is attached)
+    if (card) {
+        lv_obj_add_flag(card, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
+    }
 
     // Pager indicator at bottom-center
     lbl_pager = lv_label_create(notif_cont);

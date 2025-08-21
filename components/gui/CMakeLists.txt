@@ -30,9 +30,11 @@ idf_component_register(
     "icons/image_telegram_48.c"
     "icons/image_outlook_48.c"
     "icons/image_youtube_48.c"
+    "icons/image_teams_48.c"
     "icons/background_wf.c"
     
     INCLUDE_DIRS "include" 
     REQUIRES lvgl sensors settings display_manager ble_sync esp32_s3_touch_amoled_2_06
     PRIV_REQUIRES esp_event
+
 )

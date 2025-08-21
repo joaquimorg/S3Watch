@@ -44,6 +44,29 @@ static uint16_t notify_char_attr_hdl;
 
 static void (*_nordic_uart_callback)(enum nordic_uart_callback_type callback_type) = NULL;
 static uart_receive_callback_t _uart_receive_callback = NULL;
+static bool s_low_power_pref = false;
+
+static void _apply_conn_params(void)
+{
+    if (ble_conn_hdl == 0) return;
+    struct ble_gap_conn_desc desc;
+    int rc = ble_gap_conn_find(ble_conn_hdl, &desc);
+    if (rc != 0) return;
+    struct ble_gap_upd_params params;
+    if (s_low_power_pref) {
+        params.itvl_min = 80;   // 100 ms
+        params.itvl_max = 120;  // 150 ms
+        params.latency  = 30;   // allow skipping 30 intervals
+        params.supervision_timeout = 600; // 6.0 s
+    } else {
+        // More responsive when active
+        params.itvl_min = 24;   // 30 ms
+        params.itvl_max = 40;   // 50 ms
+        params.latency  = 0;
+        params.supervision_timeout = desc.supervision_timeout;
+    }
+    (void)ble_gap_update_params(ble_conn_hdl, &params);
+}
 
 esp_err_t nordic_uart_yield(uart_receive_callback_t uart_receive_callback) {
     _uart_receive_callback = uart_receive_callback;
@@ -130,6 +153,10 @@ static void ble_app_advertise(void) {
     memset(&adv_params, 0, sizeof(adv_params));
     adv_params.conn_mode = BLE_GAP_CONN_MODE_UND;
     adv_params.disc_mode = BLE_GAP_DISC_MODE_GEN;
+    // Slow down advertising interval to reduce idle power when not connected
+    // Units are 0.625 ms; 800 => 500 ms, 1000 => 625 ms
+    adv_params.itvl_min = 800;
+    adv_params.itvl_max = 1000;
 
     err = ble_gap_adv_start(ble_addr_type, NULL, BLE_HS_FOREVER, &adv_params, ble_gap_event_cb, NULL);
     if (err) {
@@ -153,20 +180,8 @@ static int ble_gap_event_cb(struct ble_gap_event* event, void* arg) {
                 return rc;
             }
 
-            /* Try to update connection parameters! */
-            struct ble_gap_upd_params params = { .itvl_min = desc.conn_itvl,
-                                                .itvl_max = desc.conn_itvl,
-                                                .latency = 3,
-                                                .supervision_timeout =
-                                                    desc.supervision_timeout };
-            rc = ble_gap_update_params(event->connect.conn_handle, &params);
-            if (rc != 0) {
-                ESP_LOGE(
-                    _TAG,
-                    "failed to update connection parameters, error code: %d",
-                    rc);
-                return rc;
-            }
+            // Apply preferred params based on current power preference
+            _apply_conn_params();
             if (_nordic_uart_callback)
                 _nordic_uart_callback(NORDIC_UART_CONNECTED);
         }
@@ -243,6 +258,12 @@ esp_err_t _nordic_uart_send(const char* message) {
             return ESP_FAIL;
     }
     return ESP_OK;
+}
+
+void nordic_uart_set_low_power_mode(bool enable)
+{
+    s_low_power_pref = enable;
+    _apply_conn_params();
 }
 
 /***

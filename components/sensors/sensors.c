@@ -64,7 +64,8 @@ static esp_err_t imu_setup_irq(void)
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_NEGEDGE,
+        // Some QMI8658 boards use active-low pulse; use any edge to be safe
+        .intr_type = GPIO_INTR_ANYEDGE,
     };
     ESP_ERROR_CHECK(gpio_config(&io));
     esp_err_t r = gpio_install_isr_service(0);
@@ -72,6 +73,7 @@ static esp_err_t imu_setup_irq(void)
         return r;
     }
     ESP_ERROR_CHECK(gpio_isr_handler_add(IMU_IRQ_GPIO, imu_irq_isr, NULL));
+    gpio_intr_enable(IMU_IRQ_GPIO);
     return ESP_OK;
 }
 
@@ -125,30 +127,39 @@ sensors_activity_t sensors_get_activity(void)
 void sensors_task(void *pvParameters)
 {
     ESP_LOGI(TAG, "Sensors task started");
-    const TickType_t sample_delay = pdMS_TO_TICKS(20); // ~50 Hz
+    const TickType_t sample_delay_active = pdMS_TO_TICKS(20); // ~50 Hz
+    const TickType_t sample_delay_idle   = pdMS_TO_TICKS(40); // ~25 Hz when screen off
     float lp = 0.0f; // filtered magnitude
     const float alpha = 0.90f; // LP filter smoothing
     uint32_t last_step_ms = 0;
     // Ring buffer for cadence (last 8 steps)
     uint32_t step_ts_ms[8] = {0};
     int step_ts_idx = 0, step_ts_num = 0;
+    // Raise-to-wake detection state
+    float pitch_hist[16] = {0};
+    uint32_t ts_hist[16] = {0};
+    int hist_idx = 0, hist_num = 0;
+    uint32_t last_raise_ms = 0;
 
     bool wom_enabled = true; // enabled in init
     bool ready_for_next_peak = true;
     while (1) {
         maybe_reset_daily_counter();
 
-        // If display is off, rely on wake-on-motion interrupt to wake screen, skip heavy sampling
-        if (!display_manager_is_on()) {
+        // If display is off, enable WoM but also sample levemente para gesto de levantar pulso
+        bool screen_on = display_manager_is_on();
+        if (!screen_on) {
             if (!wom_enabled && s_imu_ready) {
                 (void)qmi8658_enable_wake_on_motion(&s_imu, 12);
                 wom_enabled = true;
             }
-            if (s_wom_sem && xSemaphoreTake(s_wom_sem, pdMS_TO_TICKS(1000)) == pdTRUE) {
+            if (s_wom_sem && xSemaphoreTake(s_wom_sem, 0) == pdTRUE) {
                 ESP_LOGI(TAG, "Wake-on-motion IRQ");
                 display_manager_turn_on();
+                // skip rest of loop; next iter will run as screen_on
+                vTaskDelay(pdMS_TO_TICKS(50));
+                continue;
             }
-            continue;
         }
 
         if (!s_imu_ready) {
@@ -202,8 +213,36 @@ void sensors_task(void *pvParameters)
             } else {
                 s_activity = SENSORS_ACTIVITY_IDLE;
             }
-        }
 
-        vTaskDelay(sample_delay);
+            // Raise-to-wake: compute pitch angle from accel (degrees)
+            // pitch ~ rotation around Y: -ax against gravity
+            float ax_g = ax / 1000.0f, ay_g = ay / 1000.0f, az_g = az / 1000.0f;
+            float pitch = (float)(atan2f(-ax_g, sqrtf(ay_g*ay_g + az_g*az_g)) * 180.0f / (float)M_PI);
+            //uint32_t now_ms = (uint32_t)(esp_timer_get_time() / 1000ULL);
+            pitch_hist[hist_idx] = pitch;
+            ts_hist[hist_idx] = now_ms;
+            hist_idx = (hist_idx + 1) & 15;
+            if (hist_num < 16) hist_num++;
+
+            if (!screen_on) {
+                // Compare with sample ~400-600ms atrás
+                float pitch_prev = pitch;
+                for (int k = 1; k <= hist_num; ++k) {
+                    int idx = (hist_idx - k + 16) & 15;
+                    uint32_t dtms = now_ms - ts_hist[idx];
+                    if (dtms >= 400 && dtms <= 700) { pitch_prev = pitch_hist[idx]; break; }
+                }
+                float dp = pitch - pitch_prev; // positive when lifting display up
+                bool accel_ok = (mag > 700.0f && mag < 1400.0f); // avoid big shakes
+                bool cooldown_ok = (now_ms - last_raise_ms) > 2000;
+                if (dp > 35.0f && accel_ok && cooldown_ok) {
+                    ESP_LOGI(TAG, "Raise-to-wake: dp=%.1f pitch=%.1f prev=%.1f", dp, pitch, pitch_prev);
+                    last_raise_ms = now_ms;
+                    display_manager_turn_on();
+                    // let next iter process as screen_on
+                }
+            }
+        }
+        vTaskDelay(screen_on ? sample_delay_active : sample_delay_idle);
     }
 }

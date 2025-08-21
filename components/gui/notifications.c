@@ -83,18 +83,18 @@ typedef struct AppMeta {
 } AppMeta;
 
 static const AppMeta k_known_apps[] = {
-    { "sms",                           "SMS",       0x10B981, 'S', &image_sms_48 },
-    { "com.android.messaging",        "SMS",       0x10B981, 'S', &image_sms_48 },
-    { "com.google.android.apps.messaging", "SMS",  0x10B981, 'S', &image_sms_48 },
-    { "call",                          "Call",      0x22C55E, 'C', &image_call_48 },
-    { "com.android.dialer",           "Call",      0x22C55E, 'C', &image_call_48 },
-    { "com.google.android.gm",        "Gmail",     0xEF4444, 'G', &image_gmail_48 },
-    { "com.google.android.youtube",   "YouTube",   0xFF0000, 'Y', &image_youtube_48 },
-    { "com.whatsapp",                 "WhatsApp",  0x25D366, 'W', &image_whatsapp_48 },
-    { "com.facebook.katana",          "Facebook",  0x1877F2, 'F', &image_messenger_48 },
-    { "org.telegram.messenger",       "Telegram",  0x229ED9, 'T', &image_telegram_48 },
-    { "com.microsoft.office.outlook", "Outlook",   0x0078D4, 'O', &image_outlook_48 },
-    { "com.microsoft.teams",          "Teams",     0x5C2D91, 'T', &image_teams_48 },
+    { "sms",                                "SMS",          0x10B981, 'S', &image_sms_48 },
+    { "com.android.messaging",              "SMS",          0x10B981, 'S', &image_sms_48 },
+    { "com.google.android.apps.messaging",  "SMS",          0x10B981, 'S', &image_sms_48 },
+    { "call",                               "Call",         0x22C55E, 'C', &image_call_48 },
+    { "com.android.dialer",                 "Call",         0x22C55E, 'C', &image_call_48 },
+    { "com.google.android.gm",              "Gmail",        0xEF4444, 'G', &image_gmail_48 },
+    { "com.google.android.youtube",         "YouTube",      0xFF0000, 'Y', &image_youtube_48 },
+    { "com.whatsapp",                       "WhatsApp",     0x25D366, 'W', &image_whatsapp_48 },
+    { "com.facebook.katana",                "Facebook",     0x1877F2, 'F', &image_messenger_48 },
+    { "org.telegram.messenger",             "Telegram",     0x229ED9, 'T', &image_telegram_48 },
+    { "com.microsoft.office.outlook",       "Outlook",      0x0078D4, 'O', &image_outlook_48 },
+    { "com.microsoft.teams",                "Teams",        0x0078D4, 'T', &image_teams_48 },
 };
 
 static const AppMeta* get_app_meta(const char* app_id)
@@ -153,10 +153,12 @@ static void update_card_content(int idx)
 
         // Always show an icon per metadata
         const lv_image_dsc_t* icon = (meta && meta->icon) ? meta->icon : &image_notification_48;
-        if (icon) lv_image_set_src(avatar_img, icon);
-        // Use color from metadata
+        if (icon && avatar_img) {
+            lv_image_set_src(avatar_img, icon);
+        }
+        // Use color from metadata on the label text (safer than bg on label)
         uint32_t color = meta ? meta->color : 0x3B82F6;
-        lv_obj_set_style_bg_color(lbl_app, lv_color_hex(color), 0);
+        lv_obj_set_style_text_color(lbl_app, lv_color_hex(color), 0);
         
         // Letter avatar is no longer used (always show icon)
     //}

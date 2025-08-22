@@ -11,9 +11,11 @@ static lv_obj_t* s_bar = NULL;
 static lv_obj_t* s_ticks[4] = {0};
 
 static lv_obj_t* s_icon_left = NULL;
-static lv_obj_t* s_icon_right = NULL;
+//static lv_obj_t* s_icon_right = NULL;
 static lv_timer_t* s_timer = NULL;
 static uint32_t s_goal_steps = 8000;
+
+LV_IMAGE_DECLARE(image_walk_48);
 
 static void steps_timer_cb(lv_timer_t* t)
 {
@@ -38,15 +40,27 @@ void steps_screen_create(lv_obj_t* parent)
     lv_obj_set_align(s_container, LV_ALIGN_CENTER);
     lv_obj_set_style_bg_opa(s_container, LV_OPA_0, 0);
 
+    lv_obj_t* hdr_card = lv_obj_create(s_container);
+    lv_obj_remove_style_all(hdr_card);
+    //lv_obj_set_size(hdr_card, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(hdr_card, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(hdr_card, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_EVENLY);
+    lv_obj_set_size(hdr_card, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_align(hdr_card, LV_ALIGN_TOP_MID);
+
+
+    lv_obj_t* img = lv_image_create(hdr_card);
+    //lv_obj_set_align(img, LV_ALIGN_TOP_MID);
+    lv_image_set_src(img, &image_walk_48);
+
     // Title row
-    lv_obj_t* title = lv_label_create(s_container);
-    
+    lv_obj_t* title = lv_label_create(hdr_card);    
     lv_label_set_text(title, "Steps");
-    lv_obj_set_style_text_font(title, &font_bold_42, 0);
+    lv_obj_set_style_text_font(title, &font_bold_32, 0);
     lv_obj_set_style_text_letter_space(title, 1, 0);
     lv_obj_set_style_text_color(title, lv_color_white(), 0);
-    lv_obj_set_align(title, LV_ALIGN_TOP_MID);
-    lv_obj_set_y(title, 10);
+    //lv_obj_set_align(title, LV_ALIGN_TOP_MID);
+    //lv_obj_set_y(title, 100);
 
     // Value label
     s_value_label = lv_label_create(s_container);
@@ -54,7 +68,7 @@ void steps_screen_create(lv_obj_t* parent)
     lv_obj_set_style_text_font(s_value_label, &font_numbers_80, 0);
     lv_label_set_text(s_value_label, "0");
     lv_obj_set_align(s_value_label, LV_ALIGN_CENTER);
-    lv_obj_set_y(s_value_label, -38);
+    lv_obj_set_y(s_value_label, -20);
 
     // Goal text under value
     s_goal_label = lv_label_create(s_container);
@@ -62,7 +76,7 @@ void steps_screen_create(lv_obj_t* parent)
     lv_snprintf(gbuf, sizeof(gbuf), "Goal %u", (unsigned)s_goal_steps);
     lv_label_set_text(s_goal_label, gbuf);
     lv_obj_set_style_text_color(s_goal_label, lv_color_hex(0x909090), 0);
-    lv_obj_align_to(s_goal_label, s_value_label, LV_ALIGN_OUT_BOTTOM_MID, 0, 8);
+    lv_obj_align_to(s_goal_label, s_value_label, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
     lv_obj_set_style_text_font(s_goal_label, &font_normal_32, 0);
 
     // Horizontal progress bar near bottom

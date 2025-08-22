@@ -11,3 +11,6 @@ python .\LVGLImage.py .\image_teams_48.png --ofmt C --cf RGB565A8 -o  ..\compone
 python .\LVGLImage.py .\image_instagram_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
 python .\LVGLImage.py .\image_tiktok_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
 python .\LVGLImage.py .\image_x_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
+python .\LVGLImage.py .\image_walk_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
+python .\LVGLImage.py .\image_brightness_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons
+python .\LVGLImage.py .\image_battery_48.png --ofmt C --cf RGB565A8 -o  ..\components\gui\icons

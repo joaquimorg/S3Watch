@@ -21,7 +21,9 @@
     "type_traits": "c",
     "ui.h": "c",
     "esp-bsp.h": "c",
-    "batt_screen.h": "c"
+    "batt_screen.h": "c",
+    "steps_screen.h": "c",
+    "esp32_s3_touch_amoled_2_06.h": "c"
   },
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"

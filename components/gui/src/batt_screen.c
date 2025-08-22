@@ -6,8 +6,9 @@
 
 // Access UI primitives via ui.h accessors
 
+LV_IMAGE_DECLARE(image_battery_48);
+
 static lv_obj_t* batt_screen;
-static lv_obj_t* batt_title_label;
 static lv_obj_t* batt_percent_label;
 static lv_obj_t* batt_bar;
 static lv_obj_t* chip_source;
@@ -50,9 +51,21 @@ void lv_smartwatch_batt_create(lv_obj_t* screen)
     lv_obj_set_flex_align(batt_screen, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_all(batt_screen, 16, 0);
 
-    // Big title label
-    batt_title_label = lv_label_create(batt_screen);
-    lv_obj_set_style_text_font(batt_title_label, &font_bold_42, 0);
+    lv_obj_t* hdr_card = lv_obj_create(batt_screen);
+    lv_obj_remove_style_all(hdr_card);
+    //lv_obj_set_size(hdr_card, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(hdr_card, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(hdr_card, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_EVENLY);
+    lv_obj_set_size(hdr_card, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_align(hdr_card, LV_ALIGN_TOP_MID);
+
+
+    lv_obj_t* img = lv_image_create(hdr_card);
+    //lv_obj_set_align(img, LV_ALIGN_TOP_MID);
+    lv_image_set_src(img, &image_battery_48);
+
+    lv_obj_t* batt_title_label = lv_label_create(hdr_card);
+    lv_obj_set_style_text_font(batt_title_label, &font_bold_32, 0);
     lv_label_set_text(batt_title_label, "Battery");
 
     // Big percentage label

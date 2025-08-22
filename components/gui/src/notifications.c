@@ -20,7 +20,6 @@ static int notif_count = 0; // valid items in buffer
 // Container and single reusable card (low memory)
 static lv_obj_t *notif_cont;      // root container (fills panel)
 static lv_obj_t *card;            // single card reused for all items
-static lv_obj_t *hdr_card;         // header row container
 static lv_obj_t *avatar_img;      // optional image icon
 static lv_obj_t *lbl_app;
 static lv_obj_t *lbl_time;
@@ -155,12 +154,13 @@ static void build_single_card(lv_obj_t* parent)
     lv_obj_set_flex_flow(card, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(card, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_BETWEEN);
 
-    hdr_card = lv_obj_create(card);
+    lv_obj_t* hdr_card = lv_obj_create(card);
     lv_obj_remove_style_all(hdr_card);
     //lv_obj_set_size(hdr_card, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_flex_flow(hdr_card, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(hdr_card, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_AROUND);
+    lv_obj_set_flex_flow(hdr_card, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(hdr_card, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_EVENLY);
     lv_obj_set_size(hdr_card, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_align(hdr_card, LV_ALIGN_TOP_MID);
 
     /*avatar = lv_obj_create(hdr_card);
     lv_obj_remove_style_all(avatar);

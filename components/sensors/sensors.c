@@ -17,6 +17,12 @@
 #define IMU_ADDR_HIGH          QMI8658_ADDRESS_HIGH
 #define IMU_ADDR_LOW           QMI8658_ADDRESS_LOW
 
+// Raise-to-wake sensitivity (tune to taste)
+#define RAISE_DP_THRESH_DEG    55.0f   // min pitch delta to consider a raise
+#define RAISE_ACCEL_MIN_MG     850.0f  // acceptable accel magnitude lower bound
+#define RAISE_ACCEL_MAX_MG     1150.0f // acceptable accel magnitude upper bound
+#define RAISE_COOLDOWN_MS      3500    // min ms between wakeups
+
 static const char *TAG = "SENSORS";
 
 static qmi8658_dev_t s_imu;
@@ -233,9 +239,9 @@ void sensors_task(void *pvParameters)
                     if (dtms >= 400 && dtms <= 700) { pitch_prev = pitch_hist[idx]; break; }
                 }
                 float dp = pitch - pitch_prev; // positive when lifting display up
-                bool accel_ok = (mag > 700.0f && mag < 1400.0f); // avoid big shakes
-                bool cooldown_ok = (now_ms - last_raise_ms) > 2000;
-                if (dp > 35.0f && accel_ok && cooldown_ok) {
+                bool accel_ok = (mag > RAISE_ACCEL_MIN_MG && mag < RAISE_ACCEL_MAX_MG); // avoid big shakes
+                bool cooldown_ok = (now_ms - last_raise_ms) > RAISE_COOLDOWN_MS;
+                if (dp > RAISE_DP_THRESH_DEG && accel_ok && cooldown_ok) {
                     ESP_LOGI(TAG, "Raise-to-wake: dp=%.1f pitch=%.1f prev=%.1f", dp, pitch, pitch_prev);
                     last_raise_ms = now_ms;
                     display_manager_turn_on();

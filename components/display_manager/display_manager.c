@@ -120,6 +120,8 @@ static bool wake_button_pressed(void)
 static void display_manager_task(void *arg) {
     ESP_LOGI(TAG, "Display manager task started");
     while (1) {
+        // Refresh timeout from settings to apply changes immediately
+        timeout_ms = settings_get_display_timeout();
         if (display_on) {
             uint32_t inactive = lv_disp_get_inactive_time(NULL);
             if (inactive >= timeout_ms) {

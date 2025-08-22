@@ -5,6 +5,7 @@
 #include "batt_screen.h"
 #include "brightness_screen.h"
 #include "esp_log.h"
+#include "settings_menu_screen.h"
 
 static const char* TAG = "SETTINGS SCREEN";
 
@@ -149,6 +150,10 @@ static void click_event_cb(lv_event_t* e)
     case CTRL_BATTERY:
         ESP_LOGI(TAG, "Battery control clicked");
         load_screen(batt_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+        break;
+    case CTRL_SETTINGS:
+        ESP_LOGI(TAG, "Settings clicked");
+        load_screen(settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
         break;
     default:
         break;

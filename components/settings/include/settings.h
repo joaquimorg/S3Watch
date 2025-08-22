@@ -18,6 +18,20 @@ uint32_t settings_get_display_timeout(void);
 void settings_set_sound(bool enabled);
 bool settings_get_sound(void);
 
+// Persist settings to SPIFFS JSON and load from it
+bool settings_save(void);
+bool settings_load(void);
+
+// Step goal (daily steps target)
+void settings_set_step_goal(uint32_t steps);
+uint32_t settings_get_step_goal(void);
+
+// Restore factory defaults and persist
+bool settings_reset_defaults(void);
+
+// Maintenance: format SPIFFS storage partition
+bool settings_format_spiffs(void);
+
 #ifdef __cplusplus
 }
 #endif

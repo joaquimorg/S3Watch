@@ -2,11 +2,13 @@
 #include "steps_screen.h"
 #include "sensors.h"
 #include "ui_fonts.h"
+#include "settings.h"
 
 
 static lv_obj_t* s_container = NULL;
 static lv_obj_t* s_value_label = NULL;
 static lv_obj_t* s_goal_label = NULL;
+static lv_obj_t* s_activity_label = NULL;
 static lv_obj_t* s_bar = NULL;
 static lv_obj_t* s_ticks[4] = {0};
 
@@ -21,6 +23,16 @@ static void steps_timer_cb(lv_timer_t* t)
 {
     LV_UNUSED(t);
     if (!s_value_label) return;
+    // Refresh goal from settings if changed
+    uint32_t new_goal = settings_get_step_goal();
+    if (new_goal != s_goal_steps) {
+        s_goal_steps = new_goal ? new_goal : 1;
+        if (s_goal_label) {
+            char gbuf2[32];
+            lv_snprintf(gbuf2, sizeof(gbuf2), "Goal %u", (unsigned)s_goal_steps);
+            lv_label_set_text(s_goal_label, gbuf2);
+        }
+    }
     uint32_t steps = sensors_get_step_count();
     char buf[32];
     lv_snprintf(buf, sizeof(buf), "%u", (unsigned)steps);
@@ -30,6 +42,20 @@ static void steps_timer_cb(lv_timer_t* t)
     uint32_t goal = s_goal_steps ? s_goal_steps : 1;
     uint32_t pct = (steps >= goal) ? 100 : (steps * 100u) / goal;
     if (s_bar) lv_bar_set_value(s_bar, (int32_t)pct, LV_ANIM_OFF);
+
+    // Update activity type label
+    if (s_activity_label) {
+        sensors_activity_t act = sensors_get_activity();
+        const char* text = "Idle";
+        switch (act) {
+            case SENSORS_ACTIVITY_WALK: text = "Walk"; break;
+            case SENSORS_ACTIVITY_RUN:  text = "Run";  break;
+            case SENSORS_ACTIVITY_OTHER:text = "Active"; break;
+            case SENSORS_ACTIVITY_IDLE:
+            default: text = "Idle"; break;
+        }
+        lv_label_set_text(s_activity_label, text);
+    }
 }
 
 void steps_screen_create(lv_obj_t* parent)
@@ -72,12 +98,21 @@ void steps_screen_create(lv_obj_t* parent)
 
     // Goal text under value
     s_goal_label = lv_label_create(s_container);
+    // Initialize goal from settings
+    s_goal_steps = settings_get_step_goal();
     char gbuf[32];
     lv_snprintf(gbuf, sizeof(gbuf), "Goal %u", (unsigned)s_goal_steps);
     lv_label_set_text(s_goal_label, gbuf);
     lv_obj_set_style_text_color(s_goal_label, lv_color_hex(0x909090), 0);
     lv_obj_align_to(s_goal_label, s_value_label, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
     lv_obj_set_style_text_font(s_goal_label, &font_normal_32, 0);
+
+    // Activity label under goal
+    s_activity_label = lv_label_create(s_container);
+    lv_label_set_text(s_activity_label, "Idle");
+    lv_obj_set_style_text_color(s_activity_label, lv_color_hex(0xA0A0A0), 0);
+    lv_obj_set_style_text_font(s_activity_label, &font_normal_32, 0);
+    lv_obj_align_to(s_activity_label, s_goal_label, LV_ALIGN_OUT_BOTTOM_MID, 0, 6);
 
     // Horizontal progress bar near bottom
     s_bar = lv_bar_create(s_container);

@@ -21,13 +21,13 @@ static int notif_count = 0; // valid items in buffer
 static lv_obj_t *notif_cont;      // root container (fills panel)
 static lv_obj_t *card;            // single card reused for all items
 static lv_obj_t *hdr_card;         // header row container
-static lv_obj_t *avatar;          // avatar circle
 static lv_obj_t *avatar_img;      // optional image icon
 static lv_obj_t *lbl_app;
 static lv_obj_t *lbl_time;
 static lv_obj_t *lbl_title;
 static lv_obj_t *lbl_message;
-static lv_obj_t *lbl_pager;       // bottom-center pager "n/m"
+static lv_obj_t *pager_cont;      // bottom-center pager (dots)
+static lv_obj_t *pager_dots[MAX_NOTIFICATIONS];
 static int active_idx = 0;        // current shown index (0 = most recent)
 
 static void set_label_text(lv_obj_t* lbl, const char* txt)
@@ -53,16 +53,6 @@ static void format_datetime_ymd_hhmm(const char* iso_ts, char* out, size_t out_s
     out[11] = t[1]; out[12] = t[2]; out[13] = ':'; out[14] = t[4]; out[15] = t[5]; out[16] = '\0';
 }
 
-/* Optional app icons (compiled if present). Symbols declared weak so missing files don't break the build. */
-/*extern const lv_image_dsc_t image_notification_48 __attribute__((weak));
-extern const lv_image_dsc_t image_sms_48 __attribute__((weak));
-extern const lv_image_dsc_t image_call_48 __attribute__((weak));
-extern const lv_image_dsc_t image_gmail_48 __attribute__((weak));
-extern const lv_image_dsc_t image_whatsapp_48 __attribute__((weak));
-extern const lv_image_dsc_t image_messenger_48 __attribute__((weak));
-extern const lv_image_dsc_t image_telegram_48 __attribute__((weak));
-extern const lv_image_dsc_t image_outlook_48 __attribute__((weak));
-extern const lv_image_dsc_t image_youtube_48 __attribute__((weak));*/
 LV_IMAGE_DECLARE(image_notification_48);
 LV_IMAGE_DECLARE(image_sms_48);
 LV_IMAGE_DECLARE(image_call_48);
@@ -73,28 +63,32 @@ LV_IMAGE_DECLARE(image_telegram_48);
 LV_IMAGE_DECLARE(image_outlook_48);
 LV_IMAGE_DECLARE(image_youtube_48);
 LV_IMAGE_DECLARE(image_teams_48);
+LV_IMAGE_DECLARE(image_instagram_48);
+LV_IMAGE_DECLARE(image_tiktok_48);
+LV_IMAGE_DECLARE(image_x_48);
 
 typedef struct AppMeta {
     const char* id;
-    const char* friendly;
-    uint32_t color;
-    char letter;
+    const char* friendly;    
     const lv_image_dsc_t* icon;
 } AppMeta;
 
 static const AppMeta k_known_apps[] = {
-    { "sms",                                "SMS",          0x10B981, 'S', &image_sms_48 },
-    { "com.android.messaging",              "SMS",          0x10B981, 'S', &image_sms_48 },
-    { "com.google.android.apps.messaging",  "SMS",          0x10B981, 'S', &image_sms_48 },
-    { "call",                               "Call",         0x22C55E, 'C', &image_call_48 },
-    { "com.google.android.dialer",          "Call",         0x22C55E, 'C', &image_call_48 },
-    { "com.google.android.gm",              "Gmail",        0xEF4444, 'G', &image_gmail_48 },
-    { "com.google.android.youtube",         "YouTube",      0xFF0000, 'Y', &image_youtube_48 },
-    { "com.whatsapp",                       "WhatsApp",     0x25D366, 'W', &image_whatsapp_48 },
-    { "com.facebook.katana",                "Facebook",     0x1877F2, 'F', &image_messenger_48 },
-    { "org.telegram.messenger",             "Telegram",     0x229ED9, 'T', &image_telegram_48 },
-    { "com.microsoft.office.outlook",       "Outlook",      0x0078D4, 'O', &image_outlook_48 },
-    { "com.microsoft.teams",                "Teams",        0x0078D4, 'T', &image_teams_48 },
+    { "sms",                                "SMS",          &image_sms_48 },
+    { "com.android.messaging",              "SMS",          &image_sms_48 },
+    { "com.google.android.apps.messaging",  "SMS",          &image_sms_48 },
+    { "call",                               "Call",         &image_call_48 },
+    { "com.google.android.dialer",          "Call",         &image_call_48 },
+    { "com.google.android.gm",              "Gmail",        &image_gmail_48 },
+    { "com.google.android.youtube",         "YouTube",      &image_youtube_48 },
+    { "com.whatsapp",                       "WhatsApp",     &image_whatsapp_48 },
+    { "com.facebook.katana",                "Facebook",     &image_messenger_48 },
+    { "org.telegram.messenger",             "Telegram",     &image_telegram_48 },
+    { "com.microsoft.office.outlook",       "Outlook",      &image_outlook_48 },
+    { "com.microsoft.teams",                "Teams",        &image_teams_48 },
+    { "com.instagram.android",              "Instagram",    &image_instagram_48 },
+    { "com.zhiliaoapp.musically",           "TikTok",       &image_tiktok_48 },
+    { "com.twitter.android",                "X (Twitter)",  &image_x_48 },
 };
 
 static const AppMeta* get_app_meta(const char* app_id)
@@ -106,28 +100,13 @@ static const AppMeta* get_app_meta(const char* app_id)
                 return &k_known_apps[i];
             }
         }
-        // Unknown app: compute friendly, color, letter, and use default icon
-        static const uint32_t palette[] = { 0x3B82F6, 0x10B981, 0xF59E0B, 0xEF4444, 0x8B5CF6, 0x06B6D4, 0x22C55E, 0xEAB308, 0x5C2D91 };
-        uint32_t sum = 0; for (const char* p = app_id; *p; ++p) sum += (uint8_t)(*p);
-        uint32_t color = palette[ sum % (sizeof(palette)/sizeof(palette[0])) ];
-        char letter = '?';
-        for (const char* p = app_id; *p; ++p) { if (*p != ' ') { letter = *p; break; } }
-        if (letter >= 'a' && letter <= 'z') letter = (char)(letter - 'a' + 'A');
         dyn.id = app_id;
         dyn.friendly = app_id;
-        dyn.color = color;
-        dyn.letter = letter;
         dyn.icon = &image_notification_48;
         return &dyn;
     }
-    static const AppMeta unknown = { "", "Notifications", 0x3B82F6, 'N', &image_notification_48 };
+    static const AppMeta unknown = { "", "Notifications", &image_notification_48 };
     return &unknown;
-}
-
-static const lv_image_dsc_t* pick_app_icon(const char* app_id)
-{
-    const AppMeta* m = get_app_meta(app_id);
-    return (m && m->icon) ? m->icon : &image_notification_48;
 }
 
 static void update_card_content(int idx)
@@ -157,9 +136,9 @@ static void update_card_content(int idx)
             lv_image_set_src(avatar_img, icon);
         }
         // Use color from metadata on the label text (safer than bg on label)
-        uint32_t color = meta ? meta->color : 0x3B82F6;
-        lv_obj_set_style_text_color(lbl_app, lv_color_hex(color), 0);
-        
+        //uint32_t color = meta ? meta->color : 0x3B82F6;
+        //lv_obj_set_style_text_color(lbl_app, lv_color_hex(color), 0);
+
         // Letter avatar is no longer used (always show icon)
     //}
 }
@@ -228,17 +207,40 @@ static void build_single_card(lv_obj_t* parent)
 
 static void update_pager(int active_idx)
 {
-    if (!lbl_pager) return;
-    if (notif_count <= 0) {
-        lv_obj_add_flag(lbl_pager, LV_OBJ_FLAG_HIDDEN);
+    if (!pager_cont) return;
+    // Hide when there are 0 or 1 notifications
+    if (notif_count <= 1) {
+        lv_obj_add_flag(pager_cont, LV_OBJ_FLAG_HIDDEN);
         return;
     }
-    lv_obj_clear_flag(lbl_pager, LV_OBJ_FLAG_HIDDEN);
-    int pos = active_idx + 1;
-    if (pos > notif_count) pos = notif_count;
-    char buf[16];
-    lv_snprintf(buf, sizeof(buf), "%d/%d", pos, notif_count);
-    lv_label_set_text(lbl_pager, buf);
+
+    lv_obj_clear_flag(pager_cont, LV_OBJ_FLAG_HIDDEN);
+
+    // Ensure dots exist up to MAX_NOTIFICATIONS and reflect notif_count
+    const int inactive_sz = 6;     // px
+    const int active_sz   = 10;    // px (bigger for current)
+    const uint32_t col_inactive = 0x9CA3AF; // lighter gray for better visibility
+    const uint32_t col_active   = 0xF6F6C2; // accent color matches title
+
+    for (int i = 0; i < MAX_NOTIFICATIONS; ++i) {
+        if (i >= notif_count) {
+            if (pager_dots[i]) lv_obj_add_flag(pager_dots[i], LV_OBJ_FLAG_HIDDEN);
+            continue;
+        }
+
+        if (!pager_dots[i]) {
+            pager_dots[i] = lv_obj_create(pager_cont);
+            lv_obj_remove_style_all(pager_dots[i]);
+            lv_obj_set_style_bg_opa(pager_dots[i], LV_OPA_COVER, 0);
+            lv_obj_set_style_radius(pager_dots[i], LV_RADIUS_CIRCLE, 0);
+        }
+        lv_obj_clear_flag(pager_dots[i], LV_OBJ_FLAG_HIDDEN);
+
+        bool is_active = (i == active_idx);
+        int sz = is_active ? active_sz : inactive_sz;
+        lv_obj_set_size(pager_dots[i], sz, sz);
+        lv_obj_set_style_bg_color(pager_dots[i], lv_color_hex(is_active ? col_active : col_inactive), 0);
+    }
 }
 
 // Animation helpers (file scope)
@@ -399,14 +401,18 @@ void lv_smartwatch_notifications_create(lv_obj_t * screen)
         lv_obj_add_flag(card, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
     }
 
-    // Pager indicator at bottom-center
-    lbl_pager = lv_label_create(notif_cont);
-    lv_obj_set_style_text_color(lbl_pager, lv_color_hex(0x808080), 0);
-    lv_obj_set_style_text_font(lbl_pager, &font_normal_26, 0);
-    lv_obj_set_align(lbl_pager, LV_ALIGN_BOTTOM_MID);
-    lv_obj_set_y(lbl_pager, -6);
-    lv_label_set_text(lbl_pager, "");
-    lv_obj_add_flag(lbl_pager, LV_OBJ_FLAG_HIDDEN);
+    // Pager indicator at bottom-center (dots with active highlight)
+    pager_cont = lv_obj_create(notif_cont);
+    lv_obj_remove_style_all(pager_cont);
+    lv_obj_set_align(pager_cont, LV_ALIGN_BOTTOM_MID);
+    lv_obj_set_y(pager_cont, -8);
+    lv_obj_set_size(pager_cont, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(pager_cont, LV_FLEX_FLOW_ROW);
+    lv_obj_set_style_pad_all(pager_cont, 0, 0);
+    lv_obj_set_style_pad_row(pager_cont, 0, 0);
+    lv_obj_set_style_pad_column(pager_cont, 8, 0); // gap between dots
+    for (int i = 0; i < MAX_NOTIFICATIONS; ++i) pager_dots[i] = NULL;
+    lv_obj_add_flag(pager_cont, LV_OBJ_FLAG_HIDDEN);
 }
 
 

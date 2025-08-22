@@ -42,19 +42,23 @@ void lv_smartwatch_brightness_create(lv_obj_t* screen)
     brightness_title_label = lv_label_create(brightness_screen);
     lv_obj_set_style_text_font(brightness_title_label, &font_bold_42, 0);
     lv_label_set_text(brightness_title_label, "Brightness");
-    lv_obj_set_style_pad_bottom(brightness_title_label, 30, 0);
+    //lv_obj_set_style_pad_bottom(brightness_title_label, 30, 0);
+    lv_obj_set_align(brightness_title_label, LV_ALIGN_TOP_MID);
+    lv_obj_set_y(brightness_title_label, 10);
 
     // Layout
-    lv_obj_set_flex_flow(brightness_screen, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(brightness_screen, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-    lv_obj_set_style_pad_all(brightness_screen, 24, 0);
-    lv_obj_set_style_pad_row(brightness_screen, 18, 0);
+    //lv_obj_set_flex_flow(brightness_screen, LV_FLEX_FLOW_COLUMN);
+    //lv_obj_set_flex_align(brightness_screen, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    //lv_obj_set_style_pad_all(brightness_screen, 24, 0);
+    //lv_obj_set_style_pad_row(brightness_screen, 18, 0);
 
     // Big percent label
     percent_label = lv_label_create(brightness_screen);
     lv_obj_set_style_text_font(percent_label, &font_bold_42, 0);
     lv_obj_set_style_text_color(percent_label, lv_color_hex(0xFFFF10), 0);
     lv_label_set_text(percent_label, "--%");
+    lv_obj_set_align(percent_label, LV_ALIGN_CENTER);
+    lv_obj_set_y(percent_label, 60);
 
     // Slider 0..100
     slider = lv_slider_create(brightness_screen);
@@ -63,6 +67,7 @@ void lv_smartwatch_brightness_create(lv_obj_t* screen)
     lv_slider_set_range(slider, 5, 100);
     lv_obj_add_style(slider, &style_knob, LV_PART_KNOB);
     lv_obj_add_event_cb(slider, slider_event, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_set_align(slider, LV_ALIGN_CENTER);
 
     // Set initial value from settings
     int init = settings_get_brightness();

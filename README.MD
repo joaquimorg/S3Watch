@@ -3,6 +3,9 @@
 This repository contains the firmware for the Waveshare ESP32-S3-Touch-AMOLED-2.06 smartwatch development board.
 More information about the board can be found on the Waveshare Wiki: [ESP32-S3-Touch-AMOLED-2.06 Wiki](https://www.waveshare.com/wiki/ESP32-S3-Touch-AMOLED-2.06)
 
+<img src="ui_assets/s3watch_0.jpg" width="300"/>
+<img src="ui_assets/s3watch_1.jpg" width="300"/>
+
 # Introduction
 ESP32-S3-Touch-AMOLED-2.06 is a high-performance, wearable watch-shaped development board launched by Waveshare. The product is based on the ESP32-S3R8 microcontroller, integrating a 2.06inch capacitive touch HD AMOLED screen, a six-axis sensor, RTC, an audio codec chip and power management and other functional modules. With a custom case, it looks and forms like a smart watch and is designed for prototyping and functional verification of wearable applications.
 

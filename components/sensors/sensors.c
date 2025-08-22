@@ -153,13 +153,13 @@ void sensors_task(void *pvParameters)
                 (void)qmi8658_enable_wake_on_motion(&s_imu, 12);
                 wom_enabled = true;
             }
-            if (s_wom_sem && xSemaphoreTake(s_wom_sem, 0) == pdTRUE) {
+            /*if (s_wom_sem && xSemaphoreTake(s_wom_sem, 0) == pdTRUE) {
                 ESP_LOGI(TAG, "Wake-on-motion IRQ");
                 display_manager_turn_on();
                 // skip rest of loop; next iter will run as screen_on
                 vTaskDelay(pdMS_TO_TICKS(50));
                 continue;
-            }
+            }*/
         }
 
         if (!s_imu_ready) {

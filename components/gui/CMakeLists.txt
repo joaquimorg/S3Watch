@@ -1,42 +1,21 @@
+set(SRCS "")
+
+set(SRC_DIRS "")
+list(APPEND SRC_DIRS "font")
+list(APPEND SRC_DIRS "icons")
+list(APPEND SRC_DIRS "src")
+
+set(INCLUDE_DIRS "")
+list(APPEND INCLUDE_DIRS "include")
+
+foreach(SRC_DIR IN LISTS SRC_DIRS)
+    file(GLOB_RECURSE SRC ${SRC_DIR}/*.c)
+    list(APPEND SRCS ${SRC})    
+endforeach()
+
 idf_component_register(
-    SRCS 
-    "ui.c" 
-    "watchface.c" 
-    "notifications.c" 
-    "settings_screen.c" 
-    "steps_screen.c" 
-    "batt_screen.c" 
-    "brightness_screen.c" 
-    "font/font_numbers_160.c"
-    "font/font_numbers_80.c"
-    "font/font_normal_26.c"
-    "font/font_normal_28.c"
-    "font/font_normal_32.c"
-    "font/font_normal_42.c"
-    "font/font_bold_26.c"
-    "font/font_bold_28.c"
-    "font/font_bold_32.c"
-    "font/font_bold_42.c"
-    "icons/image_battery_icon.c"
-    "icons/image_bluetooth_icon.c"
-    "icons/image_brightness_icon.c"
-    "icons/image_flashlight_icon.c"
-    "icons/image_silence_icon.c"
-    "icons/image_settings_icon.c"
-    "icons/image_notification_48.c"
-    "icons/image_sms_48.c"
-    "icons/image_call_48.c"
-    "icons/image_gmail_48.c"
-    "icons/image_whatsapp_48.c"
-    "icons/image_messenger_48.c"
-    "icons/image_telegram_48.c"
-    "icons/image_outlook_48.c"
-    "icons/image_youtube_48.c"
-    "icons/image_teams_48.c"
-    "icons/background_wf.c"
-    
-    INCLUDE_DIRS "include" 
+    SRCS ${SRCS}
+    INCLUDE_DIRS ${INCLUDE_DIRS}
     REQUIRES lvgl sensors settings display_manager ble_sync esp32_s3_touch_amoled_2_06
     PRIV_REQUIRES esp_event
-
 )

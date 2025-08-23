@@ -7,8 +7,8 @@
 #include "setting_sound_screen.h"
 #include "setting_storage_screen.h"
 
-static lv_obj_t* s_screen;
-lv_obj_t* s_content;
+static lv_obj_t* smenu_screen;
+static lv_obj_t* smenu_content;
 
 static void open_goal(lv_event_t* e){ (void)e; load_screen(setting_step_goal_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
 static void open_timeout(lv_event_t* e){ (void)e; load_screen(setting_timeout_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
@@ -45,7 +45,7 @@ static void screen_events(lv_event_t* e)
         }
     }
     else if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOADED) {
-        refresh_values(s_content);
+        refresh_values(smenu_content);
     }
 }
 
@@ -84,14 +84,14 @@ void settings_menu_screen_create(lv_obj_t* parent)
     lv_style_set_bg_color(&cmain_style, lv_color_black());
     lv_style_set_bg_opa(&cmain_style, LV_OPA_COVER);
 
-    s_screen = lv_obj_create(parent);
-    lv_obj_remove_style_all(s_screen);
-    lv_obj_add_style(s_screen, &cmain_style, 0);
-    lv_obj_set_size(s_screen, lv_pct(100), lv_pct(100));
-    lv_obj_add_event_cb(s_screen, screen_events, LV_EVENT_ALL, NULL);
+    smenu_screen = lv_obj_create(parent);
+    lv_obj_remove_style_all(smenu_screen);
+    lv_obj_add_style(smenu_screen, &cmain_style, 0);
+    lv_obj_set_size(smenu_screen, lv_pct(100), lv_pct(100));
+    lv_obj_add_event_cb(smenu_screen, screen_events, LV_EVENT_ALL, NULL);
 
     // Header
-    lv_obj_t* hdr = lv_obj_create(s_screen);
+    lv_obj_t* hdr = lv_obj_create(smenu_screen);
     lv_obj_remove_style_all(hdr);
     lv_obj_set_size(hdr, lv_pct(100), LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(hdr, LV_FLEX_FLOW_ROW);
@@ -103,28 +103,28 @@ void settings_menu_screen_create(lv_obj_t* parent)
     lv_obj_set_style_pad_top(title, 10, 0);
 
     // Content list
-    s_content = lv_obj_create(s_screen);
-    lv_obj_remove_style_all(s_content);
-    lv_obj_set_size(s_content, lv_pct(100), lv_pct(85));
-    lv_obj_center(s_content);
-    //lv_obj_set_style_pad_top(s_content, 80, 0);
-    //lv_obj_set_style_pad_bottom(s_content, 10, 0);
-    lv_obj_set_style_pad_left(s_content, 12, 0);
-    lv_obj_set_style_pad_right(s_content, 12, 0);
+    smenu_content = lv_obj_create(smenu_screen);
+    lv_obj_remove_style_all(smenu_content);
+    lv_obj_set_size(smenu_content, lv_pct(100), lv_pct(85));
+    lv_obj_center(smenu_content);
+    //lv_obj_set_style_pad_top(smenu_content, 80, 0);
+    //lv_obj_set_style_pad_bottom(smenu_content, 10, 0);
+    lv_obj_set_style_pad_left(smenu_content, 12, 0);
+    lv_obj_set_style_pad_right(smenu_content, 12, 0);
 
-    lv_obj_set_flex_flow(s_content, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(s_content, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+    lv_obj_set_flex_flow(smenu_content, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(smenu_content, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
 
-    make_row(s_content, "Step Goal", "--", open_goal);
-    make_row(s_content, "Display Timeout", "--", open_timeout);
-    make_row(s_content, "Sound", "--", open_sound);
-    make_row(s_content, "Storage", "Tools", open_storage);
+    lv_obj_t* r1 = make_row(smenu_content, "Step Goal", "--", open_goal);
+    lv_obj_t* r2 = make_row(smenu_content, "Display Timeout", "--", open_timeout);
+    lv_obj_t* r3 = make_row(smenu_content, "Sound", "--", open_sound);
+    lv_obj_t* r4 = make_row(smenu_content, "Storage", "Tools", open_storage);
 
-    refresh_values(s_content);
+    refresh_values(smenu_content);
 }
 
 lv_obj_t* settings_menu_screen_get(void)
 {
-    if (s_screen == NULL) settings_menu_screen_create(NULL);
-    return s_screen;
+    if (smenu_screen == NULL) settings_menu_screen_create(NULL);
+    return smenu_screen;
 }

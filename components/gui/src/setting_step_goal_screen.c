@@ -3,8 +3,8 @@
 #include "ui_fonts.h"
 #include "settings.h"
 
-static lv_obj_t* s_screen;
-static lv_obj_t* s_value;
+static lv_obj_t* sstepgoal_screen;
+static lv_obj_t* sstepgoal_value;
 
 static void screen_events(lv_event_t* e)
 {
@@ -20,7 +20,7 @@ static void upd(void)
 {
     char buf[16];
     snprintf(buf, sizeof(buf), "%u", (unsigned)settings_get_step_goal());
-    lv_label_set_text(s_value, buf);
+    lv_label_set_text(sstepgoal_value, buf);
 }
 
 static void minus(lv_event_t* e){ (void)e; uint32_t g=settings_get_step_goal(); g = (g>1000)? g-1000:1000; settings_set_step_goal(g); upd(); }
@@ -34,14 +34,14 @@ void setting_step_goal_screen_create(lv_obj_t* parent)
     lv_style_set_bg_color(&style, lv_color_black());
     lv_style_set_bg_opa(&style, LV_OPA_COVER);
 
-    s_screen = lv_obj_create(parent);
-    lv_obj_remove_style_all(s_screen);
-    lv_obj_add_style(s_screen, &style, 0);
-    lv_obj_set_size(s_screen, lv_pct(100), lv_pct(100));
-    lv_obj_add_event_cb(s_screen, screen_events, LV_EVENT_ALL, NULL);
+    sstepgoal_screen = lv_obj_create(parent);
+    lv_obj_remove_style_all(sstepgoal_screen);
+    lv_obj_add_style(sstepgoal_screen, &style, 0);
+    lv_obj_set_size(sstepgoal_screen, lv_pct(100), lv_pct(100));
+    lv_obj_add_event_cb(sstepgoal_screen, screen_events, LV_EVENT_ALL, NULL);
 
     // Header
-    lv_obj_t* hdr = lv_obj_create(s_screen);
+    lv_obj_t* hdr = lv_obj_create(sstepgoal_screen);
     lv_obj_remove_style_all(hdr);
     lv_obj_set_size(hdr, lv_pct(100), LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(hdr, LV_FLEX_FLOW_ROW);
@@ -51,7 +51,7 @@ void setting_step_goal_screen_create(lv_obj_t* parent)
     lv_label_set_text(title, "Step Goal");
 
     // Value + buttons
-    lv_obj_t* box = lv_obj_create(s_screen);
+    lv_obj_t* box = lv_obj_create(sstepgoal_screen);
     lv_obj_remove_style_all(box);
     lv_obj_set_size(box, lv_pct(100), LV_SIZE_CONTENT);
     lv_obj_center(box);
@@ -69,9 +69,9 @@ void setting_step_goal_screen_create(lv_obj_t* parent)
     lv_obj_set_style_text_font(lm, &font_bold_42, 0);
     lv_label_set_text(lm, "-");
 
-    s_value = lv_label_create(box);
-    lv_obj_set_style_text_font(s_value, &font_numbers_80, 0);
-    lv_label_set_text(s_value, "--");
+    sstepgoal_value = lv_label_create(box);
+    lv_obj_set_style_text_font(sstepgoal_value, &font_numbers_80, 0);
+    lv_label_set_text(sstepgoal_value, "--");
 
     lv_obj_t* btn_p = lv_btn_create(box);
     lv_obj_set_size(btn_p, 80, 80);
@@ -85,7 +85,7 @@ void setting_step_goal_screen_create(lv_obj_t* parent)
 
 lv_obj_t* setting_step_goal_screen_get(void)
 {
-    if (!s_screen) setting_step_goal_screen_create(NULL);
-    return s_screen;
+    if (!sstepgoal_screen) setting_step_goal_screen_create(NULL);
+    return sstepgoal_screen;
 }
 

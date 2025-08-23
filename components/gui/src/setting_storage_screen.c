@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include "lvgl.h"
 
-static lv_obj_t* s_screen;
+static lv_obj_t* sstorage_screen;
 static void toast_timer_cb(lv_timer_t* t)
 {
     lv_obj_t* obj = (lv_obj_t*)lv_timer_get_user_data(t);
@@ -142,13 +142,13 @@ void setting_storage_screen_create(lv_obj_t* parent)
     lv_style_set_bg_color(&style, lv_color_black());
     lv_style_set_bg_opa(&style, LV_OPA_COVER);
 
-    s_screen = lv_obj_create(parent);
-    lv_obj_remove_style_all(s_screen);
-    lv_obj_add_style(s_screen, &style, 0);
-    lv_obj_set_size(s_screen, lv_pct(100), lv_pct(100));
-    lv_obj_add_event_cb(s_screen, screen_events, LV_EVENT_ALL, NULL);
+    sstorage_screen = lv_obj_create(parent);
+    lv_obj_remove_style_all(sstorage_screen);
+    lv_obj_add_style(sstorage_screen, &style, 0);
+    lv_obj_set_size(sstorage_screen, lv_pct(100), lv_pct(100));
+    lv_obj_add_event_cb(sstorage_screen, screen_events, LV_EVENT_ALL, NULL);
 
-    lv_obj_t* hdr = lv_obj_create(s_screen);
+    lv_obj_t* hdr = lv_obj_create(sstorage_screen);
     lv_obj_remove_style_all(hdr);
     lv_obj_set_size(hdr, lv_pct(100), LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(hdr, LV_FLEX_FLOW_ROW);
@@ -157,7 +157,7 @@ void setting_storage_screen_create(lv_obj_t* parent)
     lv_obj_set_style_text_font(title, &font_bold_32, 0);
     lv_label_set_text(title, "Storage Tools");
 
-    lv_obj_t* content = lv_obj_create(s_screen);
+    lv_obj_t* content = lv_obj_create(sstorage_screen);
     lv_obj_remove_style_all(content);
     lv_obj_set_size(content, lv_pct(100), lv_pct(80));
     lv_obj_set_style_pad_top(content, 80, 0);
@@ -191,6 +191,6 @@ void setting_storage_screen_create(lv_obj_t* parent)
 
 lv_obj_t* setting_storage_screen_get(void)
 {
-    if (!s_screen) setting_storage_screen_create(NULL);
-    return s_screen;
+    if (!sstorage_screen) setting_storage_screen_create(NULL);
+    return sstorage_screen;
 }

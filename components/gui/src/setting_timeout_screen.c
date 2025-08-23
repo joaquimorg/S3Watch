@@ -3,16 +3,16 @@
 #include "ui_fonts.h"
 #include "settings.h"
 
-static lv_obj_t* s_screen;
-static lv_obj_t* s_content;
+static lv_obj_t* stimeout_screen;
+static lv_obj_t* stimeout_content;
 
 static void refresh_checked(void)
 {
-    if (!s_content) return;
+    if (!stimeout_content) return;
     uint32_t cur = settings_get_display_timeout();
     lv_obj_t* selected = NULL;
-    for (uint32_t i = 0; i < lv_obj_get_child_count(s_content); ++i) {
-        lv_obj_t* row = lv_obj_get_child(s_content, i);
+    for (uint32_t i = 0; i < lv_obj_get_child_count(stimeout_content); ++i) {
+        lv_obj_t* row = lv_obj_get_child(stimeout_content, i);
         uint32_t val = (uint32_t)(uintptr_t)lv_obj_get_user_data(row);
         if (val == cur) {
             lv_obj_add_state(row, LV_STATE_CHECKED);
@@ -84,13 +84,13 @@ void setting_timeout_screen_create(lv_obj_t* parent)
     lv_style_set_bg_color(&style, lv_color_black());
     lv_style_set_bg_opa(&style, LV_OPA_COVER);
 
-    s_screen = lv_obj_create(parent);
-    lv_obj_remove_style_all(s_screen);
-    lv_obj_add_style(s_screen, &style, 0);
-    lv_obj_set_size(s_screen, lv_pct(100), lv_pct(100));
-    lv_obj_add_event_cb(s_screen, screen_events, LV_EVENT_ALL, NULL);
+    stimeout_screen = lv_obj_create(parent);
+    lv_obj_remove_style_all(stimeout_screen);
+    lv_obj_add_style(stimeout_screen, &style, 0);
+    lv_obj_set_size(stimeout_screen, lv_pct(100), lv_pct(100));
+    lv_obj_add_event_cb(stimeout_screen, screen_events, LV_EVENT_ALL, NULL);
 
-    lv_obj_t* hdr = lv_obj_create(s_screen);
+    lv_obj_t* hdr = lv_obj_create(stimeout_screen);
     lv_obj_remove_style_all(hdr);
     lv_obj_set_size(hdr, lv_pct(100), LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(hdr, LV_FLEX_FLOW_ROW);
@@ -99,25 +99,25 @@ void setting_timeout_screen_create(lv_obj_t* parent)
     lv_obj_set_style_text_font(title, &font_bold_32, 0);
     lv_label_set_text(title, "Display Timeout");
 
-    s_content = lv_obj_create(s_screen);
-    lv_obj_remove_style_all(s_content);
-    lv_obj_set_size(s_content, lv_pct(100), lv_pct(80));
-    lv_obj_set_style_pad_top(s_content, 80, 0);
-    lv_obj_set_style_pad_bottom(s_content, 10, 0);
-    lv_obj_set_style_pad_left(s_content, 12, 0);
-    lv_obj_set_style_pad_right(s_content, 12, 0);
-    lv_obj_set_flex_flow(s_content, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(s_content, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
-    lv_obj_set_scroll_dir(s_content, LV_DIR_VER);
+    stimeout_content = lv_obj_create(stimeout_screen);
+    lv_obj_remove_style_all(stimeout_content);
+    lv_obj_set_size(stimeout_content, lv_pct(100), lv_pct(80));
+    lv_obj_set_style_pad_top(stimeout_content, 80, 0);
+    lv_obj_set_style_pad_bottom(stimeout_content, 10, 0);
+    lv_obj_set_style_pad_left(stimeout_content, 12, 0);
+    lv_obj_set_style_pad_right(stimeout_content, 12, 0);
+    lv_obj_set_flex_flow(stimeout_content, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(stimeout_content, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+    lv_obj_set_scroll_dir(stimeout_content, LV_DIR_VER);
 
-    lv_obj_t* r10 = make_opt(s_content, "10 s", SETTINGS_DISPLAY_TIMEOUT_10S);
-    lv_obj_t* r20 = make_opt(s_content, "20 s", SETTINGS_DISPLAY_TIMEOUT_20S);
-    lv_obj_t* r30 = make_opt(s_content, "30 s", SETTINGS_DISPLAY_TIMEOUT_30S);
-    lv_obj_t* r60 = make_opt(s_content, "1 min", SETTINGS_DISPLAY_TIMEOUT_1MIN);
+    lv_obj_t* r10 = make_opt(stimeout_content, "10 s", SETTINGS_DISPLAY_TIMEOUT_10S);
+    lv_obj_t* r20 = make_opt(stimeout_content, "20 s", SETTINGS_DISPLAY_TIMEOUT_20S);
+    lv_obj_t* r30 = make_opt(stimeout_content, "30 s", SETTINGS_DISPLAY_TIMEOUT_30S);
+    lv_obj_t* r60 = make_opt(stimeout_content, "1 min", SETTINGS_DISPLAY_TIMEOUT_1MIN);
 
     // Style for selected option for clear visibility
-    for (uint32_t i = 0; i < lv_obj_get_child_count(s_content); ++i) {
-        lv_obj_t* row = lv_obj_get_child(s_content, i);
+    for (uint32_t i = 0; i < lv_obj_get_child_count(stimeout_content); ++i) {
+        lv_obj_t* row = lv_obj_get_child(stimeout_content, i);
         lv_obj_set_style_bg_color(row, lv_color_hex(0x438bff), LV_PART_MAIN | LV_STATE_CHECKED);
         lv_obj_set_style_bg_opa(row, 255, LV_PART_MAIN | LV_STATE_CHECKED);
         lv_obj_set_style_text_color(row, lv_color_white(), LV_PART_MAIN | LV_STATE_CHECKED);
@@ -128,6 +128,6 @@ void setting_timeout_screen_create(lv_obj_t* parent)
 
 lv_obj_t* setting_timeout_screen_get(void)
 {
-    if (!s_screen) setting_timeout_screen_create(NULL);
-    return s_screen;
+    if (!stimeout_screen) setting_timeout_screen_create(NULL);
+    return stimeout_screen;
 }

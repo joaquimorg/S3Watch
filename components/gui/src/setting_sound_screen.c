@@ -2,11 +2,13 @@
 #include "ui.h"
 #include "ui_fonts.h"
 #include "settings.h"
+#include "audio_alert.h"
 
-static lv_obj_t* s_screen;
+static lv_obj_t* ssound_screen;
 static lv_obj_t* s_switch;
 static lv_obj_t* s_slider;
 static lv_obj_t* s_value_lbl;
+static lv_obj_t* s_test_btn;
 
 static void screen_events(lv_event_t* e)
 {
@@ -27,6 +29,10 @@ static void toggle(lv_event_t* e)
         if (on) lv_obj_clear_state(s_slider, LV_STATE_DISABLED);
         else lv_obj_add_state(s_slider, LV_STATE_DISABLED);
     }
+    if (s_test_btn) {
+        if (on) lv_obj_clear_state(s_test_btn, LV_STATE_DISABLED);
+        else lv_obj_add_state(s_test_btn, LV_STATE_DISABLED);
+    }
 }
 
 static void on_vol_change(lv_event_t* e)
@@ -39,6 +45,12 @@ static void on_vol_change(lv_event_t* e)
     }
 }
 
+static void test_btn_cb(lv_event_t* e)
+{
+    (void)e;
+    audio_alert_notify();
+}
+
 void setting_sound_screen_create(lv_obj_t* parent)
 {
     static lv_style_t style;
@@ -47,13 +59,13 @@ void setting_sound_screen_create(lv_obj_t* parent)
     lv_style_set_bg_color(&style, lv_color_black());
     lv_style_set_bg_opa(&style, LV_OPA_COVER);
 
-    s_screen = lv_obj_create(parent);
-    lv_obj_remove_style_all(s_screen);
-    lv_obj_add_style(s_screen, &style, 0);
-    lv_obj_set_size(s_screen, lv_pct(100), lv_pct(100));
-    lv_obj_add_event_cb(s_screen, screen_events, LV_EVENT_ALL, NULL);
+    ssound_screen = lv_obj_create(parent);
+    lv_obj_remove_style_all(ssound_screen);
+    lv_obj_add_style(ssound_screen, &style, 0);
+    lv_obj_set_size(ssound_screen, lv_pct(100), lv_pct(100));
+    lv_obj_add_event_cb(ssound_screen, screen_events, LV_EVENT_ALL, NULL);
 
-    lv_obj_t* hdr = lv_obj_create(s_screen);
+    lv_obj_t* hdr = lv_obj_create(ssound_screen);
     lv_obj_remove_style_all(hdr);
     lv_obj_set_size(hdr, lv_pct(100), LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(hdr, LV_FLEX_FLOW_ROW);
@@ -62,7 +74,7 @@ void setting_sound_screen_create(lv_obj_t* parent)
     lv_obj_set_style_text_font(title, &font_bold_32, 0);
     lv_label_set_text(title, "Sound");
 
-    lv_obj_t* content = lv_obj_create(s_screen);
+    lv_obj_t* content = lv_obj_create(ssound_screen);
     lv_obj_remove_style_all(content);
     lv_obj_set_size(content, lv_pct(100), lv_pct(90));
     lv_obj_set_style_pad_all(content, 16, 0);
@@ -97,10 +109,19 @@ void setting_sound_screen_create(lv_obj_t* parent)
     lv_slider_set_value(s_slider, settings_get_notify_volume(), LV_ANIM_OFF);
     lv_obj_add_event_cb(s_slider, on_vol_change, LV_EVENT_VALUE_CHANGED, NULL);
     if (!settings_get_sound()) lv_obj_add_state(s_slider, LV_STATE_DISABLED);
+
+    // Test sound button
+    s_test_btn = lv_btn_create(content);
+    lv_obj_set_width(s_test_btn, lv_pct(100));
+    lv_obj_t* test_lbl = lv_label_create(s_test_btn);
+    lv_label_set_text(test_lbl, "Test Sound");
+    lv_obj_center(test_lbl);
+    lv_obj_add_event_cb(s_test_btn, test_btn_cb, LV_EVENT_CLICKED, NULL);
+    if (!settings_get_sound()) lv_obj_add_state(s_test_btn, LV_STATE_DISABLED);
 }
 
 lv_obj_t* setting_sound_screen_get(void)
 {
-    if (!s_screen) setting_sound_screen_create(NULL);
-    return s_screen;
+    if (!ssound_screen) setting_sound_screen_create(NULL);
+    return ssound_screen;
 }

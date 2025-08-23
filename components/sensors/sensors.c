@@ -68,16 +68,20 @@ static esp_err_t imu_setup_irq(void)
     gpio_config_t io = {
         .pin_bit_mask = 1ULL << IMU_IRQ_GPIO,
         .mode = GPIO_MODE_INPUT,
+        // QMI8658 INT is typically active-low; use pull-up only
         .pull_up_en = GPIO_PULLUP_ENABLE,
-        .pull_down_en = GPIO_PULLDOWN_ENABLE,
-        // Some QMI8658 boards use active-low pulse; use any edge to be safe
-        .intr_type = GPIO_INTR_ANYEDGE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        // Use falling edge to avoid interrupt storms on level changes/noise
+        .intr_type = GPIO_INTR_NEGEDGE,
     };
     ESP_ERROR_CHECK(gpio_config(&io));
     esp_err_t r = gpio_install_isr_service(0);
     if (r != ESP_OK && r != ESP_ERR_INVALID_STATE) {
         return r;
     }
+    // Clear any pending status before enabling
+    gpio_intr_disable(IMU_IRQ_GPIO);
+    (void)gpio_set_intr_type(IMU_IRQ_GPIO, GPIO_INTR_NEGEDGE);
     ESP_ERROR_CHECK(gpio_isr_handler_add(IMU_IRQ_GPIO, imu_irq_isr, NULL));
     gpio_intr_enable(IMU_IRQ_GPIO);
     return ESP_OK;

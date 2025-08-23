@@ -18,6 +18,10 @@ uint32_t settings_get_display_timeout(void);
 void settings_set_sound(bool enabled);
 bool settings_get_sound(void);
 
+// Notification volume (0-100)
+void settings_set_notify_volume(uint8_t vol_percent);
+uint8_t settings_get_notify_volume(void);
+
 // Persist settings to SPIFFS JSON and load from it
 bool settings_save(void);
 bool settings_load(void);

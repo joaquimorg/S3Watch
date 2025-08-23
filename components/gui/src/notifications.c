@@ -178,9 +178,9 @@ static void build_single_card(lv_obj_t* parent)
     lbl_app = lv_label_create(hdr_card);
     lv_obj_set_style_text_color(lbl_app, lv_color_hex(0xE0E0E0), 0);
     lv_obj_set_style_text_font(lbl_app, &font_normal_26, 0);
-    lv_obj_set_style_pad_top(lbl_app, 12, 0);
+    lv_obj_set_style_pad_left(lbl_app, 12, 0);
     lv_label_set_text(lbl_app, "Notifications");
-    lv_label_set_long_mode(lbl_app, LV_LABEL_LONG_DOT);
+    lv_label_set_long_mode(lbl_app, LV_LABEL_LONG_SCROLL_CIRCULAR);
     //lv_obj_set_size(lbl_app, lv_pct(100), 52);
 
     lbl_title = lv_label_create(card);

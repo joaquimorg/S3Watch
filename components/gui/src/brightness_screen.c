@@ -7,8 +7,8 @@
 LV_IMAGE_DECLARE(image_brightness_48);
 
 static lv_obj_t* brightness_screen;
-static lv_obj_t* percent_label;
-static lv_obj_t* slider;
+lv_obj_t* percent_label;
+lv_obj_t* slider;
 
 static void screen_events(lv_event_t* e);
 static void slider_event(lv_event_t* e);
@@ -55,7 +55,7 @@ void lv_smartwatch_brightness_create(lv_obj_t* screen)
     lv_obj_set_style_text_font(brightness_title_label, &font_bold_32, 0);
     lv_label_set_text(brightness_title_label, "Brightness");
     //lv_obj_set_style_pad_bottom(brightness_title_label, 30, 0);
-    lv_obj_set_align(brightness_title_label, LV_ALIGN_TOP_MID);
+    //lv_obj_set_align(brightness_title_label, LV_ALIGN_TOP_MID);
     lv_obj_set_y(brightness_title_label, 10);
 
     // Layout

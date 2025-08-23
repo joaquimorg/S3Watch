@@ -5,6 +5,8 @@
 
 static lv_obj_t* s_screen;
 static lv_obj_t* s_switch;
+static lv_obj_t* s_slider;
+static lv_obj_t* s_value_lbl;
 
 static void screen_events(lv_event_t* e)
 {
@@ -20,6 +22,21 @@ static void toggle(lv_event_t* e)
 {
     bool on = lv_obj_has_state(s_switch, LV_STATE_CHECKED);
     settings_set_sound(on);
+    // Enable/disable slider accordingly
+    if (s_slider) {
+        if (on) lv_obj_clear_state(s_slider, LV_STATE_DISABLED);
+        else lv_obj_add_state(s_slider, LV_STATE_DISABLED);
+    }
+}
+
+static void on_vol_change(lv_event_t* e)
+{
+    int32_t v = lv_slider_get_value(s_slider);
+    settings_set_notify_volume((uint8_t)v);
+    if (s_value_lbl) {
+        char buf[8]; snprintf(buf, sizeof(buf), "%d%%", (int)v);
+        lv_label_set_text(s_value_lbl, buf);
+    }
 }
 
 void setting_sound_screen_create(lv_obj_t* parent)
@@ -50,7 +67,7 @@ void setting_sound_screen_create(lv_obj_t* parent)
     lv_obj_set_size(content, lv_pct(100), lv_pct(90));
     lv_obj_set_style_pad_all(content, 16, 0);
     lv_obj_set_flex_flow(content, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(content, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_flex_align(content, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
     s_switch = lv_switch_create(content);
     lv_obj_set_size(s_switch, 120, 50);
@@ -58,9 +75,28 @@ void setting_sound_screen_create(lv_obj_t* parent)
     else lv_obj_clear_state(s_switch, LV_STATE_CHECKED);
     lv_obj_add_event_cb(s_switch, toggle, LV_EVENT_VALUE_CHANGED, NULL);
 
-    lv_obj_t* lbl = lv_label_create(content);
+    // Volume row
+    lv_obj_t* row = lv_obj_create(content);
+    lv_obj_remove_style_all(row);
+    lv_obj_set_size(row, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_style_pad_all(row, 8, 0);
+    lv_obj_set_flex_flow(row, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(row, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_t* lbl = lv_label_create(row);
     lv_obj_set_style_text_font(lbl, &font_normal_28, 0);
-    lv_label_set_text(lbl, "Tap switch to toggle sound");
+    lv_label_set_text(lbl, "Notification Volume");
+
+    s_value_lbl = lv_label_create(row);
+    lv_obj_set_style_text_font(s_value_lbl, &font_bold_28, 0);
+    char vbuf[8]; snprintf(vbuf, sizeof(vbuf), "%u%%", (unsigned)settings_get_notify_volume());
+    lv_label_set_text(s_value_lbl, vbuf);
+
+    s_slider = lv_slider_create(content);
+    lv_obj_set_width(s_slider, lv_pct(100));
+    lv_slider_set_range(s_slider, 0, 100);
+    lv_slider_set_value(s_slider, settings_get_notify_volume(), LV_ANIM_OFF);
+    lv_obj_add_event_cb(s_slider, on_vol_change, LV_EVENT_VALUE_CHANGED, NULL);
+    if (!settings_get_sound()) lv_obj_add_state(s_slider, LV_STATE_DISABLED);
 }
 
 lv_obj_t* setting_sound_screen_get(void)
@@ -68,4 +104,3 @@ lv_obj_t* setting_sound_screen_get(void)
     if (!s_screen) setting_sound_screen_create(NULL);
     return s_screen;
 }
-

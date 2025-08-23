@@ -4,6 +4,27 @@
 #include "settings.h"
 
 static lv_obj_t* s_screen;
+static lv_obj_t* s_content;
+
+static void refresh_checked(void)
+{
+    if (!s_content) return;
+    uint32_t cur = settings_get_display_timeout();
+    lv_obj_t* selected = NULL;
+    for (uint32_t i = 0; i < lv_obj_get_child_count(s_content); ++i) {
+        lv_obj_t* row = lv_obj_get_child(s_content, i);
+        uint32_t val = (uint32_t)(uintptr_t)lv_obj_get_user_data(row);
+        if (val == cur) {
+            lv_obj_add_state(row, LV_STATE_CHECKED);
+            selected = row;
+        } else {
+            lv_obj_remove_state(row, LV_STATE_CHECKED);
+        }
+    }
+    if (selected) {
+        lv_obj_scroll_to_view(selected, LV_ANIM_ON);
+    }
+}
 
 static void screen_events(lv_event_t* e)
 {
@@ -12,6 +33,9 @@ static void screen_events(lv_event_t* e)
             extern lv_obj_t* settings_menu_screen_get(void);
             load_screen(settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
         }
+    }
+    else if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOADED) {
+        refresh_checked();
     }
 }
 
@@ -75,24 +99,31 @@ void setting_timeout_screen_create(lv_obj_t* parent)
     lv_obj_set_style_text_font(title, &font_bold_32, 0);
     lv_label_set_text(title, "Display Timeout");
 
-    lv_obj_t* content = lv_obj_create(s_screen);
-    lv_obj_remove_style_all(content);
-    lv_obj_set_size(content, lv_pct(100), lv_pct(90));
-    lv_obj_set_style_pad_all(content, 12, 0);
-    lv_obj_set_flex_flow(content, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(content, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+    s_content = lv_obj_create(s_screen);
+    lv_obj_remove_style_all(s_content);
+    lv_obj_set_size(s_content, lv_pct(100), lv_pct(80));
+    lv_obj_set_style_pad_top(s_content, 80, 0);
+    lv_obj_set_style_pad_bottom(s_content, 10, 0);
+    lv_obj_set_style_pad_left(s_content, 12, 0);
+    lv_obj_set_style_pad_right(s_content, 12, 0);
+    lv_obj_set_flex_flow(s_content, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(s_content, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+    lv_obj_set_scroll_dir(s_content, LV_DIR_VER);
 
-    lv_obj_t* r10 = make_opt(content, "10 s", SETTINGS_DISPLAY_TIMEOUT_10S);
-    lv_obj_t* r20 = make_opt(content, "20 s", SETTINGS_DISPLAY_TIMEOUT_20S);
-    lv_obj_t* r30 = make_opt(content, "30 s", SETTINGS_DISPLAY_TIMEOUT_30S);
-    lv_obj_t* r60 = make_opt(content, "1 min", SETTINGS_DISPLAY_TIMEOUT_1MIN);
+    lv_obj_t* r10 = make_opt(s_content, "10 s", SETTINGS_DISPLAY_TIMEOUT_10S);
+    lv_obj_t* r20 = make_opt(s_content, "20 s", SETTINGS_DISPLAY_TIMEOUT_20S);
+    lv_obj_t* r30 = make_opt(s_content, "30 s", SETTINGS_DISPLAY_TIMEOUT_30S);
+    lv_obj_t* r60 = make_opt(s_content, "1 min", SETTINGS_DISPLAY_TIMEOUT_1MIN);
 
-    uint32_t cur = settings_get_display_timeout();
-    for (uint32_t i = 0; i < lv_obj_get_child_count(content); ++i) {
-        lv_obj_t* row = lv_obj_get_child(content, i);
-        uint32_t val = (uint32_t)(uintptr_t)lv_obj_get_user_data(row);
-        if (val == cur) { lv_obj_add_state(row, LV_STATE_CHECKED); }
+    // Style for selected option for clear visibility
+    for (uint32_t i = 0; i < lv_obj_get_child_count(s_content); ++i) {
+        lv_obj_t* row = lv_obj_get_child(s_content, i);
+        lv_obj_set_style_bg_color(row, lv_color_hex(0x438bff), LV_PART_MAIN | LV_STATE_CHECKED);
+        lv_obj_set_style_bg_opa(row, 255, LV_PART_MAIN | LV_STATE_CHECKED);
+        lv_obj_set_style_text_color(row, lv_color_white(), LV_PART_MAIN | LV_STATE_CHECKED);
     }
+
+    refresh_checked();
 }
 
 lv_obj_t* setting_timeout_screen_get(void)
@@ -100,4 +131,3 @@ lv_obj_t* setting_timeout_screen_get(void)
     if (!s_screen) setting_timeout_screen_create(NULL);
     return s_screen;
 }
-

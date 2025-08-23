@@ -54,7 +54,11 @@ void setting_step_goal_screen_create(lv_obj_t* parent)
     lv_obj_t* box = lv_obj_create(s_screen);
     lv_obj_remove_style_all(box);
     lv_obj_set_size(box, lv_pct(100), LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_all(box, 16, 0);
+    lv_obj_center(box);
+    //lv_obj_set_style_pad_top(box, 80, 0);
+    //lv_obj_set_style_pad_bottom(box, 10, 0);
+    lv_obj_set_style_pad_left(box, 12, 0);
+    lv_obj_set_style_pad_right(box, 12, 0);
     lv_obj_set_flex_flow(box, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(box, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 

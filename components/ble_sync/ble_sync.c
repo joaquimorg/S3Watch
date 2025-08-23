@@ -20,6 +20,7 @@
 #include "notifications.h"
 #include "display_manager.h"
 #include "ui.h"
+#include "audio_alert.h"
 
 static const char *TAG = "BLE_SYNC";
 
@@ -53,6 +54,8 @@ static void handle_notification_fields(const char* timestamp,
         ui_show_messages_tile();
         bsp_display_unlock();
     }
+    // Play notification sound if enabled
+    audio_alert_notify();
 }
 
 static void process_one_json_object(const char* json, size_t len)

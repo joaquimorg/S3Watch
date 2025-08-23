@@ -1,0 +1,495 @@
+I (793) esp_psram: SPI SRAM memory test OK
+I (801) cpu_start: Pro cpu start user code
+I (801) cpu_start: cpu freq: 240000000 Hz
+I (801) app_init: Application information:
+I (801) app_init: Project name:     S3Watch
+I (805) app_init: App version:      812eabb-dirty
+I (809) app_init: Compile time:     Aug 23 2025 17:35:48
+I (815) app_init: ELF file SHA256:  bfcdbfd67...
+I (819) app_init: ESP-IDF:          v5.5-dirty
+I (823) efuse_init: Min chip rev:     v0.0
+I (827) efuse_init: Max chip rev:     v0.99
+I (831) efuse_init: Chip rev:         v0.2
+I (835) heap_init: Initializing. RAM available for dynamic allocation:
+I (841) heap_init: At 3FCA91F8 len 00040518 (257 KiB): RAM
+I (846) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (851) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (856) heap_init: At 600FE020 len 00001FC8 (7 KiB): RTCRAM
+I (862) esp_psram: Adding pool of 6464K of PSRAM memory to heap allocator
+I (868) esp_psram: Adding pool of 12K of PSRAM memory gap generated due to end address alignment of drom to the heap allocator
+I (880) spi_flash: detected chip: gd
+I (883) spi_flash: flash io: qio
+W (886) spi_flash: Detected size(32768k) larger than the size in the binary image header(16384k). Using the size in the binary image header.
+I (898) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (904) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (911) coexist: coex firmware version: 831ec70
+I (915) coexist: coexist rom version e7ae62f
+I (0) main_task: Started on CPU1
+I (4) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
+I (10) main_task: Calling app_main()
+I (14) LVGL: Starting LVGL task
+I (16) ESP32-S3-Touch-AMOLED-2.06: Initialize SPI bus
+I (22) sh8601: LCD panel create success, version: 1.0.2
+I (403) PCF85063A: PCF85063A initialization complete
+I (405) BLE_INIT: BT controller compile version [4713a69]
+I (405) BLE_INIT: Bluetooth will use main XTAL as Bluetooth sleep clock.
+I (408) BLE_INIT: Feature Config, ADV:1, BLE_50:1, DTM:1, SCAN:1, CCA:0, SMP:1, CONNECT:1
+I (1751) BLE_INIT: Bluetooth MAC: 30:ed:a0:ae:07:f2
+I (1756) phy_init: phy_version 701,f4f1da3a,Mar  3 2025,15:50:10
+I (1795) phy_init: Saving new calibration data due to checksum failure or outdated calibration data, mode(0)
+I (1839) NORDIC UART: BLE Host Task Started
+I (1840) AXP2101: AXP210x detected at 0x34, I2C 400000 Hz
+I (1840) AXP2101: AXP210x IC_TYPE(0x03)=0x4A
+I (1843) AXP2101: AXP2101 initialized: Batt 100%, Vbat 4123mV, Vbus 5011mV, Vsys 4365mV
+I (1849) SETTINGS: Settings init: mount + load JSON
+I (1983) SETTINGS: SPIFFS mounted: 502/6739601 bytes used
+I (1988) SETTINGS: Settings loaded: br=52, to=60000, sound=1
+I (1988) SETTINGS: Time not set, setting to default
+I (1988) PCF85063A: PCF85063A initialization complete
+I (1992) SENSORS: Initializing sensors (QMI8658)
+I (1998) QMI8658: QMI8658 initialized successfully
+E (2002) gpio: gpio_install_isr_service(526): GPIO isr service already installed
+I (2009) UI: UI task started
+I (2069) SENSORS: Sensors task started
+I (2070) main_task: Returned from app_main()
+I (2078) DISPLAY_MGR: Using PMU PWR key to wake display
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x8 (TG1WDT_SYS_RST),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40392a81
+--- 0x40392a81: xthal_save_extra_nw at ??:?
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x136c
+load:0x403c8700,len:0xe7c
+load:0x403cb700,len:0x3080
+entry 0x403c8934
+I (24) boot: ESP-IDF v5.5-dirty 2nd stage bootloader
+I (24) boot: compile time Aug 23 2025 17:37:02
+I (24) boot: Multicore bootloader
+I (25) boot: chip revision: v0.2
+I (27) boot: efuse block revision: v1.3
+I (31) qio_mode: Enabling default flash chip QIO
+I (35) boot.esp32s3: Boot SPI Speed : 80MHz
+I (39) boot.esp32s3: SPI Mode       : QIO
+I (43) boot.esp32s3: SPI Flash Size : 16MB
+W (47) boot.esp32s3: PRO CPU has been reset by WDT.
+W (51) boot.esp32s3: APP CPU has been reset by WDT.
+I (56) boot: Enabling RNG early entropy source...
+I (61) boot: Partition Table:
+I (63) boot: ## Label            Usage          Type ST Offset   Length
+I (69) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (76) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (82) boot:  2 factory          factory app      00 00 00010000 00800000
+I (89) boot:  3 storage          Unknown data     01 82 00810000 00700000
+I (96) boot: End of partition table
+I (99) esp_image: segment 0: paddr=00010020 vaddr=3c090020 size=11cd7ch (1166716) map
+I (279) esp_image: segment 1: paddr=0012cda4 vaddr=3fca2d00 size=03274h ( 12916) load
+I (282) esp_image: segment 2: paddr=00130020 vaddr=42000020 size=86308h (549640) map
+I (365) esp_image: segment 3: paddr=001b6330 vaddr=3fca5f74 size=0094ch (  2380) load
+I (366) esp_image: segment 4: paddr=001b6c84 vaddr=40374000 size=1ec60h (126048) load
+I (392) esp_image: segment 5: paddr=001d58ec vaddr=600fe000 size=00020h (    32) load
+I (404) boot: Loaded app from partition at offset 0x10000
+I (404) boot: Disabling RNG early entropy source...
+I (414) octal_psram: vendor id    : 0x0d (AP)
+I (414) octal_psram: dev id       : 0x02 (generation 3)
+I (415) octal_psram: density      : 0x03 (64 Mbit)
+I (417) octal_psram: good-die     : 0x01 (Pass)
+I (421) octal_psram: Latency      : 0x01 (Fixed)
+I (425) octal_psram: VCC          : 0x01 (3V)
+I (429) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (434) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (439) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (444) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (449) octal_psram: DriveStrength: 0x00 (1/1)
+I (454) MSPI Timing: PSRAM timing tuning index: 5
+I (457) esp_psram: Found 8MB PSRAM device
+I (461) esp_psram: Speed: 80MHz
+I (530) mmu_psram: Read only data copied and mapped to SPIRAM
+I (568) mmu_psram: Instructions copied and mapped to SPIRAM
+I (568) cpu_start: Multicore app
+I (797) esp_psram: SPI SRAM memory test OK
+I (805) cpu_start: Pro cpu start user code
+I (806) cpu_start: cpu freq: 240000000 Hz
+I (806) app_init: Application information:
+I (806) app_init: Project name:     S3Watch
+I (810) app_init: App version:      812eabb-dirty
+I (814) app_init: Compile time:     Aug 23 2025 17:35:48
+I (819) app_init: ELF file SHA256:  bfcdbfd67...
+I (823) app_init: ESP-IDF:          v5.5-dirty
+I (827) efuse_init: Min chip rev:     v0.0
+I (831) efuse_init: Max chip rev:     v0.99
+I (835) efuse_init: Chip rev:         v0.2
+I (839) heap_init: Initializing. RAM available for dynamic allocation:
+I (845) heap_init: At 3FCA91F8 len 00040518 (257 KiB): RAM
+I (851) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (856) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (861) heap_init: At 600FE020 len 00001FC8 (7 KiB): RTCRAM
+I (866) esp_psram: Adding pool of 6464K of PSRAM memory to heap allocator
+I (873) esp_psram: Adding pool of 12K of PSRAM memory gap generated due to end address alignment of drom to the heap allocator
+I (884) spi_flash: detected chip: gd
+I (887) spi_flash: flash io: qio
+W (890) spi_flash: Detected size(32768k) larger than the size in the binary image header(16384k). Using the size in the binary image header.
+I (903) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (909) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (915) coexist: coex firmware version: 831ec70
+I (920) coexist: coexist rom version e7ae62f
+I (0) main_task: Started on CPU1
+I (4) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
+I (10) main_task: Calling app_main()
+I (14) LVGL: Starting LVGL task
+I (16) ESP32-S3-Touch-AMOLED-2.06: Initialize SPI bus
+I (22) sh8601: LCD panel create success, version: 1.0.2
+I (403) PCF85063A: PCF85063A initialization complete
+I (405) BLE_INIT: BT controller compile version [4713a69]
+I (405) BLE_INIT: Bluetooth will use main XTAL as Bluetooth sleep clock.
+I (408) BLE_INIT: Feature Config, ADV:1, BLE_50:1, DTM:1, SCAN:1, CCA:0, SMP:1, CONNECT:1
+I (1756) BLE_INIT: Bluetooth MAC: 30:ed:a0:ae:07:f2
+I (1761) phy_init: phy_version 701,f4f1da3a,Mar  3 2025,15:50:10
+I (1801) phy_init: Saving new calibration data due to checksum failure or outdated calibration data, mode(0)
+I (1811) NORDIC UART: BLE Host Task Started
+I (1811) AXP2101: AXP210x detected at 0x34, I2C 400000 Hz
+I (1811) AXP2101: AXP210x IC_TYPE(0x03)=0x4A
+I (1814) AXP2101: AXP2101 initialized: Batt 100%, Vbat 4120mV, Vbus 4997mV, Vsys 4357mV
+I (1821) SETTINGS: Settings init: mount + load JSON
+I (1955) SETTINGS: SPIFFS mounted: 502/6739601 bytes used
+I (1959) SETTINGS: Settings loaded: br=52, to=60000, sound=1
+I (1959) SETTINGS: Time not set, setting to default
+I (1960) PCF85063A: PCF85063A initialization complete
+I (1964) SENSORS: Initializing sensors (QMI8658)
+I (1969) QMI8658: QMI8658 initialized successfully
+E (1973) gpio: gpio_install_isr_service(526): GPIO isr service already installed
+I (1981) UI: UI task started
+I (2041) SENSORS: Sensors task started
+I (2041) main_task: Returned from app_main()
+I (2049) DISPLAY_MGR: Using PMU PWR key to wake display
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x8 (TG1WDT_SYS_RST),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40392ab2
+--- 0x40392ab2: _xt_context_save at C:/Users/joaqu/esp/v5.5/esp-idf/components/xtensa/xtensa_context.S:130
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x136c
+load:0x403c8700,len:0xe7c
+load:0x403cb700,len:0x3080
+entry 0x403c8934
+I (24) boot: ESP-IDF v5.5-dirty 2nd stage bootloader
+I (24) boot: compile time Aug 23 2025 17:37:02
+I (24) boot: Multicore bootloader
+I (25) boot: chip revision: v0.2
+I (27) boot: efuse block revision: v1.3
+I (31) qio_mode: Enabling default flash chip QIO
+I (35) boot.esp32s3: Boot SPI Speed : 80MHz
+I (39) boot.esp32s3: SPI Mode       : QIO
+I (43) boot.esp32s3: SPI Flash Size : 16MB
+W (47) boot.esp32s3: PRO CPU has been reset by WDT.
+W (51) boot.esp32s3: APP CPU has been reset by WDT.
+I (56) boot: Enabling RNG early entropy source...
+I (60) boot: Partition Table:
+I (63) boot: ## Label            Usage          Type ST Offset   Length
+I (69) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (76) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (82) boot:  2 factory          factory app      00 00 00010000 00800000
+I (89) boot:  3 storage          Unknown data     01 82 00810000 00700000
+I (96) boot: End of partition table
+I (99) esp_image: segment 0: paddr=00010020 vaddr=3c090020 size=11cd7ch (1166716) map
+I (279) esp_image: segment 1: paddr=0012cda4 vaddr=3fca2d00 size=03274h ( 12916) load
+I (282) esp_image: segment 2: paddr=00130020 vaddr=42000020 size=86308h (549640) map
+I (365) esp_image: segment 3: paddr=001b6330 vaddr=3fca5f74 size=0094ch (  2380) load
+I (366) esp_image: segment 4: paddr=001b6c84 vaddr=40374000 size=1ec60h (126048) load
+I (392) esp_image: segment 5: paddr=001d58ec vaddr=600fe000 size=00020h (    32) load
+I (404) boot: Loaded app from partition at offset 0x10000
+I (404) boot: Disabling RNG early entropy source...
+I (414) octal_psram: vendor id    : 0x0d (AP)
+I (414) octal_psram: dev id       : 0x02 (generation 3)
+I (415) octal_psram: density      : 0x03 (64 Mbit)
+I (417) octal_psram: good-die     : 0x01 (Pass)
+I (421) octal_psram: Latency      : 0x01 (Fixed)
+I (425) octal_psram: VCC          : 0x01 (3V)
+I (429) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (434) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (439) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (444) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (449) octal_psram: DriveStrength: 0x00 (1/1)
+I (454) MSPI Timing: PSRAM timing tuning index: 11
+I (458) esp_psram: Found 8MB PSRAM device
+I (461) esp_psram: Speed: 80MHz
+I (530) mmu_psram: Read only data copied and mapped to SPIRAM
+I (568) mmu_psram: Instructions copied and mapped to SPIRAM
+I (568) cpu_start: Multicore app
+I (797) esp_psram: SPI SRAM memory test OK
+I (806) cpu_start: Pro cpu start user code
+I (806) cpu_start: cpu freq: 240000000 Hz
+I (806) app_init: Application information:
+I (806) app_init: Project name:     S3Watch
+I (810) app_init: App version:      812eabb-dirty
+I (814) app_init: Compile time:     Aug 23 2025 17:35:48
+I (819) app_init: ELF file SHA256:  bfcdbfd67...
+I (823) app_init: ESP-IDF:          v5.5-dirty
+I (828) efuse_init: Min chip rev:     v0.0
+I (831) efuse_init: Max chip rev:     v0.99
+I (835) efuse_init: Chip rev:         v0.2
+I (839) heap_init: Initializing. RAM available for dynamic allocation:
+I (846) heap_init: At 3FCA91F8 len 00040518 (257 KiB): RAM
+I (851) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (856) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (861) heap_init: At 600FE020 len 00001FC8 (7 KiB): RTCRAM
+I (866) esp_psram: Adding pool of 6464K of PSRAM memory to heap allocator
+I (873) esp_psram: Adding pool of 12K of PSRAM memory gap generated due to end address alignment of drom to the heap allocator
+I (884) spi_flash: detected chip: gd
+I (887) spi_flash: flash io: qio
+W (890) spi_flash: Detected size(32768k) larger than the size in the binary image header(16384k). Using the size in the binary image header.
+I (903) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (909) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (915) coexist: coex firmware version: 831ec70
+I (920) coexist: coexist rom version e7ae62f
+I (0) main_task: Started on CPU1
+I (4) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
+I (10) main_task: Calling app_main()
+I (14) LVGL: Starting LVGL task
+I (16) ESP32-S3-Touch-AMOLED-2.06: Initialize SPI bus
+I (22) sh8601: LCD panel create success, version: 1.0.2
+I (403) PCF85063A: PCF85063A initialization complete
+I (405) BLE_INIT: BT controller compile version [4713a69]
+I (405) BLE_INIT: Bluetooth will use main XTAL as Bluetooth sleep clock.
+I (408) BLE_INIT: Feature Config, ADV:1, BLE_50:1, DTM:1, SCAN:1, CCA:0, SMP:1, CONNECT:1
+I (1756) BLE_INIT: Bluetooth MAC: 30:ed:a0:ae:07:f2
+I (1761) phy_init: phy_version 701,f4f1da3a,Mar  3 2025,15:50:10
+I (1799) phy_init: Saving new calibration data due to checksum failure or outdated calibration data, mode(0)
+I (1842) NORDIC UART: BLE Host Task Started
+I (1843) AXP2101: AXP210x detected at 0x34, I2C 400000 Hz
+I (1843) AXP2101: AXP210x IC_TYPE(0x03)=0x4A
+I (1846) AXP2101: AXP2101 initialized: Batt 100%, Vbat 4120mV, Vbus 4994mV, Vsys 4363mV
+I (1852) SETTINGS: Settings init: mount + load JSON
+I (1986) SETTINGS: SPIFFS mounted: 502/6739601 bytes used
+I (1991) SETTINGS: Settings loaded: br=52, to=60000, sound=1
+I (1991) SETTINGS: Time not set, setting to default
+I (1991) PCF85063A: PCF85063A initialization complete
+I (1995) SENSORS: Initializing sensors (QMI8658)
+I (2001) QMI8658: QMI8658 initialized successfully
+E (2005) gpio: gpio_install_isr_service(526): GPIO isr service already installed
+I (2012) UI: UI task started
+I (2073) SENSORS: Sensors task started
+I (2073) main_task: Returned from app_main()
+I (2081) DISPLAY_MGR: Using PMU PWR key to wake display
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x8 (TG1WDT_SYS_RST),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40392a81
+--- 0x40392a81: xthal_save_extra_nw at ??:?
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x136c
+load:0x403c8700,len:0xe7c
+load:0x403cb700,len:0x3080
+entry 0x403c8934
+I (24) boot: ESP-IDF v5.5-dirty 2nd stage bootloader
+I (24) boot: compile time Aug 23 2025 17:37:02
+I (24) boot: Multicore bootloader
+I (25) boot: chip revision: v0.2
+I (27) boot: efuse block revision: v1.3
+I (31) qio_mode: Enabling default flash chip QIO
+I (35) boot.esp32s3: Boot SPI Speed : 80MHz
+I (39) boot.esp32s3: SPI Mode       : QIO
+I (43) boot.esp32s3: SPI Flash Size : 16MB
+W (47) boot.esp32s3: PRO CPU has been reset by WDT.
+W (51) boot.esp32s3: APP CPU has been reset by WDT.
+I (56) boot: Enabling RNG early entropy source...
+I (60) boot: Partition Table:
+I (63) boot: ## Label            Usage          Type ST Offset   Length
+I (69) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (76) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (82) boot:  2 factory          factory app      00 00 00010000 00800000
+I (89) boot:  3 storage          Unknown data     01 82 00810000 00700000
+I (96) boot: End of partition table
+I (99) esp_image: segment 0: paddr=00010020 vaddr=3c090020 size=11cd7ch (1166716) map
+I (279) esp_image: segment 1: paddr=0012cda4 vaddr=3fca2d00 size=03274h ( 12916) load
+I (282) esp_image: segment 2: paddr=00130020 vaddr=42000020 size=86308h (549640) map
+I (365) esp_image: segment 3: paddr=001b6330 vaddr=3fca5f74 size=0094ch (  2380) load
+I (366) esp_image: segment 4: paddr=001b6c84 vaddr=40374000 size=1ec60h (126048) load
+I (392) esp_image: segment 5: paddr=001d58ec vaddr=600fe000 size=00020h (    32) load
+I (404) boot: Loaded app from partition at offset 0x10000
+I (404) boot: Disabling RNG early entropy source...
+I (414) octal_psram: vendor id    : 0x0d (AP)
+I (414) octal_psram: dev id       : 0x02 (generation 3)
+I (415) octal_psram: density      : 0x03 (64 Mbit)
+I (417) octal_psram: good-die     : 0x01 (Pass)
+I (421) octal_psram: Latency      : 0x01 (Fixed)
+I (425) octal_psram: VCC          : 0x01 (3V)
+I (429) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (434) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (439) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (444) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (449) octal_psram: DriveStrength: 0x00 (1/1)
+I (454) MSPI Timing: PSRAM timing tuning index: 5
+I (457) esp_psram: Found 8MB PSRAM device
+I (461) esp_psram: Speed: 80MHz
+I (530) mmu_psram: Read only data copied and mapped to SPIRAM
+I (568) mmu_psram: Instructions copied and mapped to SPIRAM
+I (568) cpu_start: Multicore app
+I (797) esp_psram: SPI SRAM memory test OK
+I (805) cpu_start: Pro cpu start user code
+I (806) cpu_start: cpu freq: 240000000 Hz
+I (806) app_init: Application information:
+I (806) app_init: Project name:     S3Watch
+I (810) app_init: App version:      812eabb-dirty
+I (814) app_init: Compile time:     Aug 23 2025 17:35:48
+I (819) app_init: ELF file SHA256:  bfcdbfd67...
+I (823) app_init: ESP-IDF:          v5.5-dirty
+I (827) efuse_init: Min chip rev:     v0.0
+I (831) efuse_init: Max chip rev:     v0.99
+I (835) efuse_init: Chip rev:         v0.2
+I (839) heap_init: Initializing. RAM available for dynamic allocation:
+I (845) heap_init: At 3FCA91F8 len 00040518 (257 KiB): RAM
+I (851) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (856) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (861) heap_init: At 600FE020 len 00001FC8 (7 KiB): RTCRAM
+I (866) esp_psram: Adding pool of 6464K of PSRAM memory to heap allocator
+I (873) esp_psram: Adding pool of 12K of PSRAM memory gap generated due to end address alignment of drom to the heap allocator
+I (884) spi_flash: detected chip: gd
+I (887) spi_flash: flash io: qio
+W (890) spi_flash: Detected size(32768k) larger than the size in the binary image header(16384k). Using the size in the binary image header.
+I (903) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (909) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (915) coexist: coex firmware version: 831ec70
+I (920) coexist: coexist rom version e7ae62f
+I (0) main_task: Started on CPU1
+I (4) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
+I (10) main_task: Calling app_main()
+I (14) LVGL: Starting LVGL task
+I (16) ESP32-S3-Touch-AMOLED-2.06: Initialize SPI bus
+I (22) sh8601: LCD panel create success, version: 1.0.2
+I (403) PCF85063A: PCF85063A initialization complete
+I (405) BLE_INIT: BT controller compile version [4713a69]
+I (405) BLE_INIT: Bluetooth will use main XTAL as Bluetooth sleep clock.
+I (408) BLE_INIT: Feature Config, ADV:1, BLE_50:1, DTM:1, SCAN:1, CCA:0, SMP:1, CONNECT:1
+I (1756) BLE_INIT: Bluetooth MAC: 30:ed:a0:ae:07:f2
+I (1761) phy_init: phy_version 701,f4f1da3a,Mar  3 2025,15:50:10
+I (1807) phy_init: Saving new calibration data due to checksum failure or outdated calibration data, mode(0)
+I (1815) NORDIC UART: BLE Host Task Started
+I (1816) AXP2101: AXP210x detected at 0x34, I2C 400000 Hz
+I (1816) AXP2101: AXP210x IC_TYPE(0x03)=0x4A
+I (1820) AXP2101: AXP2101 initialized: Batt 100%, Vbat 4119mV, Vbus 4996mV, Vsys 4348mV
+I (1826) SETTINGS: Settings init: mount + load JSON
+I (1960) SETTINGS: SPIFFS mounted: 502/6739601 bytes used
+I (1964) SETTINGS: Settings loaded: br=52, to=60000, sound=1
+I (1965) SETTINGS: Time not set, setting to default
+I (1965) PCF85063A: PCF85063A initialization complete
+I (1969) SENSORS: Initializing sensors (QMI8658)
+I (1975) QMI8658: QMI8658 initialized successfully
+E (1979) gpio: gpio_install_isr_service(526): GPIO isr service already installed
+I (1986) UI: UI task started
+I (2046) SENSORS: Sensors task started
+I (2047) main_task: Returned from app_main()
+I (2055) DISPLAY_MGR: Using PMU PWR key to wake display
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x8 (TG1WDT_SYS_RST),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40392a98
+--- 0x40392a98: _xt_context_save at C:/Users/joaqu/esp/v5.5/esp-idf/components/xtensa/xtensa_context.S:109
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x136c
+load:0x403c8700,len:0xe7c
+load:0x403cb700,len:0x3080
+entry 0x403c8934
+I (24) boot: ESP-IDF v5.5-dirty 2nd stage bootloader
+I (24) boot: compile time Aug 23 2025 17:37:02
+I (24) boot: Multicore bootloader
+I (25) boot: chip revision: v0.2
+I (27) boot: efuse block revision: v1.3
+I (31) qio_mode: Enabling default flash chip QIO
+I (35) boot.esp32s3: Boot SPI Speed : 80MHz
+I (39) boot.esp32s3: SPI Mode       : QIO
+I (43) boot.esp32s3: SPI Flash Size : 16MB
+W (47) boot.esp32s3: PRO CPU has been reset by WDT.
+W (51) boot.esp32s3: APP CPU has been reset by WDT.
+I (56) boot: Enabling RNG early entropy source...
+I (60) boot: Partition Table:
+I (63) boot: ## Label            Usage          Type ST Offset   Length
+I (69) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (76) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (82) boot:  2 factory          factory app      00 00 00010000 00800000
+I (89) boot:  3 storage          Unknown data     01 82 00810000 00700000
+I (96) boot: End of partition table
+I (99) esp_image: segment 0: paddr=00010020 vaddr=3c090020 size=11cd7ch (1166716) map
+I (279) esp_image: segment 1: paddr=0012cda4 vaddr=3fca2d00 size=03274h ( 12916) load
+I (282) esp_image: segment 2: paddr=00130020 vaddr=42000020 size=86308h (549640) map
+I (365) esp_image: segment 3: paddr=001b6330 vaddr=3fca5f74 size=0094ch (  2380) load
+I (366) esp_image: segment 4: paddr=001b6c84 vaddr=40374000 size=1ec60h (126048) load
+I (392) esp_image: segment 5: paddr=001d58ec vaddr=600fe000 size=00020h (    32) load
+I (404) boot: Loaded app from partition at offset 0x10000
+I (404) boot: Disabling RNG early entropy source...
+I (414) octal_psram: vendor id    : 0x0d (AP)
+I (414) octal_psram: dev id       : 0x02 (generation 3)
+I (415) octal_psram: density      : 0x03 (64 Mbit)
+I (417) octal_psram: good-die     : 0x01 (Pass)
+I (421) octal_psram: Latency      : 0x01 (Fixed)
+I (425) octal_psram: VCC          : 0x01 (3V)
+I (429) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (434) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (439) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (444) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (449) octal_psram: DriveStrength: 0x00 (1/1)
+I (454) MSPI Timing: PSRAM timing tuning index: 5
+I (457) esp_psram: Found 8MB PSRAM device
+I (461) esp_psram: Speed: 80MHz
+I (530) mmu_psram: Read only data copied and mapped to SPIRAM
+I (568) mmu_psram: Instructions copied and mapped to SPIRAM
+I (568) cpu_start: Multicore app
+I (797) esp_psram: SPI SRAM memory test OK
+I (806) cpu_start: Pro cpu start user code
+I (806) cpu_start: cpu freq: 240000000 Hz
+I (806) app_init: Application information:
+I (806) app_init: Project name:     S3Watch
+I (810) app_init: App version:      812eabb-dirty
+I (814) app_init: Compile time:     Aug 23 2025 17:35:48
+I (819) app_init: ELF file SHA256:  bfcdbfd67...
+I (823) app_init: ESP-IDF:          v5.5-dirty
+I (828) efuse_init: Min chip rev:     v0.0
+I (831) efuse_init: Max chip rev:     v0.99
+I (835) efuse_init: Chip rev:         v0.2
+I (839) heap_init: Initializing. RAM available for dynamic allocation:
+I (846) heap_init: At 3FCA91F8 len 00040518 (257 KiB): RAM
+I (851) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (856) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (861) heap_init: At 600FE020 len 00001FC8 (7 KiB): RTCRAM
+I (866) esp_psram: Adding pool of 6464K of PSRAM memory to heap allocator
+I (873) esp_psram: Adding pool of 12K of PSRAM memory gap generated due to end address alignment of drom to the heap allocator
+I (884) spi_flash: detected chip: gd
+I (887) spi_flash: flash io: qio
+W (890) spi_flash: Detected size(32768k) larger than the size in the binary image header(16384k). Using the size in the binary image header.
+I (903) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (909) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (915) coexist: coex firmware version: 831ec70
+I (920) coexist: coexist rom version e7ae62f
+I (0) main_task: Started on CPU1
+I (4) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
+I (10) main_task: Calling app_main()
+I (14) LVGL: Starting LVGL task
+I (16) ESP32-S3-Touch-AMOLED-2.06: Initialize SPI bus
+I (22) sh8601: LCD panel create success, version: 1.0.2
+I (403) PCF85063A: PCF85063A initialization complete
+I (405) BLE_INIT: BT controller compile version [4713a69]
+I (405) BLE_INIT: Bluetooth will use main XTAL as Bluetooth sleep clock.
+I (408) BLE_INIT: Feature Config, ADV:1, BLE_50:1, DTM:1, SCAN:1, CCA:0, SMP:1, CONNECT:1
+I (1756) BLE_INIT: Bluetooth MAC: 30:ed:a0:ae:07:f2
+I (1761) phy_init: phy_version 701,f4f1da3a,Mar  3 2025,15:50:10
+I (1803) phy_init: Saving new calibration data due to checksum failure or outdated calibration data, mode(0)
+I (1848) NORDIC UART: BLE Host Task Started
+I (1849) AXP2101: AXP210x detected at 0x34, I2C 400000 Hz
+I (1849) AXP2101: AXP210x IC_TYPE(0x03)=0x4A
+I (1852) AXP2101: AXP2101 initialized: Batt 100%, Vbat 4119mV, Vbus 5006mV, Vsys 4355mV
+I (1858) SETTINGS: Settings init: mount + load JSON
+I (1992) SETTINGS: SPIFFS mounted: 502/6739601 bytes used
+I (1997) SETTINGS: Settings loaded: br=52, to=60000, sound=1
+I (1997) SETTINGS: Time not set, setting to default
+I (1997) PCF85063A: PCF85063A initialization complete
+I (2001) SENSORS: Initializing sensors (QMI8658)
+I (2007) QMI8658: QMI8658 initialized successfully
+E (2011) gpio: gpio_install_isr_service(526): GPIO isr service already installed
+I (2018) UI: UI task started
+I (2078) SENSORS: Sensors task started
+I (2079) main_task: Returned from app_main()
+I (2087) DISPLAY_MGR: Using PMU PWR key to wake display

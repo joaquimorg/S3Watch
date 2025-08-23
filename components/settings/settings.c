@@ -10,14 +10,40 @@
 #include <sys/stat.h>
 #include "esp_spiffs.h"
 #include "lvgl.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
 #include "cJSON.h"
 
 static const char *TAG = "SETTINGS";
 static uint8_t brightness = 30;
 static uint32_t display_timeout_ms = 30000;
 static bool sound_enabled = true;
+static uint8_t notify_volume = 70; // percent 0..100
 static uint32_t step_goal = 8000;
 static bool spiffs_ready = false;
+
+// Debounced save timer (to limit flash writes when sliders change)
+static TimerHandle_t s_save_timer = NULL;
+// Forward declarations for internal JSON IO
+static bool settings_write_json(void);
+static bool settings_read_json(void);
+static void save_timer_cb(TimerHandle_t xTimer)
+{
+    (void)xTimer;
+    (void)settings_write_json();
+}
+static void schedule_save(void)
+{
+    const TickType_t delay_ticks = pdMS_TO_TICKS(10000); // 10 seconds
+    if (!s_save_timer) {
+        s_save_timer = xTimerCreate("settings_save", delay_ticks, pdFALSE, NULL, save_timer_cb);
+    }
+    if (!s_save_timer) return;
+    // Restart (or start) timer with 10s
+    (void)xTimerStop(s_save_timer, 0);
+    (void)xTimerChangePeriod(s_save_timer, delay_ticks, 0);
+    (void)xTimerStart(s_save_timer, 0);
+}
 
 #define SETTINGS_PARTITION "storage"
 #define SETTINGS_FILE      "/spiffs/settings.json"
@@ -88,6 +114,7 @@ static bool settings_write_json(void)
     cJSON_AddNumberToObject(root, "brightness", brightness);
     cJSON_AddNumberToObject(root, "display_timeout_ms", (double)display_timeout_ms);
     cJSON_AddBoolToObject(root, "sound_enabled", sound_enabled);
+    cJSON_AddNumberToObject(root, "notify_volume", (double)notify_volume);
     cJSON_AddNumberToObject(root, "step_goal", (double)step_goal);
 
     char *json_str = cJSON_PrintUnformatted(root);
@@ -143,6 +170,8 @@ static bool settings_read_json(void)
     if (cJSON_IsNumber(j)) display_timeout_ms = (uint32_t)j->valuedouble;
     j = cJSON_GetObjectItem(root, "sound_enabled");
     if (cJSON_IsBool(j)) sound_enabled = cJSON_IsTrue(j);
+    j = cJSON_GetObjectItem(root, "notify_volume");
+    if (cJSON_IsNumber(j)) notify_volume = (uint8_t)j->valuedouble;
     j = cJSON_GetObjectItem(root, "step_goal");
     if (cJSON_IsNumber(j)) step_goal = (uint32_t)j->valuedouble;
     cJSON_Delete(root);
@@ -180,7 +209,7 @@ void settings_init(void) {
 void settings_set_brightness(uint8_t level) {
     brightness = level;
     bsp_display_brightness_set(brightness);
-    (void)settings_save();
+    schedule_save();
 }
 
 uint8_t settings_get_brightness(void) {
@@ -190,7 +219,7 @@ uint8_t settings_get_brightness(void) {
 void settings_set_display_timeout(uint32_t timeout) {
     if (timeout == 10000 || timeout == 20000 || timeout == 30000 || timeout == 60000) {
         display_timeout_ms = timeout;
-        (void)settings_save();
+        schedule_save();
     }
 }
 
@@ -201,11 +230,23 @@ uint32_t settings_get_display_timeout(void) {
 void settings_set_sound(bool enabled) {
     sound_enabled = enabled;
     ESP_LOGI(TAG, "Sound %s", enabled ? "enabled" : "disabled");
-    (void)settings_save();
+    schedule_save();
 }
 
 bool settings_get_sound(void) {
     return sound_enabled;
+}
+
+void settings_set_notify_volume(uint8_t vol_percent)
+{
+    if (vol_percent > 100) vol_percent = 100;
+    notify_volume = vol_percent;
+    schedule_save();
+}
+
+uint8_t settings_get_notify_volume(void)
+{
+    return notify_volume;
 }
 
 bool settings_save(void) {
@@ -221,7 +262,7 @@ void settings_set_step_goal(uint32_t steps)
     if (steps < 1000) steps = 1000;
     if (steps > 100000) steps = 100000;
     step_goal = steps;
-    (void)settings_save();
+    schedule_save();
 }
 
 uint32_t settings_get_step_goal(void)
@@ -234,6 +275,7 @@ static void apply_defaults(void)
     brightness = 30;
     display_timeout_ms = 30000;
     sound_enabled = true;
+    notify_volume = 70;
     step_goal = 8000;
 }
 

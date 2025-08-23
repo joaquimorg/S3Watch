@@ -17,6 +17,7 @@
 #include "ui_fonts.h"
 
 #include "batt_screen.h"
+#include "lvgl_spiffs_fs.h"
 
 static const char* TAG = "UI";
 
@@ -139,6 +140,9 @@ void ui_init(void) {
     bsp_display_lock(0);
 
     init_theme();
+
+    // Register LVGL FS driver for SPIFFS before any file-based widgets
+    lvgl_spiffs_fs_register();
 
     create_main_screen();
     //watchface_create();

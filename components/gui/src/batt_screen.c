@@ -2,6 +2,7 @@
 #include "settings.h"
 #include "ui_fonts.h"
 #include "ui.h"
+#include "settings_screen.h"
 #include "bsp/esp32_s3_touch_amoled_2_06.h"
 
 // Access UI primitives via ui.h accessors
@@ -90,24 +91,9 @@ void lv_smartwatch_batt_create(lv_obj_t* screen)
     lv_obj_set_flex_align(status, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
     lv_obj_set_height(status, LV_SIZE_CONTENT);
 
-    //chip_source = make_chip(status, "Source: --");
     
     (void)make_row(status, "Source", &chip_source);
     (void)make_row(status, "Charging", &chip_charge);
-
-    //chip_charge = make_chip(status, "Charging: --");
-
-    // Voltages panel with rows (label left, value right)
-    /*lv_obj_t* volt_panel = lv_obj_create(batt_screen);
-    lv_obj_remove_style_all(volt_panel);
-    lv_obj_set_width(volt_panel, lv_pct(92));
-    lv_obj_set_style_bg_opa(volt_panel, LV_OPA_10, 0);
-    lv_obj_set_style_bg_color(volt_panel, lv_color_hex(0xFFFFFF), 0);
-    lv_obj_set_style_radius(volt_panel, 12, 0);
-    lv_obj_set_style_pad_all(volt_panel, 10, 0);
-    lv_obj_set_flex_flow(volt_panel, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(volt_panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
-*/
     (void)make_row(status, "VBAT", &row_vbat_val);
     (void)make_row(status, "VBUS", &row_vbus_val);
     (void)make_row(status, "VSYS", &row_vsys_val);
@@ -141,14 +127,7 @@ static void batt_screen_events(lv_event_t* e)
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
 
         if(dir == LV_DIR_RIGHT) {
-            // Swipe right to go back to the main screen
-            lv_obj_t* main = ui_get_main_tileview();
-            if (main) {
-                load_screen(batt_screen, main, LV_SCR_LOAD_ANIM_MOVE_RIGHT);
-            }
-            // Stop timer and destroy screen to free memory. Use async delete to be safe in event context
-            //if (batt_timer) { lv_timer_del(batt_timer); batt_timer = NULL; }
-            //if (batt_screen) { lv_obj_t* scr = batt_screen; batt_screen = NULL; lv_obj_del_async(scr); }
+            load_screen(batt_screen, control_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
         } 
     }
     else if (event_code == LV_EVENT_DELETE) {
@@ -160,7 +139,9 @@ static void batt_screen_events(lv_event_t* e)
 static void batt_update_cb(lv_timer_t* t)
 {
     (void)t;
-    batt_update_values();
+    if (active_screen_get() == batt_screen) {
+        batt_update_values();
+    }
 }
 
 static void batt_update_values(void)

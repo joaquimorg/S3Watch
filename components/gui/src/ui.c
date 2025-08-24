@@ -30,19 +30,19 @@ static void clear_back_busy_cb(lv_timer_t* t)
     (void)t;
     s_back_busy = false;
 }
-static lv_obj_t* mainTileView;
+//static lv_obj_t* mainTileView;
 
-lv_obj_t* tileClock;
-lv_obj_t* tileConfig;
-lv_obj_t* tileSteps;
-lv_obj_t* tileMotfication;
+//lv_obj_t* tileClock;
+//lv_obj_t* tileConfig;
+//lv_obj_t* tileSteps;
+//lv_obj_t* tileMotfication;
 
-lv_obj_t* ui_Clock01_Panel;
-lv_obj_t* ui_Config_Panel;
-lv_obj_t* ui_Steps_Panel;
-lv_obj_t* ui_Messages_Panel;
 
-lv_style_t main_style;
+//lv_obj_t* ui_Config_Panel;
+//lv_obj_t* ui_Steps_Panel;
+//lv_obj_t* ui_Messages_Panel;
+
+static lv_style_t main_style;
 
 void init_theme(void) {
 
@@ -52,6 +52,11 @@ void init_theme(void) {
     lv_style_set_border_color(&main_style, lv_color_black());
     //lv_style_set_bg_opa(&main_style, LV_OPA_100);
 
+}
+
+lv_style_t* ui_get_main_style(void)
+{
+    return &main_style;
 }
 
 void load_screen(lv_obj_t* current_screen, lv_obj_t* next_screen, lv_screen_load_anim_t anim) {
@@ -66,105 +71,25 @@ void load_screen(lv_obj_t* current_screen, lv_obj_t* next_screen, lv_screen_load
     }
 };
 
-static void tile_change_event_cb(lv_event_t * e)
+lv_obj_t* active_screen_get(void)
 {
-    lv_obj_t * tileview = lv_event_get_target(e);
-    lv_obj_t * tile_act = lv_tileview_get_tile_act(tileview);
-
-    if (tile_act == tileClock) {
-        watchface_resume();
-    } else {
-        watchface_pause();
-    }
-
-    if (tile_act == tileSteps) {
-        steps_screen_resume();
-    } else {
-        steps_screen_pause();
-    }
+    return active_screen;
 }
 
 void create_main_screen(void) {
 
-    mainTileView = lv_tileview_create(NULL);
-    lv_obj_set_width(mainTileView, lv_pct(100));
-    lv_obj_set_height(mainTileView, lv_pct(100));
-    lv_obj_set_scrollbar_mode(mainTileView, LV_SCROLLBAR_MODE_OFF);
-    //lv_obj_add_flag(mainTileView, LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM);
-    lv_obj_add_style(mainTileView, &main_style, 0);
+    watchface_create();
+    steps_screen_create();
+    notifications_screen_create();
+    control_screen_create();
 
-    tileMotfication = lv_tileview_add_tile(mainTileView, 0, 0, LV_DIR_BOTTOM);
-    ui_Messages_Panel = lv_obj_create(tileMotfication);
-    lv_obj_add_style(ui_Messages_Panel, &main_style, 0);
-    lv_obj_set_width(ui_Messages_Panel, lv_pct(100));
-    lv_obj_set_height(ui_Messages_Panel, lv_pct(100));
-    lv_obj_set_align(ui_Messages_Panel, LV_ALIGN_CENTER);
-    lv_obj_clear_flag(ui_Messages_Panel, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
-    lv_obj_set_scrollbar_mode(ui_Messages_Panel, LV_SCROLLBAR_MODE_OFF);
-
-    tileClock = lv_tileview_add_tile(mainTileView, 0, 1, LV_DIR_BOTTOM | LV_DIR_TOP | LV_DIR_RIGHT);
-    ui_Clock01_Panel = lv_obj_create(tileClock);
-    lv_obj_add_style(ui_Clock01_Panel, &main_style, 0);
-    lv_obj_set_width(ui_Clock01_Panel, lv_pct(100));
-    lv_obj_set_height(ui_Clock01_Panel, lv_pct(100));
-    lv_obj_set_align(ui_Clock01_Panel, LV_ALIGN_CENTER);
-    lv_obj_clear_flag(ui_Clock01_Panel, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
-    lv_obj_set_scrollbar_mode(ui_Clock01_Panel, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_set_style_bg_opa(ui_Clock01_Panel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-
-    tileConfig = lv_tileview_add_tile(mainTileView, 0, 2, LV_DIR_TOP);
-    ui_Config_Panel = lv_obj_create(tileConfig);
-    lv_obj_add_style(ui_Config_Panel, &main_style, 0);
-    lv_obj_set_width(ui_Config_Panel, lv_pct(100));
-    lv_obj_set_height(ui_Config_Panel, lv_pct(100));
-    lv_obj_set_align(ui_Config_Panel, LV_ALIGN_CENTER);
-    lv_obj_clear_flag(ui_Config_Panel, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
-    lv_obj_set_scrollbar_mode(ui_Config_Panel, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_set_style_bg_opa(ui_Config_Panel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-
-    tileSteps = lv_tileview_add_tile(mainTileView, 1, 1, LV_DIR_LEFT);
-    ui_Steps_Panel = lv_obj_create(tileSteps);
-    lv_obj_add_style(ui_Steps_Panel, &main_style, 0);
-    lv_obj_set_width(ui_Steps_Panel, lv_pct(100));
-    lv_obj_set_height(ui_Steps_Panel, lv_pct(100));
-    lv_obj_set_align(ui_Steps_Panel, LV_ALIGN_CENTER);
-    lv_obj_clear_flag(ui_Steps_Panel, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
-    lv_obj_set_scrollbar_mode(ui_Steps_Panel, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_set_style_bg_opa(ui_Steps_Panel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-
-    watchface_create(ui_Clock01_Panel);
-
-    lv_smartwatch_control_create(ui_Config_Panel);
-
-    lv_smartwatch_notifications_create(ui_Messages_Panel);
-
-    steps_screen_create(ui_Steps_Panel);
-
-
-    lv_obj_set_tile_id(mainTileView, 0, 1, LV_ANIM_OFF);
-
-    lv_obj_add_event_cb(mainTileView, tile_change_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-    lv_disp_load_scr(mainTileView);
-    active_screen = mainTileView;
+    load_screen(NULL, watchface_screen_get(), LV_SCR_LOAD_ANIM_NONE);
 }
 
 void ui_show_messages_tile(void)
 {
-    if (!mainTileView) return;
-    // Messages tile is at (0,0)
-    lv_obj_set_tile_id(mainTileView, 0, 0, LV_ANIM_ON);
+    load_screen(NULL, notifications_screen_get(), LV_SCR_LOAD_ANIM_OVER_TOP);
 }
-
-lv_obj_t* ui_get_main_tileview(void)
-{
-    return mainTileView;
-}
-
-
 
 
 void ui_init(void) {
@@ -176,12 +101,6 @@ void ui_init(void) {
     lvgl_spiffs_fs_register();
 
     create_main_screen();
-    watchface_resume();
-    //watchface_create();
-    //notifications_create();
-    //settings_screen_create();
-
-    //debug_screen();
 
     {
         bool vbus = bsp_power_is_vbus_in();
@@ -201,34 +120,14 @@ void ui_init(void) {
 static void ui_handle_back_async(void* user)
 {
     (void)user;
-    if (s_back_busy) return;
-    s_back_busy = true;
-    // Clear busy after short delay to avoid spamming back actions
-    (void)lv_timer_create(clear_back_busy_cb, 250, NULL);
+
     lv_obj_t* scr = lv_scr_act();
     if (!scr) return;
     // If already at main tile, do nothing
-    if (scr == mainTileView) return;
-    // If flagged to go back to Storage tools (USER_3), handle first
-    if (lv_obj_has_flag(scr, LV_OBJ_FLAG_USER_3)) {
-        extern lv_obj_t* setting_storage_screen_get(void);
-        load_screen(NULL, setting_storage_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
-        //lv_obj_del_async(scr);
-        return;
-    }
-    // If flagged to go back to Settings menu (USER_1)
-    if (lv_obj_has_flag(scr, LV_OBJ_FLAG_USER_1)) {
-        extern void settings_menu_screen_create(lv_obj_t* parent);
-        extern lv_obj_t* settings_menu_screen_get(void);
-        // Ensure menu exists (persistent in Settings tile); fall back to getter
-        load_screen(NULL, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
-        //lv_obj_del_async(scr);
-        return;
-    }
-    // Default: go back to the main tileview
-    load_screen(scr, mainTileView, LV_SCR_LOAD_ANIM_MOVE_RIGHT);
-    // Screens shown as full-screen should be lazily recreated next time
-    //lv_obj_del_async(scr);
+    if (scr == watchface_screen_get()) return;
+
+    load_screen(NULL, watchface_screen_get(), LV_SCR_LOAD_ANIM_OVER_TOP);
+
 }
 
 static void ui_back_btn_task(void* arg)

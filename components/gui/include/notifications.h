@@ -4,7 +4,8 @@
 extern "C" {
 #endif
 
-void lv_smartwatch_notifications_create(lv_obj_t * screen);
+void notifications_screen_create(void);
+lv_obj_t* notifications_screen_get(void);
 
 // Update the notifications UI with new data
 // Any of the parameters may be NULL; they will be treated as empty strings

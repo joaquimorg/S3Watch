@@ -3,6 +3,9 @@
 #include <string.h>
 #include <strings.h>
 
+#include "ui.h"
+#include "watchface.h"
+
 // Keep the last N notifications and allow swipe left/right
 #define MAX_NOTIFICATIONS 5
 
@@ -18,7 +21,7 @@ static NotificationItem notif_buf[MAX_NOTIFICATIONS];
 static int notif_count = 0; // valid items in buffer
 
 // Container and single reusable card (low memory)
-static lv_obj_t *notif_cont;      // root container (fills panel)
+static lv_obj_t *notification_screen;      // root container (fills panel)
 static lv_obj_t *card;            // single card reused for all items
 static lv_obj_t *avatar_img;      // optional image icon
 static lv_obj_t *lbl_app;
@@ -28,6 +31,8 @@ static lv_obj_t *lbl_message;
 static lv_obj_t *pager_cont;      // bottom-center pager (dots)
 static lv_obj_t *pager_dots[MAX_NOTIFICATIONS];
 static int active_idx = 0;        // current shown index (0 = most recent)
+
+lv_obj_t* notifications_screen_get(void);
 
 static void set_label_text(lv_obj_t* lbl, const char* txt)
 {
@@ -143,6 +148,7 @@ static void update_card_content(int idx)
 }
 
 static void create_tile(int idx) { (void)idx; }
+
 static void build_single_card(lv_obj_t* parent)
 {
     card = lv_obj_create(parent);
@@ -356,6 +362,9 @@ static void gesture_event_cb(lv_event_t* e)
                 }
             }
         }
+        if (dir == LV_DIR_TOP) {            
+            load_screen(notification_screen, watchface_screen_get(), LV_SCR_LOAD_ANIM_MOVE_TOP);
+        }
         return;
     }
     if (code == LV_EVENT_PRESSED) {
@@ -380,29 +389,36 @@ static void gesture_event_cb(lv_event_t* e)
     }
 }
 
-void lv_smartwatch_notifications_create(lv_obj_t * screen)
+void notifications_screen_create(void)
 {
+
+    static lv_style_t cmain_style;
+
+    lv_style_init(&cmain_style);
+    lv_style_set_text_color(&cmain_style, lv_color_white());
+    lv_style_set_bg_color(&cmain_style, lv_color_hex(0x000000));
+    lv_style_set_bg_opa(&cmain_style, LV_OPA_100);
+
     // Root container (no scroll)
-    notif_cont = lv_obj_create(screen);
-    lv_obj_remove_style_all(notif_cont);
-    lv_obj_set_size(notif_cont, lv_pct(100), lv_pct(100));
-    lv_obj_set_style_bg_color(notif_cont, lv_color_black(), 0);
-    lv_obj_set_style_bg_opa(notif_cont, LV_OPA_COVER, 0);
-    lv_obj_clear_flag(notif_cont, LV_OBJ_FLAG_SCROLLABLE);
+    notification_screen = lv_obj_create(NULL);
+    lv_obj_remove_style_all(notification_screen);
+    lv_obj_set_size(notification_screen, lv_pct(100), lv_pct(100));
+    lv_obj_clear_flag(notification_screen, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_style(notification_screen, &cmain_style, 0);
 
     // Build one reusable card and enable swipe/press events on container
     // Listen to all events here; the handler filters by code.
-    lv_obj_add_event_cb(notif_cont, gesture_event_cb, LV_EVENT_ALL, NULL);
-    lv_obj_add_flag(notif_cont, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
-    build_single_card(notif_cont);
+    lv_obj_add_event_cb(notification_screen, gesture_event_cb, LV_EVENT_ALL, NULL);
+    //lv_obj_add_flag(notification_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
+    build_single_card(notification_screen);
 
     // Ensure gestures on the card bubble up to the container (where handler is attached)
-    if (card) {
-        lv_obj_add_flag(card, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
-    }
+    //if (card) {
+    //    lv_obj_add_flag(card, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
+    //}
 
     // Pager indicator at bottom-center (dots with active highlight)
-    pager_cont = lv_obj_create(notif_cont);
+    pager_cont = lv_obj_create(notification_screen);
     lv_obj_remove_style_all(pager_cont);
     lv_obj_set_align(pager_cont, LV_ALIGN_BOTTOM_MID);
     lv_obj_set_y(pager_cont, -8);
@@ -415,13 +431,22 @@ void lv_smartwatch_notifications_create(lv_obj_t * screen)
     lv_obj_add_flag(pager_cont, LV_OBJ_FLAG_HIDDEN);
 }
 
+lv_obj_t* notifications_screen_get(void)
+{
+    if (notification_screen == NULL) {
+        // Create as a standalone screen if not yet created
+        notifications_screen_create();
+    }
+    return notification_screen;
+}
+
 
 void notifications_show(const char* app,
                         const char* title,
                         const char* message,
                         const char* timestamp_iso8601)
 {
-    if (!notif_cont) return;
+    if (!notification_screen) return;
 
     // Shift older items down
     if (notif_count < MAX_NOTIFICATIONS) notif_count++;

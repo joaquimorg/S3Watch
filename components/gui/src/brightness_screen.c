@@ -4,6 +4,7 @@
 #include "settings.h"
 #include "esp_log.h"
 #include "bsp/esp32_s3_touch_amoled_2_06.h"
+#include "settings_screen.h"
 
 static const char* TAG = "BrightnessScreen";
 
@@ -128,19 +129,7 @@ static void screen_events(lv_event_t* e)
     if (code == LV_EVENT_GESTURE) {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
         if (dir == LV_DIR_RIGHT) {
-            ESP_LOGI(TAG, "Gesture detected: RIGHT");
-            lv_obj_t* main = ui_get_main_tileview();
-            if (main) {
-                load_screen(brightness_screen, main, LV_SCR_LOAD_ANIM_MOVE_RIGHT);
-                ESP_LOGI(TAG, "Loaded main screen");
-            }
-            // Destroy on exit to free resources (lazy-load next time). Use async to avoid deleting in event context
-            /*if (brightness_screen) {
-                lv_obj_t* scr = brightness_screen;
-                brightness_screen = NULL;
-                lv_obj_delete_async(scr);
-                ESP_LOGI(TAG, "Unloaded brightness screen");
-            }*/
+            load_screen(brightness_screen, control_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
         }
     }
 }

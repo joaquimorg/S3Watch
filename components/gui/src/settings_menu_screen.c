@@ -7,6 +7,8 @@
 #include "setting_sound_screen.h"
 #include "setting_storage_screen.h"
 
+#include "settings_screen.h"
+
 static lv_obj_t* smenu_screen;
 static lv_obj_t* smenu_content;
 static lv_obj_t* r1;
@@ -42,8 +44,7 @@ static void screen_events(lv_event_t* e)
 {
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
-            lv_obj_t* main = ui_get_main_tileview();
-            if (main) load_screen(smenu_content, main, LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+            load_screen(smenu_screen, control_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
         }
     }
     else if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOADED) {
@@ -90,6 +91,7 @@ void settings_menu_screen_create(lv_obj_t* parent)
     lv_obj_remove_style_all(smenu_screen);
     lv_obj_add_style(smenu_screen, &cmain_style, 0);
     lv_obj_set_size(smenu_screen, lv_pct(100), lv_pct(100));
+    //lv_obj_add_flag(smenu_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     lv_obj_add_event_cb(smenu_screen, screen_events, LV_EVENT_ALL, NULL);
 
     // Header
@@ -106,6 +108,7 @@ void settings_menu_screen_create(lv_obj_t* parent)
 
     // Content list
     smenu_content = lv_obj_create(smenu_screen);
+    lv_obj_add_flag(smenu_content, LV_OBJ_FLAG_GESTURE_BUBBLE);
     lv_obj_remove_style_all(smenu_content);
     lv_obj_set_size(smenu_content, lv_pct(100), lv_pct(85));
     lv_obj_center(smenu_content);

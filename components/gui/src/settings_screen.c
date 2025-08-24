@@ -1,11 +1,14 @@
 #include "settings_screen.h"
 #include "settings.h"
 #include "ui_fonts.h"
-#include "ui.h"
 #include "batt_screen.h"
 #include "brightness_screen.h"
 #include "esp_log.h"
 #include "settings_menu_screen.h"
+#include "rtc_lib.h"
+
+#include "ui.h"
+#include "watchface.h"
 
 static const char* TAG = "SETTINGS SCREEN";
 
@@ -51,7 +54,9 @@ enum control_id {
     CTRL_SETTINGS,
 };
 
-void lv_smartwatch_control_create(lv_obj_t* screen)
+static void screen_events(lv_event_t* e);
+
+void control_screen_create()
 {
 
     static lv_style_t cmain_style;
@@ -74,13 +79,25 @@ void lv_smartwatch_control_create(lv_obj_t* screen)
     lv_style_set_pad_top(&cmain_style, 25);
 
 
-    control_screen = lv_obj_create(screen);
+    control_screen = lv_obj_create(NULL);
     lv_obj_remove_style_all(control_screen);
     lv_obj_add_style(control_screen, &cmain_style, 0);
     lv_obj_set_size(control_screen, lv_pct(100), lv_pct(100));
-    lv_obj_remove_flag(control_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
+    //lv_obj_remove_flag(control_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_clear_flag(control_screen, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_event_cb(control_screen, screen_events, LV_EVENT_ALL, NULL);
 
+    // Header
+    lv_obj_t* hdr = lv_obj_create(control_screen);
+    lv_obj_remove_style_all(hdr);
+    lv_obj_set_size(hdr, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(hdr, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(hdr, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+
+    lv_obj_t* title = lv_label_create(hdr);
+    lv_obj_set_style_text_font(title, &font_normal_26, 0);
+    lv_label_set_text_fmt(title, "%02d:%02d", rtc_get_hour(), rtc_get_minute());
+    lv_obj_set_style_pad_top(title, 6, 0);
 
     /* Create grid-like items (flex row wrap, non-scrollable) */
     for (uint32_t i = 0; i < 6; i++) {
@@ -132,10 +149,28 @@ void lv_smartwatch_control_create(lv_obj_t* screen)
 
 }
 
+static void screen_events(lv_event_t* e)
+{
+    if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
+        lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
+        if (dir == LV_DIR_BOTTOM) {
 
-/**********************
- *   STATIC FUNCTIONS
- **********************/
+            load_screen(control_screen, watchface_screen_get(), LV_SCR_LOAD_ANIM_MOVE_BOTTOM);
+        }
+    }
+    else if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOADED) {
+        
+    }
+}
+
+lv_obj_t* control_screen_get(void)
+{
+    if (control_screen == NULL) {
+        // Create as a standalone screen if not yet created
+        control_screen_create();
+    }
+    return control_screen;
+}
 
 static void click_event_cb(lv_event_t* e)
 {
@@ -145,15 +180,15 @@ static void click_event_cb(lv_event_t* e)
     switch (ctrl) {
     case CTRL_BRIGHTNESS:
         ESP_LOGI(TAG, "Brightness control clicked");
-                load_screen(NULL, brightness_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+            load_screen(NULL, brightness_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
         break;
     case CTRL_BATTERY:
         ESP_LOGI(TAG, "Battery control clicked");
-                load_screen(NULL, batt_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+            load_screen(NULL, batt_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
         break;
     case CTRL_SETTINGS:
         ESP_LOGI(TAG, "Settings clicked");
-                load_screen(NULL, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+            load_screen(NULL, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
         break;
     default:
         break;

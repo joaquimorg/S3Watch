@@ -4,7 +4,8 @@
 extern "C" {
 #endif
 
-    void lv_smartwatch_control_create(lv_obj_t * screen);
+    void control_screen_create(void);
+    lv_obj_t* control_screen_get(void);
 
 #ifdef __cplusplus
 }

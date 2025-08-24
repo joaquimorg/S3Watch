@@ -217,7 +217,7 @@ void display_manager_init(void) {
     (void)esp_sleep_enable_gpio_wakeup();
 #endif // CONFIG_PM_ENABLE
 
-    xTaskCreate(display_manager_task, "display_mgr", 4000, NULL, 5, NULL);
+    xTaskCreate(display_manager_task, "display_mgr", 4000, NULL, 4, NULL);
 }
 
 void display_manager_pm_early_init(void)

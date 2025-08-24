@@ -18,7 +18,7 @@ static const char *TAG = "SETTINGS";
 static uint8_t brightness = 30;
 static uint32_t display_timeout_ms = 30000;
 static bool sound_enabled = true;
-static uint8_t notify_volume = 70; // percent 0..100
+static uint8_t notify_volume = 100; // percent 0..100 (louder default)
 static uint32_t step_goal = 8000;
 static bool spiffs_ready = false;
 
@@ -275,7 +275,7 @@ static void apply_defaults(void)
     brightness = 30;
     display_timeout_ms = 30000;
     sound_enabled = true;
-    notify_volume = 70;
+    notify_volume = 100;
     step_goal = 8000;
 }
 
@@ -321,4 +321,3 @@ bool settings_format_spiffs(void)
     if (overlay && bsp_display_lock(100)) { lv_obj_del(overlay); lv_refr_now(NULL); bsp_display_unlock(); }
     return ok;
 }
-

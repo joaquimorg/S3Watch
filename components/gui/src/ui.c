@@ -62,8 +62,10 @@ lv_style_t* ui_get_main_style(void)
 void load_screen(lv_obj_t* current_screen, lv_obj_t* next_screen, lv_screen_load_anim_t anim) {
 
     if (active_screen != next_screen) {
+        //bsp_display_lock(0);
         lv_screen_load_anim(next_screen, anim, 200, 0, false);
         active_screen = next_screen;
+        //bsp_display_unlock();
         /*if (current_screen) {
             // Delete asynchronously to avoid heavy work in refresh/event context
             lv_obj_del_async(current_screen);
@@ -218,7 +220,7 @@ void ui_task(void* pvParameters) {
     esp_event_handler_register(BLE_SYNC_EVENT_BASE, ESP_EVENT_ANY_ID, ble_ui_evt, NULL);
 
     // Start back button poller
-    xTaskCreate(ui_back_btn_task, "ui_back_btn", 2048, NULL, 5, NULL);
+    xTaskCreate(ui_back_btn_task, "ui_back_btn", 2048, NULL, 4, NULL);
 
     // Periodic fallback: refresh power state every 5s in case no events fire
     lv_timer_t* t = lv_timer_create(power_poll_cb, 5000, NULL);

@@ -50,8 +50,8 @@ static void handle_notification_fields(const char* timestamp,
     // Wake display for visibility
     display_manager_turn_on();
     if (bsp_display_lock(10)) {
-        notifications_show(app, title, message, timestamp);
         ui_show_messages_tile();
+        notifications_show(app, title, message, timestamp);        
         bsp_display_unlock();
     }
     // Play notification sound if enabled
@@ -175,7 +175,7 @@ esp_err_t ble_sync_init(void)
         return err;
     }
 
-    xTaskCreate(uartTask, "uartTask", 4000, NULL, 5, NULL);
+    xTaskCreate(uartTask, "uartTask", 4000, NULL, 4, NULL);
 
     // Periodic status every 5 minutes when connected
     if (!s_status_timer) {

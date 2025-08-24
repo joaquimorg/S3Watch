@@ -100,9 +100,9 @@ void lv_smartwatch_batt_create(lv_obj_t* screen)
     (void)make_row(status, "Temp", &row_temp_val);
 
     // Periodic refresh
-    batt_timer = lv_timer_create(batt_update_cb, 5000, NULL);
+    batt_timer = lv_timer_create(batt_update_cb, 2000, NULL);
     // Immediate populate
-    batt_update_values();
+    //batt_update_values();
 
 }
 
@@ -128,6 +128,8 @@ static void batt_screen_events(lv_event_t* e)
 
         if(dir == LV_DIR_RIGHT) {
             load_screen(batt_screen, control_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+            //if (batt_timer) { lv_timer_del(batt_timer); batt_timer = NULL; }
+            //lv_obj_del_async(batt_screen);
         } 
     }
     else if (event_code == LV_EVENT_DELETE) {

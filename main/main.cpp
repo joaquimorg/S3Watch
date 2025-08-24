@@ -16,10 +16,13 @@
 // Power management
 #include "esp_pm.h"
 // UI/BLE reagem a eventos de energia; remover ponte direta aqui
+#include "audio_alert.h"
 
 static const char *TAG = "MAIN";
 
 extern "C" void app_main(void) {
+    
+    //esp_log_level_set("lcd_panel.io.spi", ESP_LOG_DEBUG);
     
     // Create default event loop for component event handlers
     esp_event_loop_create_default();
@@ -37,14 +40,17 @@ extern "C" void app_main(void) {
 
     settings_init();
 
+    // Play a subtle startup tone once the system is up
+    audio_alert_play_startup();
+
     // UI task chama display_manager_init() após criar o ecrã
 
     // UI e BLE subscrevem eventos diretamente; sem acoplamento no main
 
     sensors_init();
 
-    xTaskCreate(ui_task, "ui", 8000, NULL, 5, NULL);
-    xTaskCreate(sensors_task, "sensors", 4096, NULL, 5, NULL);
+    xTaskCreate(ui_task, "ui", 8000, NULL, 4, NULL);
+    xTaskCreate(sensors_task, "sensors", 4096, NULL, 4, NULL);
 
     // Now enable PM with light sleep allowed (still blocked while screen is ON)
     esp_pm_config_t pm_cfg = {

@@ -15,6 +15,7 @@ static lv_obj_t * img_battery;
 static lv_obj_t * lbl_batt_pct;
 static lv_obj_t * lbl_charge_icon;
 static lv_obj_t * img_ble;
+static lv_timer_t * s_timer = NULL;
 
 
 //static lv_style_t main_style;
@@ -44,11 +45,21 @@ static void home_screen_events(lv_event_t * e)
 
 static void update_time_task(lv_timer_t * timer)
 {
-    lv_label_set_text_fmt(label_hour, "%02d", rtc_get_hour());
-    lv_label_set_text_fmt(label_minute, "%02d", rtc_get_minute());
-    lv_label_set_text_fmt(label_second, "%02d", rtc_get_second());
-    lv_label_set_text_fmt(label_date, "%02d/%02d", rtc_get_day(), rtc_get_month());
-    lv_label_set_text(label_weekday, rtc_get_weekday_short_string());
+    if (label_hour) {
+        lv_label_set_text_fmt(label_hour, "%02d", rtc_get_hour());
+    }
+    if (label_minute) {
+        lv_label_set_text_fmt(label_minute, "%02d", rtc_get_minute());
+    }
+    if (label_second) {
+        lv_label_set_text_fmt(label_second, "%02d", rtc_get_second());
+    }
+    if (label_date) {
+        lv_label_set_text_fmt(label_date, "%02d/%02d", rtc_get_day(), rtc_get_month());
+    }
+    if (label_weekday) {
+        lv_label_set_text(label_weekday, rtc_get_weekday_short_string());
+    }
 }
 
 void watchface_create(lv_obj_t * screen) {
@@ -159,8 +170,6 @@ void watchface_create(lv_obj_t * screen) {
     lv_obj_set_style_img_recolor_opa(img_ble, LV_OPA_COVER, 0);
     // Default to disconnected (grey)
     lv_obj_set_style_img_recolor(img_ble, lv_color_hex(0x606060), 0);
-
-    lv_timer_create(update_time_task, 1000, NULL);
 }
 
 void watchface_set_power_state(bool vbus_in, bool charging, int battery_percent)
@@ -200,4 +209,19 @@ void watchface_set_ble_connected(bool connected)
     if (!img_ble) return;
     lv_color_t col = connected ? lv_color_hex(0x3B82F6) /* blue */ : lv_color_hex(0x606060) /* grey */;
     lv_obj_set_style_img_recolor(img_ble, col, 0);
+}
+
+void watchface_resume(void)
+{
+    if (!s_timer) {
+        s_timer = lv_timer_create(update_time_task, 1000, NULL);
+    }
+}
+
+void watchface_pause(void)
+{
+    if (s_timer) {
+        lv_timer_del(s_timer);
+        s_timer = NULL;
+    }
 }

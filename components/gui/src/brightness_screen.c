@@ -2,13 +2,16 @@
 #include "ui_fonts.h"
 #include "ui.h"
 #include "settings.h"
+#include "esp_log.h"
 #include "bsp/esp32_s3_touch_amoled_2_06.h"
+
+static const char* TAG = "BrightnessScreen";
 
 LV_IMAGE_DECLARE(image_brightness_48);
 
 static lv_obj_t* brightness_screen;
-lv_obj_t* percent_label;
-lv_obj_t* slider;
+static lv_obj_t* percent_label;
+static lv_obj_t* slider;
 
 static void screen_events(lv_event_t* e);
 static void slider_event(lv_event_t* e);
@@ -35,8 +38,9 @@ void lv_smartwatch_brightness_create(lv_obj_t* screen)
     lv_obj_remove_style_all(brightness_screen);
     lv_obj_add_style(brightness_screen, &cmain_style, 0);
     lv_obj_set_size(brightness_screen, lv_pct(100), lv_pct(100));
-    lv_obj_remove_flag(brightness_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
-    lv_obj_clear_flag(brightness_screen, LV_OBJ_FLAG_SCROLLABLE);
+    // Allow gestures on children to bubble up so back-swipe works anywhere
+    //lv_obj_add_flag(brightness_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    //lv_obj_clear_flag(brightness_screen, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_event_cb(brightness_screen, screen_events, LV_EVENT_ALL, NULL);
 
     lv_obj_t* hdr_card = lv_obj_create(brightness_screen);
@@ -124,10 +128,19 @@ static void screen_events(lv_event_t* e)
     if (code == LV_EVENT_GESTURE) {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
         if (dir == LV_DIR_RIGHT) {
+            ESP_LOGI(TAG, "Gesture detected: RIGHT");
             lv_obj_t* main = ui_get_main_tileview();
             if (main) {
-                load_screen(main, LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+                load_screen(brightness_screen, main, LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+                ESP_LOGI(TAG, "Loaded main screen");
             }
+            // Destroy on exit to free resources (lazy-load next time). Use async to avoid deleting in event context
+            /*if (brightness_screen) {
+                lv_obj_t* scr = brightness_screen;
+                brightness_screen = NULL;
+                lv_obj_delete_async(scr);
+                ESP_LOGI(TAG, "Unloaded brightness screen");
+            }*/
         }
     }
 }

@@ -41,7 +41,8 @@ void lv_smartwatch_batt_create(lv_obj_t* screen)
     lv_obj_remove_style_all(batt_screen);
     lv_obj_add_style(batt_screen, &cmain_style, 0);
     lv_obj_set_size(batt_screen, lv_pct(100), lv_pct(100));
-    lv_obj_remove_flag(batt_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
+    //lv_obj_add_flag(batt_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    //lv_obj_remove_flag(batt_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_clear_flag(batt_screen, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_add_event_cb(batt_screen, batt_screen_events, LV_EVENT_ALL, NULL);
@@ -143,11 +144,17 @@ static void batt_screen_events(lv_event_t* e)
             // Swipe right to go back to the main screen
             lv_obj_t* main = ui_get_main_tileview();
             if (main) {
-                load_screen(main, LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+                load_screen(batt_screen, main, LV_SCR_LOAD_ANIM_MOVE_RIGHT);
             }
+            // Stop timer and destroy screen to free memory. Use async delete to be safe in event context
+            //if (batt_timer) { lv_timer_del(batt_timer); batt_timer = NULL; }
+            //if (batt_screen) { lv_obj_t* scr = batt_screen; batt_screen = NULL; lv_obj_del_async(scr); }
         } 
     }
-    
+    else if (event_code == LV_EVENT_DELETE) {
+        // Ensure timer is stopped if screen gets deleted elsewhere
+        //if (batt_timer) { lv_timer_del(batt_timer); batt_timer = NULL; }
+    }
 }
 
 static void batt_update_cb(lv_timer_t* t)

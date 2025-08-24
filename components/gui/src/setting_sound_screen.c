@@ -10,12 +10,20 @@ static lv_obj_t* s_slider;
 static lv_obj_t* s_value_lbl;
 static lv_obj_t* s_test_btn;
 
+extern lv_obj_t* settings_menu_screen_get(void);    
+static void back_async(void* user) {
+        lv_obj_t* scr = (lv_obj_t*)user;
+        load_screen(scr, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+        //if (scr) lv_obj_del_async(scr);
+    }
+
 static void screen_events(lv_event_t* e)
 {
+    // Async back to avoid heavy work in event context    
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
-            extern lv_obj_t* settings_menu_screen_get(void);
-            load_screen(settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+            lv_async_call(back_async, ssound_screen);
+            //ssound_screen = NULL;
         }
     }
 }
@@ -63,6 +71,9 @@ void setting_sound_screen_create(lv_obj_t* parent)
     lv_obj_remove_style_all(ssound_screen);
     lv_obj_add_style(ssound_screen, &style, 0);
     lv_obj_set_size(ssound_screen, lv_pct(100), lv_pct(100));
+    //lv_obj_add_flag(ssound_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    // Mark as settings child for HW back button routing
+    lv_obj_add_flag(ssound_screen, LV_OBJ_FLAG_USER_1);
     lv_obj_add_event_cb(ssound_screen, screen_events, LV_EVENT_ALL, NULL);
 
     lv_obj_t* hdr = lv_obj_create(ssound_screen);
@@ -77,6 +88,7 @@ void setting_sound_screen_create(lv_obj_t* parent)
     lv_obj_t* content = lv_obj_create(ssound_screen);
     lv_obj_remove_style_all(content);
     lv_obj_set_size(content, lv_pct(100), lv_pct(90));
+    lv_obj_add_flag(content, LV_OBJ_FLAG_GESTURE_BUBBLE);
     lv_obj_set_style_pad_all(content, 16, 0);
     lv_obj_set_flex_flow(content, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(content, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);

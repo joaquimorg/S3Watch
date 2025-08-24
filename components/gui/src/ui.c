@@ -18,10 +18,18 @@
 
 #include "batt_screen.h"
 #include "lvgl_spiffs_fs.h"
+#include "driver/gpio.h"
+#include "bsp/esp32_s3_touch_amoled_2_06.h"
 
 static const char* TAG = "UI";
 
 static lv_obj_t* active_screen;
+static volatile bool s_back_busy = false;
+static void clear_back_busy_cb(lv_timer_t* t)
+{
+    (void)t;
+    s_back_busy = false;
+}
 static lv_obj_t* mainTileView;
 
 lv_obj_t* tileClock;
@@ -46,12 +54,35 @@ void init_theme(void) {
 
 }
 
-void load_screen(lv_obj_t* current_screen, lv_screen_load_anim_t anim) {
-    if (active_screen != current_screen) {
-        lv_screen_load_anim(current_screen, anim, 400, 0, false);
-        active_screen = current_screen;
+void load_screen(lv_obj_t* current_screen, lv_obj_t* next_screen, lv_screen_load_anim_t anim) {
+
+    if (active_screen != next_screen) {
+        lv_screen_load_anim(next_screen, anim, 200, 0, false);
+        active_screen = next_screen;
+        /*if (current_screen) {
+            // Delete asynchronously to avoid heavy work in refresh/event context
+            lv_obj_del_async(current_screen);
+        }*/
     }
 };
+
+static void tile_change_event_cb(lv_event_t * e)
+{
+    lv_obj_t * tileview = lv_event_get_target(e);
+    lv_obj_t * tile_act = lv_tileview_get_tile_act(tileview);
+
+    if (tile_act == tileClock) {
+        watchface_resume();
+    } else {
+        watchface_pause();
+    }
+
+    if (tile_act == tileSteps) {
+        steps_screen_resume();
+    } else {
+        steps_screen_pause();
+    }
+}
 
 void create_main_screen(void) {
 
@@ -59,7 +90,7 @@ void create_main_screen(void) {
     lv_obj_set_width(mainTileView, lv_pct(100));
     lv_obj_set_height(mainTileView, lv_pct(100));
     lv_obj_set_scrollbar_mode(mainTileView, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_add_flag(mainTileView, LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM);
+    //lv_obj_add_flag(mainTileView, LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM);
     lv_obj_add_style(mainTileView, &main_style, 0);
 
     tileMotfication = lv_tileview_add_tile(mainTileView, 0, 0, LV_DIR_BOTTOM);
@@ -110,12 +141,12 @@ void create_main_screen(void) {
 
     lv_smartwatch_notifications_create(ui_Messages_Panel);
 
-    // Create Steps screen under the Steps panel
     steps_screen_create(ui_Steps_Panel);
 
-    lv_smartwatch_batt_create(NULL);
 
     lv_obj_set_tile_id(mainTileView, 0, 1, LV_ANIM_OFF);
+
+    lv_obj_add_event_cb(mainTileView, tile_change_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_disp_load_scr(mainTileView);
     active_screen = mainTileView;
@@ -145,6 +176,7 @@ void ui_init(void) {
     lvgl_spiffs_fs_register();
 
     create_main_screen();
+    watchface_resume();
     //watchface_create();
     //notifications_create();
     //settings_screen_create();
@@ -161,6 +193,83 @@ void ui_init(void) {
     // Sensors are initialized and task started in main. Avoid duplicating here.
 
     bsp_display_unlock();
+}
+
+// Hardware back button (GPIO0) handler
+#define UI_BACK_BTN GPIO_NUM_0
+
+static void ui_handle_back_async(void* user)
+{
+    (void)user;
+    if (s_back_busy) return;
+    s_back_busy = true;
+    // Clear busy after short delay to avoid spamming back actions
+    (void)lv_timer_create(clear_back_busy_cb, 250, NULL);
+    lv_obj_t* scr = lv_scr_act();
+    if (!scr) return;
+    // If already at main tile, do nothing
+    if (scr == mainTileView) return;
+    // If flagged to go back to Storage tools (USER_3), handle first
+    if (lv_obj_has_flag(scr, LV_OBJ_FLAG_USER_3)) {
+        extern lv_obj_t* setting_storage_screen_get(void);
+        load_screen(NULL, setting_storage_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+        //lv_obj_del_async(scr);
+        return;
+    }
+    // If flagged to go back to Settings menu (USER_1)
+    if (lv_obj_has_flag(scr, LV_OBJ_FLAG_USER_1)) {
+        extern void settings_menu_screen_create(lv_obj_t* parent);
+        extern lv_obj_t* settings_menu_screen_get(void);
+        // Ensure menu exists (persistent in Settings tile); fall back to getter
+        load_screen(NULL, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+        //lv_obj_del_async(scr);
+        return;
+    }
+    // Default: go back to the main tileview
+    load_screen(scr, mainTileView, LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+    // Screens shown as full-screen should be lazily recreated next time
+    //lv_obj_del_async(scr);
+}
+
+static void ui_back_btn_task(void* arg)
+{
+    (void)arg;
+    // Configure GPIO0 as input with pull-up
+    gpio_config_t io = {
+        .pin_bit_mask = 1ULL << UI_BACK_BTN,
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE,
+    };
+    (void)gpio_config(&io);
+    int idle = gpio_get_level(UI_BACK_BTN); // consider this the idle (unpressed) level
+    int prev = idle;
+    TickType_t last_press = 0;
+    const TickType_t debounce = pdMS_TO_TICKS(120);
+    for (;;) {
+        int lvl = gpio_get_level(UI_BACK_BTN);
+        if (prev != lvl) {
+            prev = lvl;
+            // Treat a press as a transition away from idle level (works for active-low or active-high)
+            if (lvl != idle) {
+                TickType_t now = xTaskGetTickCount();
+                if (now - last_press > debounce) {
+                    last_press = now;
+                    // Dispatch back action on LVGL thread
+                    lv_async_call(ui_handle_back_async, NULL);
+                }
+            }
+        }
+        // When screen is ON, allow PMU power button short-press to act as Back.
+        // Do NOT consume it when screen is OFF to preserve wake behavior.
+        if (display_manager_is_on()) {
+            if (bsp_power_poll_pwr_button_short()) {
+                lv_async_call(ui_handle_back_async, NULL);
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(20));
+    }
 }
 
 // Callback de eventos de energia (file-scope, não aninhada)
@@ -208,6 +317,9 @@ void ui_task(void* pvParameters) {
     // Subscrever eventos de energia e atualizar UI
     esp_event_handler_register(BSP_POWER_EVENT_BASE, ESP_EVENT_ANY_ID, power_ui_evt, NULL);
     esp_event_handler_register(BLE_SYNC_EVENT_BASE, ESP_EVENT_ANY_ID, ble_ui_evt, NULL);
+
+    // Start back button poller
+    xTaskCreate(ui_back_btn_task, "ui_back_btn", 2048, NULL, 5, NULL);
 
     // Periodic fallback: refresh power state every 5s in case no events fire
     lv_timer_t* t = lv_timer_create(power_poll_cb, 5000, NULL);

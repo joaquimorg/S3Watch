@@ -6,13 +6,20 @@
 #include <string.h>
 
 static lv_obj_t* s_screen;
+extern lv_obj_t* setting_storage_screen_get(void);
+static void fileexp_back_async(void* user)
+{
+    lv_obj_t* scr = (lv_obj_t*)user;
+    load_screen(scr, setting_storage_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+    //if (scr) lv_obj_del_async(scr);
+}
 
 static void screen_events(lv_event_t* e)
 {
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
-            extern lv_obj_t* setting_storage_screen_get(void);
-            load_screen(setting_storage_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+            lv_obj_t* tmp = s_screen; s_screen = NULL;
+            lv_async_call(fileexp_back_async, tmp);
         }
     }
 }
@@ -80,6 +87,9 @@ void storage_file_explorer_screen_create(lv_obj_t* parent)
     lv_obj_add_style(s_screen, &style, 0);
     lv_obj_set_size(s_screen, lv_pct(100), lv_pct(100));
     lv_obj_add_event_cb(s_screen, screen_events, LV_EVENT_ALL, NULL);
+    //lv_obj_add_flag(s_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    // Mark as "back to Storage" destination for HW back button
+    lv_obj_add_flag(s_screen, LV_OBJ_FLAG_USER_3);
 
     // Header
     lv_obj_t* hdr = lv_obj_create(s_screen);

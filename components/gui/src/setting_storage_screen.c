@@ -37,12 +37,20 @@ static void show_toast(const char* text)
     (void)lv_timer_create(toast_timer_cb, 1200, toast);
 }
 
+extern lv_obj_t* settings_menu_screen_get(void);
+static void storage_back_async(void* user)
+{
+    lv_obj_t* scr = (lv_obj_t*)user;
+    load_screen(scr, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+    //if (scr) lv_obj_del_async(scr);
+}
+
 static void screen_events(lv_event_t* e)
 {
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
-            extern lv_obj_t* settings_menu_screen_get(void);
-            load_screen(settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+            lv_obj_t* tmp = sstorage_screen; //sstorage_screen = NULL;
+            lv_async_call(storage_back_async, tmp);
         }
     }
 }
@@ -131,7 +139,7 @@ static void show_spiffs_files(lv_event_t* e)
 {
     (void)e;
     extern lv_obj_t* storage_file_explorer_screen_get(void);
-    load_screen(storage_file_explorer_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+    load_screen(NULL, storage_file_explorer_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
 }
 
 void setting_storage_screen_create(lv_obj_t* parent)
@@ -147,6 +155,8 @@ void setting_storage_screen_create(lv_obj_t* parent)
     lv_obj_add_style(sstorage_screen, &style, 0);
     lv_obj_set_size(sstorage_screen, lv_pct(100), lv_pct(100));
     lv_obj_add_event_cb(sstorage_screen, screen_events, LV_EVENT_ALL, NULL);
+    //lv_obj_add_flag(sstorage_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    lv_obj_add_flag(sstorage_screen, LV_OBJ_FLAG_USER_1);
 
     lv_obj_t* hdr = lv_obj_create(sstorage_screen);
     lv_obj_remove_style_all(hdr);

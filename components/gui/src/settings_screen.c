@@ -145,15 +145,15 @@ static void click_event_cb(lv_event_t* e)
     switch (ctrl) {
     case CTRL_BRIGHTNESS:
         ESP_LOGI(TAG, "Brightness control clicked");
-        load_screen(brightness_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+                load_screen(NULL, brightness_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
         break;
     case CTRL_BATTERY:
         ESP_LOGI(TAG, "Battery control clicked");
-        load_screen(batt_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+                load_screen(NULL, batt_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
         break;
     case CTRL_SETTINGS:
         ESP_LOGI(TAG, "Settings clicked");
-        load_screen(settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+                load_screen(NULL, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
         break;
     default:
         break;

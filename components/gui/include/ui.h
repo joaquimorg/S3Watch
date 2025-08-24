@@ -5,7 +5,7 @@ extern "C" {
 
 #include "lvgl.h"
 
-void load_screen(lv_obj_t* current_screen, lv_screen_load_anim_t anim);
+void load_screen(lv_obj_t* current_screen, lv_obj_t* next_screen, lv_screen_load_anim_t anim);
 
 void ui_init(void);
 void ui_task(void *pvParameters);

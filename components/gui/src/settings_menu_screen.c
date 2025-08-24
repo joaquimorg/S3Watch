@@ -9,11 +9,15 @@
 
 static lv_obj_t* smenu_screen;
 static lv_obj_t* smenu_content;
+static lv_obj_t* r1;
+static lv_obj_t* r2;
+static lv_obj_t* r3;
+static lv_obj_t* r4;
 
-static void open_goal(lv_event_t* e){ (void)e; load_screen(setting_step_goal_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
-static void open_timeout(lv_event_t* e){ (void)e; load_screen(setting_timeout_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
-static void open_sound(lv_event_t* e){ (void)e; load_screen(setting_sound_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
-static void open_storage(lv_event_t* e){ (void)e; load_screen(setting_storage_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
+static void open_goal(lv_event_t* e){ (void)e; load_screen(NULL, setting_step_goal_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
+static void open_timeout(lv_event_t* e){ (void)e; load_screen(NULL, setting_timeout_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
+static void open_sound(lv_event_t* e){ (void)e; load_screen(NULL, setting_sound_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
+static void open_storage(lv_event_t* e){ (void)e; load_screen(NULL, setting_storage_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
 static void refresh_values(lv_obj_t* content)
 {
     if (!content) return;
@@ -21,18 +25,16 @@ static void refresh_values(lv_obj_t* content)
     uint32_t to = settings_get_display_timeout();
     bool snd = settings_get_sound();
     char buf[16];
-    lv_obj_t* row_goal = lv_obj_get_child(content, 0);
-    lv_obj_t* row_to = lv_obj_get_child(content, 1);
-    lv_obj_t* row_sound = lv_obj_get_child(content, 2);
+    
     snprintf(buf, sizeof(buf), "%u", (unsigned)goal);
-    lv_label_set_text(lv_obj_get_child(row_goal, 1), buf);
+    lv_label_set_text(r1, buf);
     const char* ttxt = (to==SETTINGS_DISPLAY_TIMEOUT_10S)?"10 s":(to==SETTINGS_DISPLAY_TIMEOUT_20S)?"20 s":(to==SETTINGS_DISPLAY_TIMEOUT_30S)?"30 s":"1 min";
-    lv_label_set_text(lv_obj_get_child(row_to, 1), ttxt);
+    lv_label_set_text(r2, ttxt);
     if (snd) {
         char sbuf[16]; snprintf(sbuf, sizeof(sbuf), "On (%u%%)", (unsigned)settings_get_notify_volume());
-        lv_label_set_text(lv_obj_get_child(row_sound, 1), sbuf);
+        lv_label_set_text(r3, sbuf);
     } else {
-        lv_label_set_text(lv_obj_get_child(row_sound, 1), "Off");
+        lv_label_set_text(r3, "Off");
     }
 }
 
@@ -41,7 +43,7 @@ static void screen_events(lv_event_t* e)
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
             lv_obj_t* main = ui_get_main_tileview();
-            if (main) load_screen(main, LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+            if (main) load_screen(smenu_content, main, LV_SCR_LOAD_ANIM_MOVE_RIGHT);
         }
     }
     else if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOADED) {
@@ -71,7 +73,7 @@ static lv_obj_t* make_row(lv_obj_t* parent, const char* label_txt, const char* v
     lv_obj_t* v = lv_label_create(row);
     lv_obj_set_style_text_font(v, &font_bold_28, 0);
     lv_label_set_text(v, value_txt);
-    return row;
+    return v;
 }
 
 /* duplicate refresh_values removed */
@@ -115,12 +117,12 @@ void settings_menu_screen_create(lv_obj_t* parent)
     lv_obj_set_flex_flow(smenu_content, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(smenu_content, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
 
-    lv_obj_t* r1 = make_row(smenu_content, "Step Goal", "--", open_goal);
-    lv_obj_t* r2 = make_row(smenu_content, "Display Timeout", "--", open_timeout);
-    lv_obj_t* r3 = make_row(smenu_content, "Sound", "--", open_sound);
-    lv_obj_t* r4 = make_row(smenu_content, "Storage", "Tools", open_storage);
+    r1 = make_row(smenu_content, "Step Goal", "--", open_goal);
+    r2 = make_row(smenu_content, "Display Timeout", "--", open_timeout);
+    r3 = make_row(smenu_content, "Sound", "--", open_sound);
+    r4 = make_row(smenu_content, "Storage", "Tools", open_storage);
 
-    refresh_values(smenu_content);
+    //refresh_values(smenu_content);
 }
 
 lv_obj_t* settings_menu_screen_get(void)

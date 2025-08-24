@@ -26,12 +26,20 @@ static void refresh_checked(void)
     }
 }
 
+extern lv_obj_t* settings_menu_screen_get(void);
+static void timeout_back_async(void* user)
+{
+    lv_obj_t* scr = (lv_obj_t*)user;
+    load_screen(scr, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+    //if (scr) lv_obj_del_async(scr);
+}
+
 static void screen_events(lv_event_t* e)
 {
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
-            extern lv_obj_t* settings_menu_screen_get(void);
-            load_screen(settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+            lv_obj_t* tmp = stimeout_screen; stimeout_screen = NULL;
+            lv_async_call(timeout_back_async, tmp);
         }
     }
     else if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOADED) {
@@ -89,6 +97,8 @@ void setting_timeout_screen_create(lv_obj_t* parent)
     lv_obj_add_style(stimeout_screen, &style, 0);
     lv_obj_set_size(stimeout_screen, lv_pct(100), lv_pct(100));
     lv_obj_add_event_cb(stimeout_screen, screen_events, LV_EVENT_ALL, NULL);
+    //lv_obj_add_flag(stimeout_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    lv_obj_add_flag(stimeout_screen, LV_OBJ_FLAG_USER_1);
 
     lv_obj_t* hdr = lv_obj_create(stimeout_screen);
     lv_obj_remove_style_all(hdr);
@@ -102,6 +112,7 @@ void setting_timeout_screen_create(lv_obj_t* parent)
     stimeout_content = lv_obj_create(stimeout_screen);
     lv_obj_remove_style_all(stimeout_content);
     lv_obj_set_size(stimeout_content, lv_pct(100), lv_pct(80));
+    lv_obj_add_flag(stimeout_content, LV_OBJ_FLAG_GESTURE_BUBBLE);
     lv_obj_set_style_pad_top(stimeout_content, 80, 0);
     lv_obj_set_style_pad_bottom(stimeout_content, 10, 0);
     lv_obj_set_style_pad_left(stimeout_content, 12, 0);

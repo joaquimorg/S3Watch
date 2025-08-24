@@ -193,9 +193,9 @@ void settings_init(void) {
             ESP_LOGI(TAG, "Time not set, setting to default");
             struct tm default_time = {
                 .tm_year = 2025, // 2024
-                .tm_mon = 8,    // January
-                .tm_mday = 14,
-                .tm_hour = 15,
+                .tm_mon = 1,    // January
+                .tm_mday = 1,
+                .tm_hour = 12,
                 .tm_min = 0,
                 .tm_sec = 0
             };

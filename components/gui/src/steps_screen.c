@@ -150,12 +150,6 @@ void steps_screen_create(lv_obj_t* parent)
         int x = (270 * (i + 1)) / 5; // 60,120,180,240px from left
         lv_obj_align_to(s_ticks[i], s_bar, LV_ALIGN_LEFT_MID, x, 0);
     }
-
-    // Periodic update every second
-    if (!s_timer) {
-        s_timer = lv_timer_create(steps_timer_cb, 1000, NULL);
-        lv_timer_ready(s_timer);
-    }
 }
 
 void steps_screen_set_goal(uint32_t goal_steps)
@@ -165,5 +159,20 @@ void steps_screen_set_goal(uint32_t goal_steps)
         char gbuf[32];
         lv_snprintf(gbuf, sizeof(gbuf), "Goal %u", (unsigned)s_goal_steps);
         lv_label_set_text(s_goal_label, gbuf);
+    }
+}
+
+void steps_screen_resume(void)
+{
+    if (!s_timer) {
+        s_timer = lv_timer_create(steps_timer_cb, 1000, NULL);
+    }
+}
+
+void steps_screen_pause(void)
+{
+    if (s_timer) {
+        lv_timer_del(s_timer);
+        s_timer = NULL;
     }
 }

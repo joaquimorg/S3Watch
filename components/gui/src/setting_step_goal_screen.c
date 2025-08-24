@@ -11,7 +11,8 @@ static void screen_events(lv_event_t* e)
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
             extern lv_obj_t* settings_menu_screen_get(void);
-            load_screen(settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+            load_screen(sstepgoal_screen, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+            //if (sstepgoal_screen) { lv_obj_t* tmp = sstepgoal_screen; sstepgoal_screen = NULL; lv_obj_del_async(tmp); }
         }
     }
 }
@@ -38,6 +39,8 @@ void setting_step_goal_screen_create(lv_obj_t* parent)
     lv_obj_remove_style_all(sstepgoal_screen);
     lv_obj_add_style(sstepgoal_screen, &style, 0);
     lv_obj_set_size(sstepgoal_screen, lv_pct(100), lv_pct(100));
+    //lv_obj_add_flag(sstepgoal_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    lv_obj_add_flag(sstepgoal_screen, LV_OBJ_FLAG_USER_1);
     lv_obj_add_event_cb(sstepgoal_screen, screen_events, LV_EVENT_ALL, NULL);
 
     // Header
@@ -54,6 +57,7 @@ void setting_step_goal_screen_create(lv_obj_t* parent)
     lv_obj_t* box = lv_obj_create(sstepgoal_screen);
     lv_obj_remove_style_all(box);
     lv_obj_set_size(box, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_add_flag(box, LV_OBJ_FLAG_GESTURE_BUBBLE);
     lv_obj_center(box);
     //lv_obj_set_style_pad_top(box, 80, 0);
     //lv_obj_set_style_pad_bottom(box, 10, 0);
@@ -88,4 +92,3 @@ lv_obj_t* setting_step_goal_screen_get(void)
     if (!sstepgoal_screen) setting_step_goal_screen_create(NULL);
     return sstepgoal_screen;
 }
-

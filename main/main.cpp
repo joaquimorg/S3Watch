@@ -51,6 +51,7 @@ extern "C" void app_main(void) {
 
   // Run the UI at a slightly higher priority so LVGL remains responsive
   xTaskCreate(ui_task, "ui", 8000, NULL, 5, NULL);
+  
   // Sensor sampling can run at a lower priority without affecting UX
   xTaskCreate(sensors_task, "sensors", 4096, NULL, 3, NULL);
 

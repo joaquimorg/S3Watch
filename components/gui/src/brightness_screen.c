@@ -42,7 +42,7 @@ void lv_smartwatch_brightness_create(lv_obj_t* screen)
     // Allow gestures on children to bubble up so back-swipe works anywhere
     //lv_obj_add_flag(brightness_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     //lv_obj_clear_flag(brightness_screen, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_add_event_cb(brightness_screen, screen_events, LV_EVENT_ALL, NULL);
+
 
     lv_obj_t* hdr_card = lv_obj_create(brightness_screen);
     lv_obj_remove_style_all(hdr_card);
@@ -91,7 +91,10 @@ void lv_smartwatch_brightness_create(lv_obj_t* screen)
     if (init < 0) init = 100;
     if (init > 100) init = 100;
     lv_slider_set_value(slider, init, LV_ANIM_OFF);
+    
     update_label_from_value(init);
+
+    lv_obj_add_event_cb(brightness_screen, screen_events, LV_EVENT_GESTURE, NULL);
 }
 
 lv_obj_t* brightness_screen_get(void)
@@ -129,6 +132,7 @@ static void screen_events(lv_event_t* e)
     if (code == LV_EVENT_GESTURE) {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
         if (dir == LV_DIR_RIGHT) {
+            lv_indev_wait_release(lv_indev_active());
             load_screen(brightness_screen, control_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
         }
     }

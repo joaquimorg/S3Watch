@@ -46,8 +46,6 @@ void lv_smartwatch_batt_create(lv_obj_t* screen)
     //lv_obj_remove_flag(batt_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_clear_flag(batt_screen, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_add_event_cb(batt_screen, batt_screen_events, LV_EVENT_ALL, NULL);
-
     // Layout: vertical column
     lv_obj_set_flex_flow(batt_screen, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(batt_screen, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -104,6 +102,8 @@ void lv_smartwatch_batt_create(lv_obj_t* screen)
     // Immediate populate
     //batt_update_values();
 
+    lv_obj_add_event_cb(batt_screen, batt_screen_events, LV_EVENT_GESTURE | LV_EVENT_SCREEN_LOADED, NULL);
+
 }
 
 lv_obj_t* batt_screen_get(void)
@@ -127,14 +127,14 @@ static void batt_screen_events(lv_event_t* e)
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
 
         if(dir == LV_DIR_RIGHT) {
+            lv_indev_wait_release(lv_indev_active());
             load_screen(batt_screen, control_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
             //if (batt_timer) { lv_timer_del(batt_timer); batt_timer = NULL; }
             //lv_obj_del_async(batt_screen);
         } 
     }
-    else if (event_code == LV_EVENT_DELETE) {
-        // Ensure timer is stopped if screen gets deleted elsewhere
-        //if (batt_timer) { lv_timer_del(batt_timer); batt_timer = NULL; }
+    else if (event_code == LV_EVENT_SCREEN_LOADED) {
+        batt_update_values();
     }
 }
 

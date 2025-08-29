@@ -74,7 +74,7 @@ void setting_sound_screen_create(lv_obj_t* parent)
     //lv_obj_add_flag(ssound_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     // Mark as settings child for HW back button routing
     lv_obj_add_flag(ssound_screen, LV_OBJ_FLAG_USER_1);
-    lv_obj_add_event_cb(ssound_screen, screen_events, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ssound_screen, screen_events, LV_EVENT_GESTURE, NULL);
 
     lv_obj_t* hdr = lv_obj_create(ssound_screen);
     lv_obj_remove_style_all(hdr);

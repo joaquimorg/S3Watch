@@ -85,7 +85,7 @@ void control_screen_create()
     lv_obj_set_size(control_screen, lv_pct(100), lv_pct(100));
     //lv_obj_remove_flag(control_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_clear_flag(control_screen, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_add_event_cb(control_screen, screen_events, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(control_screen, screen_events, LV_EVENT_GESTURE, NULL);
 
     // Header
     lv_obj_t* hdr = lv_obj_create(control_screen);
@@ -154,7 +154,7 @@ static void screen_events(lv_event_t* e)
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
         if (dir == LV_DIR_BOTTOM) {
-
+            lv_indev_wait_release(lv_indev_active());
             load_screen(control_screen, watchface_screen_get(), LV_SCR_LOAD_ANIM_MOVE_BOTTOM);
         }
     }

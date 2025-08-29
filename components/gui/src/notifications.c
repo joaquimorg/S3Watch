@@ -3,6 +3,10 @@
 #include <string.h>
 #include <strings.h>
 
+#include "esp_check.h"
+#include "esp_err.h"
+#include "esp_log.h"
+
 #include "ui.h"
 #include "watchface.h"
 
@@ -159,6 +163,7 @@ static void build_single_card(lv_obj_t* parent)
     lv_obj_clear_flag(card, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_flex_flow(card, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(card, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_BETWEEN);
+    //lv_obj_add_flag(card, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
 
     lv_obj_t* hdr_card = lv_obj_create(card);
     lv_obj_remove_style_all(hdr_card);
@@ -348,21 +353,26 @@ static void start_slide_to(int new_idx, int dir)
 static void gesture_event_cb(lv_event_t* e)
 {
     lv_event_code_t code = lv_event_get_code(e);
+    //ESP_LOGI("NOTIF", "Notif event: %d", code);
     static lv_point_t press_start = {0,0};
     if (code == LV_EVENT_GESTURE) {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
+        //ESP_LOGI("NOTIF", "Notif event dir : %d", dir);
         if (!notif_is_animating) {
             if (dir == LV_DIR_LEFT) {
                 if (active_idx + 1 < notif_count) {
+                    lv_indev_wait_release(lv_indev_active());
                     start_slide_to(active_idx + 1, +1);
                 }
             } else if (dir == LV_DIR_RIGHT) {
                 if (active_idx > 0) {
+                    lv_indev_wait_release(lv_indev_active());
                     start_slide_to(active_idx - 1, -1);
                 }
             }
         }
-        if (dir == LV_DIR_TOP) {            
+        if (dir == LV_DIR_TOP) {
+            lv_indev_wait_release(lv_indev_active());
             load_screen(notification_screen, watchface_screen_get(), LV_SCR_LOAD_ANIM_MOVE_TOP);
         }
         return;
@@ -413,9 +423,9 @@ void notifications_screen_create(void)
     build_single_card(notification_screen);
 
     // Ensure gestures on the card bubble up to the container (where handler is attached)
-    //if (card) {
-    //    lv_obj_add_flag(card, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
-    //}
+    /*if (card) {
+        lv_obj_add_flag(card, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
+    }*/
 
     // Pager indicator at bottom-center (dots with active highlight)
     pager_cont = lv_obj_create(notification_screen);

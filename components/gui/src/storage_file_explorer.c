@@ -86,7 +86,7 @@ void storage_file_explorer_screen_create(lv_obj_t* parent)
     lv_obj_remove_style_all(s_screen);
     lv_obj_add_style(s_screen, &style, 0);
     lv_obj_set_size(s_screen, lv_pct(100), lv_pct(100));
-    lv_obj_add_event_cb(s_screen, screen_events, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(s_screen, screen_events, LV_EVENT_GESTURE, NULL);
     //lv_obj_add_flag(s_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     // Mark as "back to Storage" destination for HW back button
     lv_obj_add_flag(s_screen, LV_OBJ_FLAG_USER_3);

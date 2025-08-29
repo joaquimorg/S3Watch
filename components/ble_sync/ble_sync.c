@@ -175,7 +175,7 @@ esp_err_t ble_sync_init(void)
         return err;
     }
 
-    xTaskCreate(uartTask, "uartTask", 4000, NULL, 4, NULL);
+    xTaskCreate(uartTask, "uartTask", 4000, NULL, 3, NULL);
 
     // Periodic status every 5 minutes when connected
     if (!s_status_timer) {

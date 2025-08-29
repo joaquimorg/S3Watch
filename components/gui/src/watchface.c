@@ -2,6 +2,9 @@
 #include "sensors.h"
 #include "ui_fonts.h"
 #include "rtc_lib.h"
+#include "esp_check.h"
+#include "esp_err.h"
+#include "esp_log.h"
 
 #include "ui.h"
 #include "steps_screen.h"
@@ -67,16 +70,14 @@ void watchface_create(void) {
     lv_obj_remove_style_all(watchface_screen);
     lv_obj_set_size(watchface_screen, lv_pct(100), lv_pct(100));
     //lv_obj_add_style(watchface_screen, &main_style, 0);
-    lv_obj_remove_flag(watchface_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
+    //lv_obj_remove_flag(watchface_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_remove_flag(watchface_screen, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_add_event_cb(watchface_screen, screen_events, LV_EVENT_ALL, NULL);
+    
 
     LV_IMAGE_DECLARE(background_wf);
     lv_obj_t* image = lv_image_create(watchface_screen);
     lv_image_set_src(image, &background_wf);
     lv_obj_set_align(image, LV_ALIGN_CENTER);
-
-    //lv_obj_add_event_cb(watchface_screen, home_screen_events, LV_EVENT_ALL, NULL);
 
     label_hour = lv_label_create(watchface_screen);
     lv_obj_set_y(label_hour, -95);
@@ -125,15 +126,18 @@ void watchface_create(void) {
     extern const lv_image_dsc_t image_battery_icon;
     img_battery = lv_image_create(watchface_screen);
     lv_image_set_src(img_battery, &image_battery_icon);
-    lv_obj_set_align(img_battery, LV_ALIGN_TOP_LEFT);
-    lv_obj_set_pos(img_battery, 8, 8);
+    lv_obj_set_align(img_battery, LV_ALIGN_TOP_MID);
+    lv_obj_set_x(img_battery, -100);
+    //lv_obj_set_pos(img_battery, 8, 8);
     lv_obj_set_style_img_recolor_opa(img_battery, LV_OPA_COVER, 0);
     lv_obj_set_style_img_recolor(img_battery, lv_color_hex(0x909090), 0);
 
     // Battery percent label next to icon
     lbl_batt_pct = lv_label_create(watchface_screen);
-    lv_obj_set_align(lbl_batt_pct, LV_ALIGN_TOP_LEFT);
-    lv_obj_set_pos(lbl_batt_pct, 8 + 53 + 8, 16); // icon width + padding
+    //lv_obj_set_align(lbl_batt_pct, LV_ALIGN_TOP_LEFT);
+    //lv_obj_set_pos(lbl_batt_pct, 8 + 53 + 8, 16); // icon width + padding
+    lv_obj_align_to(lbl_batt_pct, img_battery, LV_ALIGN_OUT_RIGHT_MID, 8, 0);
+    lv_obj_set_style_text_color(lbl_batt_pct, lv_color_hex(0xc0c0c0), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_label_set_text(lbl_batt_pct, "--%");
     lv_obj_set_style_text_font(lbl_batt_pct, &font_normal_26, 0);
 
@@ -154,30 +158,40 @@ void watchface_create(void) {
     extern const lv_image_dsc_t image_bluetooth_icon;
     img_ble = lv_image_create(watchface_screen);
     lv_image_set_src(img_ble, &image_bluetooth_icon);
-    lv_obj_set_align(img_ble, LV_ALIGN_TOP_RIGHT);
-    lv_obj_set_pos(img_ble, -8, 8);
+    lv_obj_set_align(img_ble, LV_ALIGN_TOP_MID);
+    lv_obj_set_x(img_ble, 100);
+    //lv_obj_set_align(img_ble, LV_ALIGN_TOP_RIGHT);
+    //lv_obj_set_pos(img_ble, -8, 8);
     lv_obj_set_style_img_recolor_opa(img_ble, LV_OPA_COVER, 0);
     // Default to disconnected (grey)
     lv_obj_set_style_img_recolor(img_ble, lv_color_hex(0x606060), 0);
 
     s_timer = lv_timer_create(update_time_task, 1000, NULL);
+
+    lv_obj_add_event_cb(watchface_screen, screen_events, LV_EVENT_GESTURE, NULL);
 }
 
 static void screen_events(lv_event_t* e)
 {
-    if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
+    lv_event_code_t code = lv_event_get_code(e);
+    //ESP_LOGI("WFACE", "WF event: %d", code);
+    if (code == LV_EVENT_GESTURE) {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
+        //ESP_LOGI("WFACE", "WF event dir : %d", dir);
         if (dir == LV_DIR_RIGHT) {
+            lv_indev_wait_release(lv_indev_active());
             load_screen(watchface_screen, steps_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
         }
         else if (dir == LV_DIR_TOP) {
+            lv_indev_wait_release(lv_indev_active());
             load_screen(watchface_screen, control_screen_get(), LV_SCR_LOAD_ANIM_MOVE_TOP);
         }
         else if (dir == LV_DIR_BOTTOM) {
+            lv_indev_wait_release(lv_indev_active());
             load_screen(watchface_screen, notifications_screen_get(), LV_SCR_LOAD_ANIM_MOVE_BOTTOM);
         }
     }
-    else if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOADED) {
+    else if (code == LV_EVENT_SCREEN_LOADED) {
 
     }
 }

@@ -79,7 +79,7 @@ void steps_screen_create(void)
     lv_obj_set_size(step_screen, lv_pct(100), lv_pct(100));
     lv_obj_set_align(step_screen, LV_ALIGN_CENTER);
     lv_obj_add_style(step_screen, &cmain_style, 0);
-    lv_obj_add_event_cb(step_screen, screen_events, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(step_screen, screen_events, LV_EVENT_GESTURE, NULL);
 
     lv_obj_t* hdr_card = lv_obj_create(step_screen);
     lv_obj_remove_style_all(hdr_card);
@@ -172,7 +172,7 @@ static void screen_events(lv_event_t* e)
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
         if (dir == LV_DIR_LEFT) {
-
+            lv_indev_wait_release(lv_indev_active());
             load_screen(step_screen, watchface_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
         }
     }

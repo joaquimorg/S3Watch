@@ -207,6 +207,7 @@ void ui_task(void *pvParameters) {
   ESP_LOGI(TAG, "UI task started");
   ui_init();
   display_manager_init();
+
   // Subscrever eventos de energia e atualizar UI
   esp_event_handler_register(BSP_POWER_EVENT_BASE, ESP_EVENT_ANY_ID,
                              power_ui_evt, NULL);
@@ -220,7 +221,8 @@ void ui_task(void *pvParameters) {
   lv_timer_t *t = lv_timer_create(power_poll_cb, 5000, NULL);
   // Trigger once immediately to avoid initial 0%
   lv_timer_ready(t);
+  
   while (1) {
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(500));
   }
 }

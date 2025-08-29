@@ -174,7 +174,8 @@ void display_manager_init(void) {
   ESP_LOGI(TAG, "Using PMU PWR key to wake display");
 #endif
 
-  lv_obj_add_event_cb(lv_scr_act(), touch_event_cb, LV_EVENT_ALL, NULL);
+  lv_obj_add_event_cb(lv_scr_act(), touch_event_cb, 
+    LV_EVENT_PRESSED | LV_EVENT_PRESSING | LV_EVENT_RELEASED | LV_EVENT_CLICKED | LV_EVENT_LONG_PRESSED | LV_EVENT_LONG_PRESSED_REPEAT | LV_EVENT_GESTURE, NULL);
 
   // PM lock may be created in early init; if not, create and acquire now
 #if CONFIG_PM_ENABLE
@@ -216,7 +217,7 @@ void display_manager_init(void) {
 #endif // CONFIG_PM_ENABLE
 
   // Higher priority so UI updates aren't delayed by other workloads
-  xTaskCreate(display_manager_task, "display_mgr", 4000, NULL, 5, NULL);
+  xTaskCreate(display_manager_task, "display_mgr", 4000, NULL, 3, NULL);
 }
 
 void display_manager_pm_early_init(void) {

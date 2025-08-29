@@ -154,7 +154,7 @@ void setting_storage_screen_create(lv_obj_t* parent)
     lv_obj_remove_style_all(sstorage_screen);
     lv_obj_add_style(sstorage_screen, &style, 0);
     lv_obj_set_size(sstorage_screen, lv_pct(100), lv_pct(100));
-    lv_obj_add_event_cb(sstorage_screen, screen_events, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(sstorage_screen, screen_events, LV_EVENT_GESTURE, NULL);
     //lv_obj_add_flag(sstorage_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     lv_obj_add_flag(sstorage_screen, LV_OBJ_FLAG_USER_1);
 

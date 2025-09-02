@@ -90,6 +90,10 @@ void setting_step_goal_screen_create(lv_obj_t* parent)
 
 lv_obj_t* setting_step_goal_screen_get(void)
 {
-    if (!sstepgoal_screen) setting_step_goal_screen_create(NULL);
+    if (!sstepgoal_screen) {
+        bsp_display_lock(0);
+        setting_step_goal_screen_create(NULL);
+        bsp_display_unlock();
+    }
     return sstepgoal_screen;
 }

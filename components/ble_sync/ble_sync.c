@@ -22,7 +22,7 @@
 #include "ui.h"
 #include "audio_alert.h"
 
-static const char *TAG = "BLE_SYNC";
+static const char* TAG = "BLE_SYNC";
 
 // Define event base for BLE connection status
 ESP_EVENT_DEFINE_BASE(BLE_SYNC_EVENT_BASE);
@@ -40,20 +40,20 @@ static void status_timer_cb(TimerHandle_t xTimer)
 }
 
 static void handle_notification_fields(const char* timestamp,
-                                       const char* app,
-                                       const char* title,
-                                       const char* message)
+    const char* app,
+    const char* title,
+    const char* message)
 {
     ESP_LOGI(TAG, "Notification: app='%s' title='%s' message='%s' ts='%s'",
-             app ? app : "", title ? title : "", message ? message : "", timestamp ? timestamp : "");
+        app ? app : "", title ? title : "", message ? message : "", timestamp ? timestamp : "");
 
     // Wake display for visibility
     display_manager_turn_on();
-    if (bsp_display_lock(10)) {
-        ui_show_messages_tile();
-        notifications_show(app, title, message, timestamp);        
-        bsp_display_unlock();
-    }
+    bsp_display_lock(10);
+    ui_show_messages_tile();
+    notifications_show(app, title, message, timestamp);
+    bsp_display_unlock();
+
     // Play notification sound if enabled
     audio_alert_notify();
 }
@@ -73,7 +73,7 @@ static void process_one_json_object(const char* json, size_t len)
     }
 
     // Existing handlers (datetime, notification, status)
-    cJSON *datetime = cJSON_GetObjectItem(root, "datetime");
+    cJSON* datetime = cJSON_GetObjectItem(root, "datetime");
     if (cJSON_IsString(datetime)) {
         int year, month, day, hour, minute, second;
         if (sscanf(datetime->valuestring, "%d-%d-%dT%d:%d:%d", &year, &month, &day, &hour, &minute, &second) == 6) {
@@ -83,25 +83,25 @@ static void process_one_json_object(const char* json, size_t len)
                 .tm_mday = day,
                 .tm_hour = hour,
                 .tm_min = minute,
-                .tm_sec = second};
+                .tm_sec = second };
             rtc_set_time(&t);
             ESP_LOGI(TAG, "RTC updated");
         }
     }
 
-    cJSON *notification = cJSON_GetObjectItem(root, "notification");
+    cJSON* notification = cJSON_GetObjectItem(root, "notification");
     if (cJSON_IsString(notification)) {
         ESP_LOGI(TAG, "Notification");
-        cJSON *app = cJSON_GetObjectItem(root, "app");
-        cJSON *title = cJSON_GetObjectItem(root, "title");
-        cJSON *message = cJSON_GetObjectItem(root, "message");
+        cJSON* app = cJSON_GetObjectItem(root, "app");
+        cJSON* title = cJSON_GetObjectItem(root, "title");
+        cJSON* message = cJSON_GetObjectItem(root, "message");
         const char* app_s = cJSON_IsString(app) ? app->valuestring : "";
         const char* title_s = cJSON_IsString(title) ? title->valuestring : "";
         const char* msg_s = cJSON_IsString(message) ? message->valuestring : "";
         handle_notification_fields(notification->valuestring, app_s, title_s, msg_s);
     }
 
-    cJSON *status = cJSON_GetObjectItem(root, "status");
+    cJSON* status = cJSON_GetObjectItem(root, "status");
     if (cJSON_IsString(status)) {
         ESP_LOGI(TAG, "Status");
         ble_sync_send_status(bsp_power_get_battery_percent(), bsp_power_is_charging());
@@ -111,31 +111,32 @@ static void process_one_json_object(const char* json, size_t len)
     free(tmp);
 }
 
-void uartTask(void *parameter) {
-  static char mbuf[CONFIG_NORDIC_UART_MAX_LINE_LENGTH + 1];
+void uartTask(void* parameter) {
+    static char mbuf[CONFIG_NORDIC_UART_MAX_LINE_LENGTH + 1];
 
-  for (;;) {
-    size_t item_size;
-    if (nordic_uart_rx_buf_handle) {
-      const char *item = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &item_size, portMAX_DELAY);
+    for (;;) {
+        size_t item_size;
+        if (nordic_uart_rx_buf_handle) {
+            const char* item = (char*)xRingbufferReceive(nordic_uart_rx_buf_handle, &item_size, portMAX_DELAY);
 
-      if (item) {
-        memcpy(mbuf, item, item_size);
-        mbuf[item_size] = '\0';
-        vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void *)item);
+            if (item) {
+                memcpy(mbuf, item, item_size);
+                mbuf[item_size] = '\0';
+                vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void*)item);
 
-        ESP_LOGI(TAG, "Received chunk: %u bytes", (unsigned)item_size);
-        ESP_LOGI(TAG, "Received buffer: %s", mbuf);
+                ESP_LOGI(TAG, "Received chunk: %u bytes", (unsigned)item_size);
+                ESP_LOGI(TAG, "Received buffer: %s", mbuf);
 
-        process_one_json_object(mbuf, item_size);
+                process_one_json_object(mbuf, item_size);
 
-      }
-    } else {
-      vTaskDelay(1000 / portTICK_PERIOD_MS);
+            }
+        }
+        else {
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+        }
     }
-  }
 
-  vTaskDelete(NULL);
+    vTaskDelete(NULL);
 }
 
 static void nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
@@ -193,7 +194,7 @@ esp_err_t ble_sync_init(void)
 
 esp_err_t ble_sync_send_status(int battery_percent, bool charging)
 {
-    cJSON *root = cJSON_CreateObject();
+    cJSON* root = cJSON_CreateObject();
     if (!root) {
         return ESP_FAIL;
     }
@@ -205,7 +206,7 @@ esp_err_t ble_sync_send_status(int battery_percent, bool charging)
     cJSON_AddBoolToObject(root, "vbus", vbus);
     cJSON_AddNumberToObject(root, "steps", sensors_get_step_count());
 
-    char *json_str = cJSON_PrintUnformatted(root);
+    char* json_str = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
     if (!json_str) {
         return ESP_FAIL;

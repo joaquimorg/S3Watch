@@ -140,6 +140,10 @@ void setting_timeout_screen_create(lv_obj_t* parent)
 
 lv_obj_t* setting_timeout_screen_get(void)
 {
-    if (!stimeout_screen) setting_timeout_screen_create(NULL);
+    if (!stimeout_screen) {
+        bsp_display_lock(0);
+        setting_timeout_screen_create(NULL);
+        bsp_display_unlock();
+    }
     return stimeout_screen;
 }

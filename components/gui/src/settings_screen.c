@@ -56,7 +56,7 @@ enum control_id {
 
 static void screen_events(lv_event_t* e);
 
-void control_screen_create()
+void control_screen_create(lv_obj_t* parent)
 {
 
     static lv_style_t cmain_style;
@@ -79,16 +79,17 @@ void control_screen_create()
     lv_style_set_pad_top(&cmain_style, 25);
 
 
-    control_screen = lv_obj_create(NULL);
+    control_screen = lv_obj_create(parent);
     lv_obj_remove_style_all(control_screen);
     lv_obj_add_style(control_screen, &cmain_style, 0);
-    lv_obj_set_size(control_screen, lv_pct(100), lv_pct(100));
+    lv_obj_set_size(control_screen, lv_pct(100), lv_pct(90));
+    lv_obj_center(control_screen);
     //lv_obj_remove_flag(control_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_clear_flag(control_screen, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_event_cb(control_screen, screen_events, LV_EVENT_GESTURE, NULL);
 
     // Header
-    lv_obj_t* hdr = lv_obj_create(control_screen);
+    /*lv_obj_t* hdr = lv_obj_create(control_screen);
     lv_obj_remove_style_all(hdr);
     lv_obj_set_size(hdr, lv_pct(100), LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(hdr, LV_FLEX_FLOW_ROW);
@@ -97,7 +98,7 @@ void control_screen_create()
     lv_obj_t* title = lv_label_create(hdr);
     lv_obj_set_style_text_font(title, &font_normal_26, 0);
     lv_label_set_text_fmt(title, "%02d:%02d", rtc_get_hour(), rtc_get_minute());
-    lv_obj_set_style_pad_top(title, 6, 0);
+    lv_obj_set_style_pad_top(title, 6, 0);*/
 
     /* Create grid-like items (flex row wrap, non-scrollable) */
     for (uint32_t i = 0; i < 6; i++) {
@@ -167,7 +168,7 @@ lv_obj_t* control_screen_get(void)
 {
     if (control_screen == NULL) {
         // Create as a standalone screen if not yet created
-        control_screen_create();
+        control_screen_create(NULL);
     }
     return control_screen;
 }

@@ -45,7 +45,7 @@ static void screen_events(lv_event_t* e)
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
             lv_indev_wait_release(lv_indev_active());
-            load_screen(smenu_screen, control_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+            load_screen(smenu_screen, get_main_screen(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
         }
     }
     else if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOADED) {
@@ -92,8 +92,7 @@ void settings_menu_screen_create(lv_obj_t* parent)
     lv_obj_remove_style_all(smenu_screen);
     lv_obj_add_style(smenu_screen, &cmain_style, 0);
     lv_obj_set_size(smenu_screen, lv_pct(100), lv_pct(100));
-    //lv_obj_add_flag(smenu_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
-    lv_obj_add_event_cb(smenu_screen, screen_events, LV_EVENT_GESTURE | LV_EVENT_SCREEN_LOADED, NULL);
+    //lv_obj_add_flag(smenu_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);    
 
     // Header
     lv_obj_t* hdr = lv_obj_create(smenu_screen);
@@ -127,10 +126,15 @@ void settings_menu_screen_create(lv_obj_t* parent)
     r4 = make_row(smenu_content, "Storage", "Tools", open_storage);
 
     //refresh_values(smenu_content);
+    lv_obj_add_event_cb(smenu_screen, screen_events, LV_EVENT_ALL, NULL);
 }
 
 lv_obj_t* settings_menu_screen_get(void)
 {
-    if (smenu_screen == NULL) settings_menu_screen_create(NULL);
+    if (smenu_screen == NULL) {
+        bsp_display_lock(0);
+        settings_menu_screen_create(NULL);
+        bsp_display_unlock();
+    }
     return smenu_screen;
 }

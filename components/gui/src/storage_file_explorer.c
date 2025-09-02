@@ -24,7 +24,7 @@ static void screen_events(lv_event_t* e)
     }
 }
 
-#if defined(LV_USE_FILE_EXPLORER) && LV_USE_FILE_EXPLORER
+/*#if defined(LV_USE_FILE_EXPLORER) && LV_USE_FILE_EXPLORER
 #  if __has_include("lv_file_explorer.h")
 #    define LV_HAS_FILE_EXPLORER 1
 #  else
@@ -32,34 +32,40 @@ static void screen_events(lv_event_t* e)
 #  endif
 #else
 #  define LV_HAS_FILE_EXPLORER 0
-#endif
+#endif*/
 
-#if LV_HAS_FILE_EXPLORER
-#include "lv_file_explorer.h"
+//#if LV_HAS_FILE_EXPLORER
+//#include "lv_file_explorer.h"
 #include "lvgl_spiffs_fs.h"
-static void create_explorer(lv_obj_t* parent)
+static void create_explorer_1(lv_obj_t* parent)
 {
-    lvgl_spiffs_fs_register();
+    //lvgl_spiffs_fs_register();
     lv_obj_t* fe = lv_file_explorer_create(parent);
-    lv_obj_set_size(fe, lv_pct(100), lv_pct(80));
+    lv_obj_set_size(fe, lv_pct(100), lv_pct(100));
+
+    lv_file_explorer_open_dir(fe, "S:/");
+
     // Set root path; this depends on LVGL FS configuration (e.g., 'S:/' for SPIFFS)
     // Try common defaults; fall back to POSIX path if driver supports it
-#if defined(LV_FS_STDIO_PATH)
+/*#if defined(LV_FS_STDIO_PATH)
     lv_file_explorer_set_path(fe, LV_FS_STDIO_PATH);
 #else
     lv_file_explorer_set_path(fe, "S:/"); // SPIFFS mapped via custom FS driver
-#endif
+#endif*/
     lv_file_explorer_set_sort(fe, LV_EXPLORER_SORT_KIND); // folders first
 }
-#else
+/*#else*/
 // Fallback: simple list of files from /spiffs using POSIX APIs
-static void create_explorer(lv_obj_t* parent)
+static void create_explorer_2(lv_obj_t* parent)
 {
     lv_obj_t* list = lv_list_create(parent);
-    lv_obj_set_size(list, lv_pct(100), lv_pct(80));
+    lv_obj_set_size(list, lv_pct(100), lv_pct(100));
+    lv_obj_t * btn;
+
     DIR* dir = opendir("/spiffs");
     if (!dir) {
-        (void)lv_list_add_text(list, "Cannot open /spiffs");
+        //(void)lv_list_add_text(list, "Cannot open /spiffs");
+        btn = lv_list_add_button(list, LV_SYMBOL_WARNING, "Cannot open /spiffs");
         return;
     }
     struct dirent* de; struct stat st;
@@ -68,11 +74,12 @@ static void create_explorer(lv_obj_t* parent)
         char path[256]; snprintf(path, sizeof(path), "/spiffs/%s", de->d_name);
         long sz = 0; if (stat(path, &st) == 0) sz = (long)st.st_size;
         char line[128]; snprintf(line, sizeof(line), "%s  (%ld)", de->d_name, sz);
-        lv_list_add_text(list, line);
+        //lv_list_add_text(list, line);
+        btn = lv_list_add_button(list, LV_SYMBOL_FILE, line);
     }
     closedir(dir);
 }
-#endif
+/*#endif*/
 
 void storage_file_explorer_screen_create(lv_obj_t* parent)
 {
@@ -89,7 +96,7 @@ void storage_file_explorer_screen_create(lv_obj_t* parent)
     lv_obj_add_event_cb(s_screen, screen_events, LV_EVENT_GESTURE, NULL);
     //lv_obj_add_flag(s_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     // Mark as "back to Storage" destination for HW back button
-    lv_obj_add_flag(s_screen, LV_OBJ_FLAG_USER_3);
+    //lv_obj_add_flag(s_screen, LV_OBJ_FLAG_USER_3);
 
     // Header
     lv_obj_t* hdr = lv_obj_create(s_screen);
@@ -106,16 +113,21 @@ void storage_file_explorer_screen_create(lv_obj_t* parent)
     lv_obj_remove_style_all(content);
     lv_obj_set_size(content, lv_pct(100), lv_pct(80));
     lv_obj_set_style_pad_top(content, 80, 0);
-    lv_obj_set_style_pad_bottom(content, 10, 0);
+    /*lv_obj_set_style_pad_bottom(content, 10, 0);
     lv_obj_set_style_pad_left(content, 12, 0);
-    lv_obj_set_style_pad_right(content, 12, 0);
+    lv_obj_set_style_pad_right(content, 12, 0);*/
     lv_obj_set_flex_flow(content, LV_FLEX_FLOW_COLUMN);
 
-    create_explorer(content);
+    //create_explorer_1(content);
+    create_explorer_2(content);
 }
 
 lv_obj_t* storage_file_explorer_screen_get(void)
 {
-    if (!s_screen) storage_file_explorer_screen_create(NULL);
+    if (!s_screen) {
+        bsp_display_lock(0);
+        storage_file_explorer_screen_create(NULL);
+        bsp_display_unlock();
+    }
     return s_screen;
 }

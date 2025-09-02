@@ -371,11 +371,11 @@ static void gesture_event_cb(lv_event_t* e)
                 }
             }
         }
-        if (dir == LV_DIR_TOP) {
+        /*if (dir == LV_DIR_TOP) {
             lv_indev_wait_release(lv_indev_active());
             load_screen(notification_screen, watchface_screen_get(), LV_SCR_LOAD_ANIM_MOVE_TOP);
         }
-        return;
+        return;*/
     }
     if (code == LV_EVENT_PRESSED) {
         lv_indev_get_point(lv_indev_active(), &press_start);
@@ -399,7 +399,7 @@ static void gesture_event_cb(lv_event_t* e)
     }
 }
 
-void notifications_screen_create(void)
+void notifications_screen_create(lv_obj_t* parent)
 {
 
     static lv_style_t cmain_style;
@@ -410,15 +410,14 @@ void notifications_screen_create(void)
     lv_style_set_bg_opa(&cmain_style, LV_OPA_100);
 
     // Root container (no scroll)
-    notification_screen = lv_obj_create(NULL);
+    notification_screen = lv_obj_create(parent);
     lv_obj_remove_style_all(notification_screen);
     lv_obj_set_size(notification_screen, lv_pct(100), lv_pct(100));
     lv_obj_clear_flag(notification_screen, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_style(notification_screen, &cmain_style, 0);
 
     // Build one reusable card and enable swipe/press events on container
-    // Listen to all events here; the handler filters by code.
-    lv_obj_add_event_cb(notification_screen, gesture_event_cb, LV_EVENT_ALL, NULL);
+    // Listen to all events here; the handler filters by code.    
     //lv_obj_add_flag(notification_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
     build_single_card(notification_screen);
 
@@ -439,13 +438,15 @@ void notifications_screen_create(void)
     lv_obj_set_style_pad_column(pager_cont, 8, 0); // gap between dots
     for (int i = 0; i < MAX_NOTIFICATIONS; ++i) pager_dots[i] = NULL;
     lv_obj_add_flag(pager_cont, LV_OBJ_FLAG_HIDDEN);
+
+    lv_obj_add_event_cb(notification_screen, gesture_event_cb, LV_EVENT_ALL, NULL);
 }
 
 lv_obj_t* notifications_screen_get(void)
 {
     if (notification_screen == NULL) {
         // Create as a standalone screen if not yet created
-        notifications_screen_create();
+        notifications_screen_create(NULL);
     }
     return notification_screen;
 }

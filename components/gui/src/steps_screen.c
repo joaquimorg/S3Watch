@@ -27,7 +27,8 @@ static void screen_events(lv_event_t* e);
 static void steps_timer_cb(lv_timer_t* t)
 {
     LV_UNUSED(t);
-    if (active_screen_get() == step_screen) {
+    bsp_display_lock(0);
+    //if (active_screen_get() == step_screen) {
         //if (!s_value_label) return;
         // Refresh goal from settings if changed
         uint32_t new_goal = settings_get_step_goal();
@@ -62,10 +63,12 @@ static void steps_timer_cb(lv_timer_t* t)
             }
             lv_label_set_text(s_activity_label, text);
         }
-    }
+    //}
+
+    bsp_display_unlock();
 }
 
-void steps_screen_create(void)
+void steps_screen_create(lv_obj_t* parent)
 {
     static lv_style_t cmain_style;
 
@@ -74,12 +77,11 @@ void steps_screen_create(void)
     lv_style_set_bg_color(&cmain_style, lv_color_hex(0x000000));
     lv_style_set_bg_opa(&cmain_style, LV_OPA_100);
 
-    step_screen = lv_obj_create(NULL);
+    step_screen = lv_obj_create(parent);
     lv_obj_remove_style_all(step_screen);
     lv_obj_set_size(step_screen, lv_pct(100), lv_pct(100));
     lv_obj_set_align(step_screen, LV_ALIGN_CENTER);
     lv_obj_add_style(step_screen, &cmain_style, 0);
-    lv_obj_add_event_cb(step_screen, screen_events, LV_EVENT_GESTURE, NULL);
 
     lv_obj_t* hdr_card = lv_obj_create(step_screen);
     lv_obj_remove_style_all(hdr_card);
@@ -165,6 +167,9 @@ void steps_screen_create(void)
     }
 
     s_timer = lv_timer_create(steps_timer_cb, 5000, NULL);
+    lv_timer_ready(s_timer);
+
+    //lv_obj_add_event_cb(step_screen, screen_events, LV_EVENT_GESTURE, NULL);
 }
 
 static void screen_events(lv_event_t* e)
@@ -185,7 +190,7 @@ lv_obj_t* steps_screen_get(void)
 {
     if (step_screen == NULL) {
         // Create as a standalone screen if not yet created
-        steps_screen_create();
+        steps_screen_create(NULL);
     }
     return step_screen;
 }

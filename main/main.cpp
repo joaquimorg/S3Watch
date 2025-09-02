@@ -47,13 +47,13 @@ extern "C" void app_main(void) {
 
   // UI e BLE subscrevem eventos diretamente; sem acoplamento no main
 
-  sensors_init();
+  //sensors_init();
 
   // Run the UI at a slightly higher priority so LVGL remains responsive
-  xTaskCreate(ui_task, "ui", 8000, NULL, 5, NULL);
+  xTaskCreate(ui_task, "ui", 8000, NULL, 4, NULL);
   
   // Sensor sampling can run at a lower priority without affecting UX
-  xTaskCreate(sensors_task, "sensors", 4096, NULL, 3, NULL);
+  //xTaskCreate(sensors_task, "sensors", 4096, NULL, 3, NULL);
 
   // Now enable PM with light sleep allowed (still blocked while screen is ON)
   esp_pm_config_t pm_cfg = {

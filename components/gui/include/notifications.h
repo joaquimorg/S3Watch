@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-void notifications_screen_create(void);
+void notifications_screen_create(lv_obj_t* parent);
 lv_obj_t* notifications_screen_get(void);
 
 // Update the notifications UI with new data

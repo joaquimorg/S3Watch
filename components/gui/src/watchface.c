@@ -33,8 +33,8 @@ static void screen_events(lv_event_t* e);
 static void update_time_task(lv_timer_t* timer)
 {
     (void)timer;
-
-    if (active_screen_get() == watchface_screen) {
+    bsp_display_lock(0);
+    //if (active_screen_get() == watchface_screen) {
         if (label_hour) {
             lv_label_set_text_fmt(label_hour, "%02d", rtc_get_hour());
         }
@@ -50,10 +50,11 @@ static void update_time_task(lv_timer_t* timer)
         if (label_weekday) {
             lv_label_set_text(label_weekday, rtc_get_weekday_short_string());
         }
-    }
+    //}
+    bsp_display_unlock();
 }
 
-void watchface_create(void) {
+void watchface_create(lv_obj_t* parent) {
 
     //lv_obj_remove_flag(lv_screen_active(), LV_OBJ_FLAG_SCROLLABLE);
     //lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x000000), 0);
@@ -66,7 +67,7 @@ void watchface_create(void) {
         //lv_style_set_radius(&main_style, LV_RADIUS_CIRCLE);
     }*/
 
-    watchface_screen = lv_obj_create(NULL);
+    watchface_screen = lv_obj_create(parent);
     lv_obj_remove_style_all(watchface_screen);
     lv_obj_set_size(watchface_screen, lv_pct(100), lv_pct(100));
     //lv_obj_add_style(watchface_screen, &main_style, 0);
@@ -167,8 +168,10 @@ void watchface_create(void) {
     lv_obj_set_style_img_recolor(img_ble, lv_color_hex(0x606060), 0);
 
     s_timer = lv_timer_create(update_time_task, 1000, NULL);
+    lv_timer_ready(s_timer);
 
-    lv_obj_add_event_cb(watchface_screen, screen_events, LV_EVENT_GESTURE, NULL);
+    //lv_obj_add_event_cb(watchface_screen, screen_events, LV_EVENT_ALL, NULL);
+    //lv_obj_clear_flag(watchface_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
 }
 
 static void screen_events(lv_event_t* e)
@@ -177,7 +180,7 @@ static void screen_events(lv_event_t* e)
     //ESP_LOGI("WFACE", "WF event: %d", code);
     if (code == LV_EVENT_GESTURE) {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
-        //ESP_LOGI("WFACE", "WF event dir : %d", dir);
+        ESP_LOGI("WFACE", "WF event dir : %d", dir);
         if (dir == LV_DIR_RIGHT) {
             lv_indev_wait_release(lv_indev_active());
             load_screen(watchface_screen, steps_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
@@ -200,7 +203,7 @@ lv_obj_t* watchface_screen_get(void)
 {
     if (watchface_screen == NULL) {
         // Create as a standalone screen if not yet created
-        watchface_create();
+        watchface_create(NULL);
     }
     return watchface_screen;
 }

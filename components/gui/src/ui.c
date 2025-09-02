@@ -14,17 +14,27 @@
 #include "steps_screen.h"
 #include "ui_fonts.h"
 #include "watchface.h"
+#include "batt_screen.h"
+#include "brightness_screen.h"
 
 #include "batt_screen.h"
-#include "bsp/esp32_s3_touch_amoled_2_06.h"
 #include "driver/gpio.h"
 #include "lvgl_spiffs_fs.h"
 
-static const char *TAG = "UI";
+static const char* TAG = "UI";
 
-static lv_obj_t *active_screen;
+static lv_obj_t* main_screen;
+static lv_obj_t* tile1;
+static lv_obj_t* tile2;
+static lv_obj_t* tile3;
+static lv_obj_t* tile4;
+
+static lv_obj_t* active_screen;
 static volatile bool s_back_busy = false;
-static void clear_back_busy_cb(lv_timer_t *t) {
+
+lv_obj_t* get_main_screen(void) { return main_screen; }
+
+static void clear_back_busy_cb(lv_timer_t* t) {
   (void)t;
   s_back_busy = false;
 }
@@ -50,14 +60,16 @@ void init_theme(void) {
   // lv_style_set_bg_opa(&main_style, LV_OPA_100);
 }
 
-lv_style_t *ui_get_main_style(void) { return &main_style; }
+lv_style_t* ui_get_main_style(void) { return &main_style; }
 
-void load_screen(lv_obj_t *current_screen, lv_obj_t *next_screen,
-                 lv_screen_load_anim_t anim) {
+void load_screen(lv_obj_t* current_screen, lv_obj_t* next_screen,
+  lv_screen_load_anim_t anim) {
 
   if (active_screen != next_screen) {
     // bsp_display_lock(0);
-    lv_screen_load_anim(next_screen, anim, 200, 0, false);
+    bsp_display_lock(300);
+    lv_screen_load_anim(next_screen, anim, 300, 0, false);
+    bsp_display_unlock();
     active_screen = next_screen;
     // bsp_display_unlock();
     /*if (current_screen) {
@@ -67,20 +79,61 @@ void load_screen(lv_obj_t *current_screen, lv_obj_t *next_screen,
   }
 };
 
-lv_obj_t *active_screen_get(void) { return active_screen; }
+lv_obj_t* active_screen_get(void) { return active_screen; }
+
+void swatch_tileview(void)
+{
+  main_screen = lv_tileview_create(NULL);
+  lv_obj_set_size(main_screen, LV_PCT(100), LV_PCT(100));
+  lv_obj_add_style(main_screen, &main_style, 0);
+  lv_obj_set_scrollbar_mode(main_screen, LV_SCROLLBAR_MODE_OFF);
+  lv_obj_add_flag(main_screen, LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM);
+
+  /*Tile1:*/
+  tile1 = lv_tileview_add_tile(main_screen, 0, 0, LV_DIR_BOTTOM);
+  notifications_screen_create(tile1);
+
+  /*Tile2:*/
+  tile2 = lv_tileview_add_tile(main_screen, 0, 1, (lv_dir_t)(LV_DIR_TOP | LV_DIR_BOTTOM | LV_DIR_LEFT | LV_DIR_RIGHT));
+  watchface_create(tile2);
+
+  /*Tile3:*/
+  tile3 = lv_tileview_add_tile(main_screen, 0, 2, LV_DIR_TOP);
+  steps_screen_create(tile3);
+
+  /*Tile4:*/
+  tile4 = lv_tileview_add_tile(main_screen, 1, 1, LV_DIR_LEFT);
+  control_screen_create(tile4);  
+
+}
 
 void create_main_screen(void) {
 
-  watchface_create();
-  steps_screen_create();
-  notifications_screen_create();
-  control_screen_create();
+  //watchface_create();
+  //steps_screen_create();
+  //notifications_screen_create();
+  //control_screen_create();
 
-  load_screen(NULL, watchface_screen_get(), LV_SCR_LOAD_ANIM_NONE);
+  swatch_tileview();
+
+  // Init All screens
+  lv_smartwatch_batt_create(NULL);
+  lv_smartwatch_brightness_create(NULL);
+
+  load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_NONE);
+  lv_tileview_set_tile(main_screen, tile2, LV_ANIM_ON);
+
 }
 
 void ui_show_messages_tile(void) {
-  load_screen(NULL, notifications_screen_get(), LV_SCR_LOAD_ANIM_OVER_TOP);
+
+  if (active_screen_get() != get_main_screen()) {
+    load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_OVER_TOP);
+  }
+  if (lv_tileview_get_tile_active(main_screen) != tile1) {
+    lv_tileview_set_tile(main_screen, tile1, LV_ANIM_ON);
+  }
+
 }
 
 void ui_init(void) {
@@ -108,20 +161,19 @@ void ui_init(void) {
 // Hardware back button (GPIO0) handler
 #define UI_BACK_BTN GPIO_NUM_0
 
-static void ui_handle_back_async(void *user) {
+static void ui_handle_back_async(void* user) {
   (void)user;
 
-  lv_obj_t *scr = lv_scr_act();
-  if (!scr)
-    return;
-  // If already at main tile, do nothing
-  if (scr == watchface_screen_get())
-    return;
+  if (active_screen_get() != get_main_screen()) {
+    load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_OVER_TOP);
+  }
 
-  load_screen(NULL, watchface_screen_get(), LV_SCR_LOAD_ANIM_OVER_TOP);
+  if (lv_tileview_get_tile_active(main_screen) != tile2) {
+    lv_tileview_set_tile(main_screen, tile2, LV_ANIM_ON);
+  }
 }
 
-static void ui_back_btn_task(void *arg) {
+static void ui_back_btn_task(void* arg) {
   (void)arg;
   // Configure GPIO0 as input with pull-up
   gpio_config_t io = {
@@ -133,7 +185,7 @@ static void ui_back_btn_task(void *arg) {
   };
   (void)gpio_config(&io);
   int idle =
-      gpio_get_level(UI_BACK_BTN); // consider this the idle (unpressed) level
+    gpio_get_level(UI_BACK_BTN); // consider this the idle (unpressed) level
   int prev = idle;
   TickType_t last_press = 0;
   const TickType_t debounce = pdMS_TO_TICKS(120);
@@ -165,63 +217,69 @@ static void ui_back_btn_task(void *arg) {
 }
 
 // Callback de eventos de energia (file-scope, não aninhada)
-static void power_ui_evt(void *handler_arg, esp_event_base_t base, int32_t id,
-                         void *event_data) {
+static void power_ui_evt(void* handler_arg, esp_event_base_t base, int32_t id,
+  void* event_data) {
   (void)handler_arg;
   (void)base;
   (void)id;
-  bsp_power_event_payload_t *pl = (bsp_power_event_payload_t *)event_data;
-  if (pl && bsp_display_lock(10)) {
+  bsp_power_event_payload_t* pl = (bsp_power_event_payload_t*)event_data;
+  if (pl) {
     int pct = bsp_power_get_battery_percent();
+    bsp_display_lock(0);
     watchface_set_power_state(pl->vbus_in, pl->charging, pct);
     bsp_display_unlock();
   }
 }
 
 // Callback BLE: atualiza ícone de ligação
-static void ble_ui_evt(void *handler_arg, esp_event_base_t base, int32_t id,
-                       void *event_data) {
+static void ble_ui_evt(void* handler_arg, esp_event_base_t base, int32_t id,
+  void* event_data) {
   (void)handler_arg;
   (void)base;
   (void)event_data;
   bool connected = (id == BLE_SYNC_EVT_CONNECTED);
-  if (bsp_display_lock(10)) {
-    watchface_set_ble_connected(connected);
-    bsp_display_unlock();
-  }
+  //if (bsp_display_lock(10)) {
+  bsp_display_lock(0);
+  watchface_set_ble_connected(connected);
+  bsp_display_unlock();
+  //}
 }
 
 // Timer callback: periodic power refresh
-static void power_poll_cb(lv_timer_t *t) {
+static void power_poll_cb(lv_timer_t* t) {
   (void)t;
   bool vbus = bsp_power_is_vbus_in();
   bool chg = bsp_power_is_charging();
   int pct = bsp_power_get_battery_percent();
-  if (bsp_display_lock(10)) {
-    watchface_set_power_state(vbus, chg, pct);
-    bsp_display_unlock();
-  }
+  //if (bsp_display_lock(10)) {
+  bsp_display_lock(0);
+  watchface_set_power_state(vbus, chg, pct);
+  bsp_display_unlock();
+  //}
 }
 
-void ui_task(void *pvParameters) {
+void ui_task(void* pvParameters) {
   ESP_LOGI(TAG, "UI task started");
+
   ui_init();
+
   display_manager_init();
 
   // Subscrever eventos de energia e atualizar UI
+
   esp_event_handler_register(BSP_POWER_EVENT_BASE, ESP_EVENT_ANY_ID,
-                             power_ui_evt, NULL);
+    power_ui_evt, NULL);
   esp_event_handler_register(BLE_SYNC_EVENT_BASE, ESP_EVENT_ANY_ID, ble_ui_evt,
-                             NULL);
+    NULL);
 
   // Start back button poller with a higher priority for snappier input
   xTaskCreate(ui_back_btn_task, "ui_back_btn", 2048, NULL, 5, NULL);
 
   // Periodic fallback: refresh power state every 5s in case no events fire
-  lv_timer_t *t = lv_timer_create(power_poll_cb, 5000, NULL);
+  lv_timer_t* t = lv_timer_create(power_poll_cb, 5000, NULL);
   // Trigger once immediately to avoid initial 0%
   lv_timer_ready(t);
-  
+
   while (1) {
     vTaskDelay(pdMS_TO_TICKS(500));
   }

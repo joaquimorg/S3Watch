@@ -134,6 +134,10 @@ void setting_sound_screen_create(lv_obj_t* parent)
 
 lv_obj_t* setting_sound_screen_get(void)
 {
-    if (!ssound_screen) setting_sound_screen_create(NULL);
+    if (!ssound_screen) {
+        bsp_display_lock(0);
+        setting_sound_screen_create(NULL);
+        bsp_display_unlock();
+    }
     return ssound_screen;
 }

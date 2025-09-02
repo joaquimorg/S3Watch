@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-void watchface_create(void);
+void watchface_create(lv_obj_t* parent);
 lv_obj_t* watchface_screen_get(void);
 
 // Atualiza indicadores de energia (VBUS/Carregamento/Bateria)

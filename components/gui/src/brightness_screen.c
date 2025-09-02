@@ -133,7 +133,7 @@ static void screen_events(lv_event_t* e)
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
         if (dir == LV_DIR_RIGHT) {
             lv_indev_wait_release(lv_indev_active());
-            load_screen(brightness_screen, control_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+            load_screen(brightness_screen, get_main_screen(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
         }
     }
 }

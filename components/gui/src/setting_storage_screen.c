@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "lvgl.h"
+#include "storage_file_explorer.h"
 
 static lv_obj_t* sstorage_screen;
 static void toast_timer_cb(lv_timer_t* t)
@@ -138,7 +139,7 @@ static void confirm_format(lv_event_t* e)
 static void show_spiffs_files(lv_event_t* e)
 {
     (void)e;
-    extern lv_obj_t* storage_file_explorer_screen_get(void);
+    //extern lv_obj_t* storage_file_explorer_screen_get(void);
     load_screen(NULL, storage_file_explorer_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
 }
 
@@ -201,6 +202,10 @@ void setting_storage_screen_create(lv_obj_t* parent)
 
 lv_obj_t* setting_storage_screen_get(void)
 {
-    if (!sstorage_screen) setting_storage_screen_create(NULL);
+    if (!sstorage_screen) {
+        bsp_display_lock(0);
+        setting_storage_screen_create(NULL);
+        bsp_display_unlock();
+    }
     return sstorage_screen;
 }

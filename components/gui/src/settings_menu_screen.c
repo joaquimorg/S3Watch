@@ -20,6 +20,7 @@ static void open_goal(lv_event_t* e){ (void)e; load_screen(NULL, setting_step_go
 static void open_timeout(lv_event_t* e){ (void)e; load_screen(NULL, setting_timeout_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
 static void open_sound(lv_event_t* e){ (void)e; load_screen(NULL, setting_sound_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
 static void open_storage(lv_event_t* e){ (void)e; load_screen(NULL, setting_storage_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
+static void back_to_main(lv_event_t* e){ (void)e; lv_indev_wait_release(lv_indev_active()); load_screen(smenu_screen, get_main_screen(), LV_SCR_LOAD_ANIM_MOVE_RIGHT); }
 static void refresh_values(lv_obj_t* content)
 {
     if (!content) return;
@@ -95,16 +96,31 @@ void settings_menu_screen_create(lv_obj_t* parent)
     //lv_obj_add_flag(smenu_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);    
 
     // Header
-    lv_obj_t* hdr = lv_obj_create(smenu_screen);
+    /*lv_obj_t* hdr = lv_obj_create(smenu_screen);
     lv_obj_remove_style_all(hdr);
     lv_obj_set_size(hdr, lv_pct(100), LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(hdr, LV_FLEX_FLOW_ROW);
-    lv_obj_set_flex_align(hdr, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+    lv_obj_set_flex_align(hdr, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);*/
 
-    lv_obj_t* title = lv_label_create(hdr);
+    lv_obj_t* title = lv_label_create(smenu_screen);
     lv_obj_set_style_text_font(title, &font_bold_32, 0);
     lv_label_set_text(title, "Settings");
-    lv_obj_set_style_pad_top(title, 10, 0);
+    //lv_obj_set_style_pad_top(title, 10, 0);
+    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 10);
+
+    // Back button in the top-left corner: "<"
+    lv_obj_t* back_btn = lv_btn_create(smenu_screen);
+    lv_obj_remove_style_all(back_btn);
+    lv_obj_set_size(back_btn, 48, 48);
+    //lv_obj_set_style_bg_opa(back_btn, LV_OPA_20, 0);
+    //lv_obj_set_style_bg_color(back_btn, lv_color_white(), 0);
+    lv_obj_set_style_radius(back_btn, 8, 0);
+    lv_obj_align(back_btn, LV_ALIGN_TOP_LEFT, 40, 6);
+    lv_obj_add_event_cb(back_btn, back_to_main, LV_EVENT_CLICKED, NULL);
+    lv_obj_t* back_lbl = lv_label_create(back_btn);
+    lv_obj_set_style_text_font(back_lbl, &font_bold_32, 0);
+    lv_label_set_text(back_lbl, "<");
+    lv_obj_center(back_lbl);
 
     // Content list
     smenu_content = lv_obj_create(smenu_screen);

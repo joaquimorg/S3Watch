@@ -103,7 +103,7 @@ void swatch_tileview(void)
   steps_screen_create(tile3);
 
   /*Tile4:*/
-  tile4 = lv_tileview_add_tile(main_screen, 1, 1, LV_DIR_LEFT);
+  tile4 = lv_tileview_add_tile(main_screen, 1, 1, (lv_dir_t)(LV_DIR_LEFT | LV_DIR_RIGHT));
   control_screen_create(tile4);  
 
 }
@@ -127,9 +127,15 @@ lv_obj_t* ui_dynamic_tile_acquire(void) {
 
 static void set_dynamic_tile_async(void* user) {
   (void)user;
-  if (main_screen && dynamic_tile) {
-    lv_tileview_set_tile(main_screen, dynamic_tile, LV_ANIM_ON);
+  if (!main_screen || !dynamic_tile) return;
+  // Ensure layout is up-to-date before switching
+  lv_obj_update_layout(main_screen);
+  lv_obj_update_layout(dynamic_tile);
+  // Move to controls tile as a stable origin, then jump to dynamic tile
+  if (lv_tileview_get_tile_active(main_screen) != tile4 && tile4) {
+    lv_tileview_set_tile(main_screen, tile4, LV_ANIM_OFF);
   }
+  lv_tileview_set_tile(main_screen, dynamic_tile, LV_ANIM_ON);
 }
 
 // Focus the dynamic tile (ensure tileview is the active screen)
@@ -137,11 +143,9 @@ void ui_dynamic_tile_show(void) {
   if (!dynamic_tile || !main_screen) return;
   if (active_screen_get() != get_main_screen()) {
     load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_OVER_TOP);
-    // Defer tile switch until after screen load to avoid race
-    lv_async_call(set_dynamic_tile_async, NULL);
-  } else {
-    lv_tileview_set_tile(main_screen, dynamic_tile, LV_ANIM_ON);
   }
+  // Always defer tile switch until after any pending loads/layout
+  lv_async_call(set_dynamic_tile_async, NULL);
 }
 
 // Close and destroy the dynamic tile, returning to controls (tile4)

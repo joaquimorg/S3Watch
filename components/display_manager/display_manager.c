@@ -47,26 +47,21 @@ static void display_turn_off_internal(void) {
   } else {
     lvgl_port_stop();
   }
-  // Disable touch input polling and optionally hold touch in reset
+  // Disable touch input polling; keep touch powered to allow IRQ wake
   lv_indev_t *indev = bsp_display_get_input_dev();
   if (indev) {
     lv_indev_enable(indev, false);
   }
-#if defined(BSP_LCD_TOUCH_RST)
-  gpio_set_direction(BSP_LCD_TOUCH_RST, GPIO_MODE_OUTPUT);
-  gpio_set_level(BSP_LCD_TOUCH_RST, 0);
-#endif
   // Put panel into low-power sleep and ensure backlight is off
   bsp_display_sleep();
   bsp_display_brightness_set(0);
   // Hint BLE to prefer low-power connection parameters while screen is off
   nordic_uart_set_low_power_mode(true);
-  // Allow automatic light sleep while the screen is off
-#if CONFIG_PM_ENABLE
-  if (s_no_ls_lock) {
-    (void)esp_pm_lock_release(s_no_ls_lock);
-  }
-#endif
+  // If you rely on GPIO wake (touch or PMU IRQ), you may allow light sleep.
+  // If wake via polling is required, DO NOT release the lock here.
+  // For stability, keep CPU out of light sleep while screen is off.
+  // This avoids missing wake events on boards without IRQ wiring.
+  (void)0;
   display_on = false;
 }
 
@@ -189,7 +184,7 @@ void display_manager_init(void) {
 #endif
 /*
   // Configure GPIO wake-ups so user input can wake CPU from light sleep
-  // Only meaningful if PM/light-sleep is enabled in project config
+  // Only meaningful if PM/light-sleep is enabled and wake pins are wired.
 #if CONFIG_PM_ENABLE
   // Touch INT is active-low on this board
   gpio_config_t touch_io = {

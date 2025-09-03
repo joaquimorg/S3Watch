@@ -30,6 +30,8 @@ ESP_EVENT_DEFINE_BASE(BLE_SYNC_EVENT_BASE);
 // Track BLE connection state to gate periodic status updates
 static volatile bool s_ble_connected = false;
 static TimerHandle_t s_status_timer = NULL;
+static TimerHandle_t s_time_sync_timer = NULL;
+static bool s_time_sync_requested = false;
 
 static void status_timer_cb(TimerHandle_t xTimer)
 {
@@ -37,6 +39,15 @@ static void status_timer_cb(TimerHandle_t xTimer)
     if (s_ble_connected) {
         ble_sync_send_status(bsp_power_get_battery_percent(), bsp_power_is_charging());
     }
+}
+
+static void time_sync_timer_cb(TimerHandle_t xTimer)
+{
+    (void)xTimer;
+    // Send the time sync request now that the link is fully up
+    const char* sync_cmd = "{\"cmd\":\"time_sync\"}\n";
+    (void)nordic_uart_sendln(sync_cmd);
+    ESP_LOGI(TAG, "Requested time sync on connect (delayed)");
 }
 
 static void handle_notification_fields(const char* timestamp,
@@ -148,10 +159,44 @@ static void nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
         // Optionally send immediate status upon connect
         ble_sync_send_status(bsp_power_get_battery_percent(), bsp_power_is_charging());
 
+        // Minimize time/date requests: if RTC is earlier than 2025-02-02, request sync once on connect
+        {
+            bool need_sync = false;
+            // Use direct RTC helpers for clarity
+            int y = rtc_get_year();
+            int m = rtc_get_month();
+            int d = rtc_get_day();
+            if (y <= 0 || m <= 0 || d <= 0) {
+                need_sync = true;
+            } else {
+                int cur = y * 10000 + m * 100 + d;
+                const int threshold = 2025 * 10000 + 2 * 100 + 2; // 2025-02-02
+                if (cur < threshold) need_sync = true;
+            }
+            ESP_LOGI(TAG, "RTC date on connect: %04d-%02d-%02d, need_sync=%d", y, m, d, (int)need_sync);
+            if (need_sync && !s_time_sync_requested) {
+                s_time_sync_requested = true;
+                // Fire once shortly after connect to avoid race with ATT setup
+                if (!s_time_sync_timer) {
+                    s_time_sync_timer = xTimerCreate("ble_time_sync", pdMS_TO_TICKS(1500), pdFALSE, NULL, time_sync_timer_cb);
+                }
+                if (s_time_sync_timer) {
+                    xTimerStart(s_time_sync_timer, 0);
+                } else {
+                    // Fallback: send immediately
+                    time_sync_timer_cb(NULL);
+                }
+            }
+        }
+
         break;
     case NORDIC_UART_DISCONNECTED:
         ESP_LOGI(TAG, "Nordic UART disconnected");
         s_ble_connected = false;
+        s_time_sync_requested = false;
+        if (s_time_sync_timer) {
+            xTimerStop(s_time_sync_timer, 0);
+        }
         (void)esp_event_post(BLE_SYNC_EVENT_BASE, BLE_SYNC_EVT_DISCONNECTED, NULL, 0, 0);
         break;
     }

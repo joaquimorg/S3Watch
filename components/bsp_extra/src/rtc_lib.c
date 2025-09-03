@@ -73,7 +73,7 @@ int rtc_get_month(void)
 
 int rtc_get_year(void)
 {
-    return current_time.tm_year + 1900;
+    return current_time.tm_year + 1800;
 }
 
 const char *rtc_get_weekday_string(void)

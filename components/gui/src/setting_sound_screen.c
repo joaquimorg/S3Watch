@@ -4,12 +4,15 @@
 #include "settings.h"
 #include "audio_alert.h"
 #include "settings_menu_screen.h"
+#include "esp_log.h"
 
 static lv_obj_t* ssound_screen;
 static lv_obj_t* s_switch;
 static lv_obj_t* s_slider;
 static lv_obj_t* s_value_lbl;
 static lv_obj_t* s_test_btn;
+static void on_delete(lv_event_t* e);
+static const char* TAG = "SoundSettings";
 
 static void screen_events(lv_event_t* e)
 {
@@ -17,12 +20,7 @@ static void screen_events(lv_event_t* e)
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
             lv_indev_wait_release(lv_indev_active());
-            // Replace content with Settings Menu inside same dynamic tile
-            lv_obj_t* tile = lv_obj_get_parent(ssound_screen);
-            if (tile) {
-                lv_obj_clean(tile);
-                settings_menu_screen_create(tile);
-            }
+            ui_dynamic_subtile_close();
             ssound_screen = NULL;
         }
     }
@@ -71,10 +69,12 @@ void setting_sound_screen_create(lv_obj_t* parent)
     lv_obj_remove_style_all(ssound_screen);
     lv_obj_add_style(ssound_screen, &style, 0);
     lv_obj_set_size(ssound_screen, lv_pct(100), lv_pct(100));
-    //lv_obj_add_flag(ssound_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    // Allow gestures to bubble for tileview swipes
+    lv_obj_add_flag(ssound_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     // Mark as settings child for HW back button routing
     lv_obj_add_flag(ssound_screen, LV_OBJ_FLAG_USER_1);
     lv_obj_add_event_cb(ssound_screen, screen_events, LV_EVENT_GESTURE, NULL);
+    lv_obj_add_event_cb(ssound_screen, on_delete, LV_EVENT_DELETE, NULL);
 
     lv_obj_t* hdr = lv_obj_create(ssound_screen);
     lv_obj_remove_style_all(hdr);
@@ -130,6 +130,13 @@ void setting_sound_screen_create(lv_obj_t* parent)
     lv_obj_center(test_lbl);
     lv_obj_add_event_cb(s_test_btn, test_btn_cb, LV_EVENT_CLICKED, NULL);
     if (!settings_get_sound()) lv_obj_add_state(s_test_btn, LV_STATE_DISABLED);
+}
+
+static void on_delete(lv_event_t* e)
+{
+    (void)e;
+    ESP_LOGI(TAG, "Sound settings screen deleted");
+    ssound_screen = NULL;
 }
 
 lv_obj_t* setting_sound_screen_get(void)

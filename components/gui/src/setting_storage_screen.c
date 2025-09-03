@@ -7,8 +7,11 @@
 #include "lvgl.h"
 #include "storage_file_explorer.h"
 #include "settings_menu_screen.h"
+#include "esp_log.h"
 
 static lv_obj_t* sstorage_screen;
+static void on_delete(lv_event_t* e);
+static const char* TAG = "StorageSettings";
 static void toast_timer_cb(lv_timer_t* t)
 {
     lv_obj_t* obj = (lv_obj_t*)lv_timer_get_user_data(t);
@@ -44,12 +47,7 @@ static void screen_events(lv_event_t* e)
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
             lv_indev_wait_release(lv_indev_active());
-            // Back to Settings Menu inside the same dynamic tile
-            lv_obj_t* tile = lv_obj_get_parent(sstorage_screen);
-            if (tile) {
-                lv_obj_clean(tile);
-                settings_menu_screen_create(tile);
-            }
+            ui_dynamic_subtile_close();
             sstorage_screen = NULL;
         }
     }
@@ -138,11 +136,13 @@ static void confirm_format(lv_event_t* e)
 static void show_spiffs_files(lv_event_t* e)
 {
     (void)e;
-    // Open file explorer inside the same dynamic tile
-    lv_obj_t* tile = ui_dynamic_tile_acquire();
+    lv_indev_wait_release(lv_indev_active());
+    // Open file explorer in the same second-level tile (replace content)
+    lv_obj_t* tile = ui_dynamic_subtile_acquire();
     if (tile) {
+        lv_obj_clean(tile);
         storage_file_explorer_screen_create(tile);
-        ui_dynamic_tile_show();
+        ui_dynamic_subtile_show();
     }
 }
 
@@ -159,8 +159,10 @@ void setting_storage_screen_create(lv_obj_t* parent)
     lv_obj_add_style(sstorage_screen, &style, 0);
     lv_obj_set_size(sstorage_screen, lv_pct(100), lv_pct(100));
     lv_obj_add_event_cb(sstorage_screen, screen_events, LV_EVENT_GESTURE, NULL);
-    //lv_obj_add_flag(sstorage_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    // Allow gestures to bubble for tileview swipes
+    lv_obj_add_flag(sstorage_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     lv_obj_add_flag(sstorage_screen, LV_OBJ_FLAG_USER_1);
+    lv_obj_add_event_cb(sstorage_screen, on_delete, LV_EVENT_DELETE, NULL);
 
     lv_obj_t* hdr = lv_obj_create(sstorage_screen);
     lv_obj_remove_style_all(hdr);
@@ -201,6 +203,13 @@ void setting_storage_screen_create(lv_obj_t* parent)
     lv_obj_t* lbl_l = lv_label_create(btn_list);
     lv_obj_set_style_text_font(lbl_l, &font_bold_28, 0);
     lv_label_set_text(lbl_l, "View Files");
+}
+
+static void on_delete(lv_event_t* e)
+{
+    (void)e;
+    ESP_LOGI(TAG, "Storage settings screen deleted");
+    sstorage_screen = NULL;
 }
 
 lv_obj_t* setting_storage_screen_get(void)

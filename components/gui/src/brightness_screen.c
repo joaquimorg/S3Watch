@@ -15,6 +15,7 @@ static lv_obj_t* percent_label;
 static lv_obj_t* slider;
 
 static void screen_events(lv_event_t* e);
+static void on_delete(lv_event_t* e);
 static void slider_event(lv_event_t* e);
 static void update_label_from_value(int val);
 
@@ -39,8 +40,8 @@ void lv_smartwatch_brightness_create(lv_obj_t* screen)
     lv_obj_remove_style_all(brightness_screen);
     lv_obj_add_style(brightness_screen, &cmain_style, 0);
     lv_obj_set_size(brightness_screen, lv_pct(100), lv_pct(100));
-    // Allow gestures on children to bubble up so back-swipe works anywhere
-    //lv_obj_add_flag(brightness_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    // Allow gestures on children to bubble up so tileview can handle swipes
+    lv_obj_add_flag(brightness_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     //lv_obj_clear_flag(brightness_screen, LV_OBJ_FLAG_SCROLLABLE);
 
 
@@ -95,6 +96,7 @@ void lv_smartwatch_brightness_create(lv_obj_t* screen)
     update_label_from_value(init);
 
     lv_obj_add_event_cb(brightness_screen, screen_events, LV_EVENT_GESTURE, NULL);
+    lv_obj_add_event_cb(brightness_screen, on_delete, LV_EVENT_DELETE, NULL);
 }
 
 lv_obj_t* brightness_screen_get(void)
@@ -139,4 +141,11 @@ static void screen_events(lv_event_t* e)
             brightness_screen = NULL;
         }
     }
+}
+
+static void on_delete(lv_event_t* e)
+{
+    (void)e;
+    ESP_LOGI(TAG, "Brightness screen deleted");
+    brightness_screen = NULL;
 }

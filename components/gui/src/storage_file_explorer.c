@@ -1,23 +1,22 @@
 #include "storage_file_explorer.h"
 #include "ui.h"
 #include "ui_fonts.h"
+#include "esp_log.h"
 #include <dirent.h>
 #include <sys/stat.h>
 #include <string.h>
 #include "setting_storage_screen.h"
 
 static lv_obj_t* s_screen;
+static void on_delete(lv_event_t* e);
+static const char* TAG = "FileExplorer";
 static void screen_events(lv_event_t* e)
 {
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
             lv_indev_wait_release(lv_indev_active());
-            // Return to Storage Tools inside the same dynamic tile
-            lv_obj_t* tile = lv_obj_get_parent(s_screen);
-            if (tile) {
-                lv_obj_clean(tile);
-                setting_storage_screen_create(tile);
-            }
+            // Close second-level tile to return to Settings Menu
+            ui_dynamic_subtile_close();
             s_screen = NULL;
         }
     }
@@ -93,7 +92,9 @@ void storage_file_explorer_screen_create(lv_obj_t* parent)
     lv_obj_add_style(s_screen, &style, 0);
     lv_obj_set_size(s_screen, lv_pct(100), lv_pct(100));
     lv_obj_add_event_cb(s_screen, screen_events, LV_EVENT_GESTURE, NULL);
-    //lv_obj_add_flag(s_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    lv_obj_add_event_cb(s_screen, on_delete, LV_EVENT_DELETE, NULL);
+    // Allow gestures to bubble for tileview swipes
+    lv_obj_add_flag(s_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     // Mark as "back to Storage" destination for HW back button
     //lv_obj_add_flag(s_screen, LV_OBJ_FLAG_USER_3);
 
@@ -119,6 +120,13 @@ void storage_file_explorer_screen_create(lv_obj_t* parent)
 
     //create_explorer_1(content);
     create_explorer_2(content);
+}
+
+static void on_delete(lv_event_t* e)
+{
+    (void)e;
+    ESP_LOGI(TAG, "File explorer screen deleted");
+    s_screen = NULL;
 }
 
 lv_obj_t* storage_file_explorer_screen_get(void)

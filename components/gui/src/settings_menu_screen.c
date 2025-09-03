@@ -8,18 +8,21 @@
 #include "setting_storage_screen.h"
 
 #include "settings_screen.h"
+#include "esp_log.h"
 
+static const char* TAG = "SettingsMenu";
 static lv_obj_t* smenu_screen;
+static void on_delete(lv_event_t* e);
 static lv_obj_t* smenu_content;
 static lv_obj_t* r1;
 static lv_obj_t* r2;
 static lv_obj_t* r3;
 static lv_obj_t* r4;
 
-static void open_goal(lv_event_t* e){ (void)e; lv_obj_t* t = ui_dynamic_tile_acquire(); if (t){ setting_step_goal_screen_create(t); ui_dynamic_tile_show(); } }
-static void open_timeout(lv_event_t* e){ (void)e; lv_obj_t* t = ui_dynamic_tile_acquire(); if (t){ setting_timeout_screen_create(t); ui_dynamic_tile_show(); } }
-static void open_sound(lv_event_t* e){ (void)e; lv_obj_t* t = ui_dynamic_tile_acquire(); if (t){ setting_sound_screen_create(t); ui_dynamic_tile_show(); } }
-static void open_storage(lv_event_t* e){ (void)e; lv_obj_t* t = ui_dynamic_tile_acquire(); if (t){ setting_storage_screen_create(t); ui_dynamic_tile_show(); } }
+static void open_goal(lv_event_t* e){ (void)e; lv_indev_wait_release(lv_indev_active()); lv_obj_t* t = ui_dynamic_subtile_acquire(); if (t){ setting_step_goal_screen_create(t); ui_dynamic_subtile_show(); } }
+static void open_timeout(lv_event_t* e){ (void)e; lv_indev_wait_release(lv_indev_active()); lv_obj_t* t = ui_dynamic_subtile_acquire(); if (t){ setting_timeout_screen_create(t); ui_dynamic_subtile_show(); } }
+static void open_sound(lv_event_t* e){ (void)e; lv_indev_wait_release(lv_indev_active()); lv_obj_t* t = ui_dynamic_subtile_acquire(); if (t){ setting_sound_screen_create(t); ui_dynamic_subtile_show(); } }
+static void open_storage(lv_event_t* e){ (void)e; lv_indev_wait_release(lv_indev_active()); lv_obj_t* t = ui_dynamic_subtile_acquire(); if (t){ setting_storage_screen_create(t); ui_dynamic_subtile_show(); } }
 static void refresh_values(lv_obj_t* content)
 {
     if (!content) return;
@@ -93,7 +96,8 @@ void settings_menu_screen_create(lv_obj_t* parent)
     lv_obj_remove_style_all(smenu_screen);
     lv_obj_add_style(smenu_screen, &cmain_style, 0);
     lv_obj_set_size(smenu_screen, lv_pct(100), lv_pct(100));
-    //lv_obj_add_flag(smenu_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);    
+    // Allow gestures to bubble so tileview can catch swipes
+    lv_obj_add_flag(smenu_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);    
 
     // Header
     /*lv_obj_t* hdr = lv_obj_create(smenu_screen);
@@ -129,6 +133,15 @@ void settings_menu_screen_create(lv_obj_t* parent)
 
     refresh_values(smenu_content);
     lv_obj_add_event_cb(smenu_screen, screen_events, LV_EVENT_ALL, NULL);
+    // Clear stale pointer if the tile is deleted externally
+    lv_obj_add_event_cb(smenu_screen, on_delete, LV_EVENT_DELETE, NULL);
+}
+
+static void on_delete(lv_event_t* e)
+{
+    (void)e;
+    ESP_LOGI(TAG, "Settings menu screen deleted");
+    smenu_screen = NULL;
 }
 
 lv_obj_t* settings_menu_screen_get(void)

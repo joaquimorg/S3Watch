@@ -15,6 +15,11 @@ extern "C" {
     void ui_dynamic_tile_show(void);
     void ui_dynamic_tile_close(void);
 
+    // Second-level dynamic tile (to the right of the first dynamic tile)
+    lv_obj_t* ui_dynamic_subtile_acquire(void);
+    void ui_dynamic_subtile_show(void);
+    void ui_dynamic_subtile_close(void);
+
     void ui_init(void);
     void ui_task(void* pvParameters);
 

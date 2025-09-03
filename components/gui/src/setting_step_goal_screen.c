@@ -2,22 +2,20 @@
 #include "ui.h"
 #include "ui_fonts.h"
 #include "settings.h"
+#include "esp_log.h"
 #include "settings_menu_screen.h"
 
 static lv_obj_t* sstepgoal_screen;
 static lv_obj_t* sstepgoal_value;
+static void on_delete(lv_event_t* e);
+static const char* TAG = "StepGoal";
 
 static void screen_events(lv_event_t* e)
 {
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
             lv_indev_wait_release(lv_indev_active());
-            // Rebuild Settings Menu inside the same dynamic tile
-            lv_obj_t* tile = lv_obj_get_parent(sstepgoal_screen);
-            if (tile) {
-                lv_obj_clean(tile);
-                settings_menu_screen_create(tile);
-            }
+            ui_dynamic_subtile_close();
             sstepgoal_screen = NULL;
         }
     }
@@ -45,9 +43,11 @@ void setting_step_goal_screen_create(lv_obj_t* parent)
     lv_obj_remove_style_all(sstepgoal_screen);
     lv_obj_add_style(sstepgoal_screen, &style, 0);
     lv_obj_set_size(sstepgoal_screen, lv_pct(100), lv_pct(100));
-    //lv_obj_add_flag(sstepgoal_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    // Allow gestures to bubble for tileview swipes
+    lv_obj_add_flag(sstepgoal_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     lv_obj_add_flag(sstepgoal_screen, LV_OBJ_FLAG_USER_1);
     lv_obj_add_event_cb(sstepgoal_screen, screen_events, LV_EVENT_GESTURE, NULL);
+    lv_obj_add_event_cb(sstepgoal_screen, on_delete, LV_EVENT_DELETE, NULL);
 
     // Header
     lv_obj_t* hdr = lv_obj_create(sstepgoal_screen);
@@ -91,6 +91,13 @@ void setting_step_goal_screen_create(lv_obj_t* parent)
     lv_label_set_text(lp, "+");
 
     upd();
+}
+
+static void on_delete(lv_event_t* e)
+{
+    (void)e;
+    ESP_LOGI(TAG, "Step goal screen deleted");
+    sstepgoal_screen = NULL;
 }
 
 lv_obj_t* setting_step_goal_screen_get(void)

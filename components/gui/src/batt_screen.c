@@ -4,8 +4,10 @@
 #include "ui.h"
 #include "settings_screen.h"
 #include "bsp/esp32_s3_touch_amoled_2_06.h"
+#include "esp_log.h"
 
 // Access UI primitives via ui.h accessors
+static const char* TAG = "BatteryScreen";
 
 LV_IMAGE_DECLARE(image_battery_48);
 
@@ -25,6 +27,7 @@ static void batt_update_cb(lv_timer_t* t);
 static void batt_update_values(void);
 static lv_obj_t* make_chip(lv_obj_t* parent, const char* txt);
 static lv_obj_t* make_row(lv_obj_t* parent, const char* label_txt, lv_obj_t** out_val);
+static void on_delete(lv_event_t* e);
 
 void lv_smartwatch_batt_create(lv_obj_t* screen)
 {
@@ -42,7 +45,8 @@ void lv_smartwatch_batt_create(lv_obj_t* screen)
     lv_obj_remove_style_all(batt_screen);
     lv_obj_add_style(batt_screen, &cmain_style, 0);
     lv_obj_set_size(batt_screen, lv_pct(100), lv_pct(100));
-    //lv_obj_add_flag(batt_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    // Let gestures bubble to tileview so horizontal swipes work
+    lv_obj_add_flag(batt_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     //lv_obj_remove_flag(batt_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_clear_flag(batt_screen, LV_OBJ_FLAG_SCROLLABLE);
 
@@ -103,7 +107,16 @@ void lv_smartwatch_batt_create(lv_obj_t* screen)
     batt_update_values();
 
     lv_obj_add_event_cb(batt_screen, batt_screen_events, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(batt_screen, on_delete, LV_EVENT_DELETE, NULL);
 
+}
+
+static void on_delete(lv_event_t* e)
+{
+    (void)e;
+    ESP_LOGI(TAG, "Battery screen deleted");
+    if (batt_timer) { lv_timer_del(batt_timer); batt_timer = NULL; }
+    batt_screen = NULL;
 }
 
 lv_obj_t* batt_screen_get(void)

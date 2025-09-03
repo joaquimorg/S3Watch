@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "lvgl.h"
 #include "storage_file_explorer.h"
+#include "settings_menu_screen.h"
 
 static lv_obj_t* sstorage_screen;
 static void toast_timer_cb(lv_timer_t* t)
@@ -38,20 +39,18 @@ static void show_toast(const char* text)
     (void)lv_timer_create(toast_timer_cb, 1200, toast);
 }
 
-extern lv_obj_t* settings_menu_screen_get(void);
-static void storage_back_async(void* user)
-{
-    lv_obj_t* scr = (lv_obj_t*)user;
-    load_screen(scr, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
-    //if (scr) lv_obj_del_async(scr);
-}
-
 static void screen_events(lv_event_t* e)
 {
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
-            lv_obj_t* tmp = sstorage_screen; //sstorage_screen = NULL;
-            lv_async_call(storage_back_async, tmp);
+            lv_indev_wait_release(lv_indev_active());
+            // Back to Settings Menu inside the same dynamic tile
+            lv_obj_t* tile = lv_obj_get_parent(sstorage_screen);
+            if (tile) {
+                lv_obj_clean(tile);
+                settings_menu_screen_create(tile);
+            }
+            sstorage_screen = NULL;
         }
     }
 }
@@ -139,8 +138,12 @@ static void confirm_format(lv_event_t* e)
 static void show_spiffs_files(lv_event_t* e)
 {
     (void)e;
-    //extern lv_obj_t* storage_file_explorer_screen_get(void);
-    load_screen(NULL, storage_file_explorer_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+    // Open file explorer inside the same dynamic tile
+    lv_obj_t* tile = ui_dynamic_tile_acquire();
+    if (tile) {
+        storage_file_explorer_screen_create(tile);
+        ui_dynamic_tile_show();
+    }
 }
 
 void setting_storage_screen_create(lv_obj_t* parent)

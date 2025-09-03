@@ -31,6 +31,7 @@ static lv_obj_t* tile4;
 
 static lv_obj_t* active_screen;
 static volatile bool s_back_busy = false;
+static lv_obj_t* dynamic_tile = NULL; // temporary tile right of controls
 
 lv_obj_t* get_main_screen(void) { return main_screen; }
 
@@ -107,6 +108,55 @@ void swatch_tileview(void)
 
 }
 
+// Acquire or create a temporary tile to the right of controls (x=2,y=1)
+lv_obj_t* ui_dynamic_tile_acquire(void) {
+  if (!main_screen) return NULL;
+  if (dynamic_tile) {
+    // Clean existing content for reuse
+    lv_obj_clean(dynamic_tile);
+    return dynamic_tile;
+  }
+  dynamic_tile = lv_tileview_add_tile(main_screen, 2, 1, LV_DIR_LEFT);
+  if (dynamic_tile) {
+    // Match main style and sizing
+    lv_obj_add_style(dynamic_tile, &main_style, 0);
+    lv_obj_set_size(dynamic_tile, LV_PCT(100), LV_PCT(100));
+  }
+  return dynamic_tile;
+}
+
+static void set_dynamic_tile_async(void* user) {
+  (void)user;
+  if (main_screen && dynamic_tile) {
+    lv_tileview_set_tile(main_screen, dynamic_tile, LV_ANIM_ON);
+  }
+}
+
+// Focus the dynamic tile (ensure tileview is the active screen)
+void ui_dynamic_tile_show(void) {
+  if (!dynamic_tile || !main_screen) return;
+  if (active_screen_get() != get_main_screen()) {
+    load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_OVER_TOP);
+    // Defer tile switch until after screen load to avoid race
+    lv_async_call(set_dynamic_tile_async, NULL);
+  } else {
+    lv_tileview_set_tile(main_screen, dynamic_tile, LV_ANIM_ON);
+  }
+}
+
+// Close and destroy the dynamic tile, returning to controls (tile4)
+void ui_dynamic_tile_close(void) {
+  if (!main_screen) return;
+  if (dynamic_tile) {
+    // Navigate back to controls tile then delete
+    if (tile4) {
+      lv_tileview_set_tile(main_screen, tile4, LV_ANIM_ON);
+    }
+    lv_obj_del(dynamic_tile);
+    dynamic_tile = NULL;
+  }
+}
+
 void create_main_screen(void) {
 
   //watchface_create();
@@ -117,8 +167,7 @@ void create_main_screen(void) {
   swatch_tileview();
 
   // Init All screens
-  lv_smartwatch_batt_create(NULL);
-  lv_smartwatch_brightness_create(NULL);
+  // Create settings sub-screens dynamically when needed via dynamic tile
 
   load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_NONE);
   lv_tileview_set_tile(main_screen, tile2, LV_ANIM_ON);
@@ -166,6 +215,11 @@ static void ui_handle_back_async(void* user) {
 
   if (active_screen_get() != get_main_screen()) {
     load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_OVER_TOP);
+  }
+
+  // If there is a dynamic tile, close it (returns to controls tile)
+  if (dynamic_tile) {
+    ui_dynamic_tile_close();
   }
 
   if (lv_tileview_get_tile_active(main_screen) != tile2) {

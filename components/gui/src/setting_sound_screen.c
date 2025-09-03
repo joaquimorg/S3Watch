@@ -3,6 +3,7 @@
 #include "ui_fonts.h"
 #include "settings.h"
 #include "audio_alert.h"
+#include "settings_menu_screen.h"
 
 static lv_obj_t* ssound_screen;
 static lv_obj_t* s_switch;
@@ -10,20 +11,19 @@ static lv_obj_t* s_slider;
 static lv_obj_t* s_value_lbl;
 static lv_obj_t* s_test_btn;
 
-extern lv_obj_t* settings_menu_screen_get(void);    
-static void back_async(void* user) {
-        lv_obj_t* scr = (lv_obj_t*)user;
-        load_screen(scr, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
-        //if (scr) lv_obj_del_async(scr);
-    }
-
 static void screen_events(lv_event_t* e)
 {
     // Async back to avoid heavy work in event context    
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
-            lv_async_call(back_async, ssound_screen);
-            //ssound_screen = NULL;
+            lv_indev_wait_release(lv_indev_active());
+            // Replace content with Settings Menu inside same dynamic tile
+            lv_obj_t* tile = lv_obj_get_parent(ssound_screen);
+            if (tile) {
+                lv_obj_clean(tile);
+                settings_menu_screen_create(tile);
+            }
+            ssound_screen = NULL;
         }
     }
 }

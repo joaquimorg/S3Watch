@@ -2,6 +2,7 @@
 #include "ui.h"
 #include "ui_fonts.h"
 #include "settings.h"
+#include "settings_menu_screen.h"
 
 static lv_obj_t* sstepgoal_screen;
 static lv_obj_t* sstepgoal_value;
@@ -10,10 +11,14 @@ static void screen_events(lv_event_t* e)
 {
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
-            extern lv_obj_t* settings_menu_screen_get(void);
             lv_indev_wait_release(lv_indev_active());
-            load_screen(sstepgoal_screen, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
-            //if (sstepgoal_screen) { lv_obj_t* tmp = sstepgoal_screen; sstepgoal_screen = NULL; lv_obj_del_async(tmp); }
+            // Rebuild Settings Menu inside the same dynamic tile
+            lv_obj_t* tile = lv_obj_get_parent(sstepgoal_screen);
+            if (tile) {
+                lv_obj_clean(tile);
+                settings_menu_screen_create(tile);
+            }
+            sstepgoal_screen = NULL;
         }
     }
 }

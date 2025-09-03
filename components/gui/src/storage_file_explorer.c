@@ -4,22 +4,21 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <string.h>
+#include "setting_storage_screen.h"
 
 static lv_obj_t* s_screen;
-extern lv_obj_t* setting_storage_screen_get(void);
-static void fileexp_back_async(void* user)
-{
-    lv_obj_t* scr = (lv_obj_t*)user;
-    load_screen(scr, setting_storage_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
-    //if (scr) lv_obj_del_async(scr);
-}
-
 static void screen_events(lv_event_t* e)
 {
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
-            lv_obj_t* tmp = s_screen; s_screen = NULL;
-            lv_async_call(fileexp_back_async, tmp);
+            lv_indev_wait_release(lv_indev_active());
+            // Return to Storage Tools inside the same dynamic tile
+            lv_obj_t* tile = lv_obj_get_parent(s_screen);
+            if (tile) {
+                lv_obj_clean(tile);
+                setting_storage_screen_create(tile);
+            }
+            s_screen = NULL;
         }
     }
 }

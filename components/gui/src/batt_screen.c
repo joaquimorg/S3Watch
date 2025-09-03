@@ -128,8 +128,10 @@ static void batt_screen_events(lv_event_t* e)
 
         if(dir == LV_DIR_RIGHT) {
             lv_indev_wait_release(lv_indev_active());
-            load_screen(batt_screen, get_main_screen(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
-            //if (batt_timer) { lv_timer_del(batt_timer); batt_timer = NULL; }
+            // Return to controls tile and remove dynamic tile
+            ui_dynamic_tile_close();
+            if (batt_timer) { lv_timer_del(batt_timer); batt_timer = NULL; }
+            batt_screen = NULL;
             //lv_obj_del_async(batt_screen);
         } 
     }

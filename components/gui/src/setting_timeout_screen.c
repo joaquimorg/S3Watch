@@ -2,6 +2,7 @@
 #include "ui.h"
 #include "ui_fonts.h"
 #include "settings.h"
+#include "settings_menu_screen.h"
 
 static lv_obj_t* stimeout_screen;
 static lv_obj_t* stimeout_content;
@@ -26,21 +27,18 @@ static void refresh_checked(void)
     }
 }
 
-extern lv_obj_t* settings_menu_screen_get(void);
-static void timeout_back_async(void* user)
-{
-    lv_obj_t* scr = (lv_obj_t*)user;
-    load_screen(scr, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
-    //if (scr) lv_obj_del_async(scr);
-}
-
 static void screen_events(lv_event_t* e)
 {
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
             lv_indev_wait_release(lv_indev_active());
-            lv_obj_t* tmp = stimeout_screen; stimeout_screen = NULL;
-            lv_async_call(timeout_back_async, tmp);
+            // Rebuild Settings Menu inside the same dynamic tile
+            lv_obj_t* tile = lv_obj_get_parent(stimeout_screen);
+            if (tile) {
+                lv_obj_clean(tile);
+                settings_menu_screen_create(tile);
+            }
+            stimeout_screen = NULL;
         }
     }
     else if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOADED) {

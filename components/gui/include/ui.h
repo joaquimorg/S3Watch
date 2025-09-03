@@ -9,6 +9,11 @@ extern "C" {
     void load_screen(lv_obj_t* current_screen, lv_obj_t* next_screen, lv_screen_load_anim_t anim);
     lv_obj_t* active_screen_get(void);
     lv_obj_t* get_main_screen(void);
+    
+    // Dynamic tile management (right of controls tile)
+    lv_obj_t* ui_dynamic_tile_acquire(void);
+    void ui_dynamic_tile_show(void);
+    void ui_dynamic_tile_close(void);
 
     void ui_init(void);
     void ui_task(void* pvParameters);

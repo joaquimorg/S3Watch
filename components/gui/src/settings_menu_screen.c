@@ -16,11 +16,10 @@ static lv_obj_t* r2;
 static lv_obj_t* r3;
 static lv_obj_t* r4;
 
-static void open_goal(lv_event_t* e){ (void)e; load_screen(NULL, setting_step_goal_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
-static void open_timeout(lv_event_t* e){ (void)e; load_screen(NULL, setting_timeout_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
-static void open_sound(lv_event_t* e){ (void)e; load_screen(NULL, setting_sound_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
-static void open_storage(lv_event_t* e){ (void)e; load_screen(NULL, setting_storage_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT); }
-static void back_to_main(lv_event_t* e){ (void)e; lv_indev_wait_release(lv_indev_active()); load_screen(smenu_screen, get_main_screen(), LV_SCR_LOAD_ANIM_MOVE_RIGHT); }
+static void open_goal(lv_event_t* e){ (void)e; lv_obj_t* t = ui_dynamic_tile_acquire(); if (t){ setting_step_goal_screen_create(t); ui_dynamic_tile_show(); } }
+static void open_timeout(lv_event_t* e){ (void)e; lv_obj_t* t = ui_dynamic_tile_acquire(); if (t){ setting_timeout_screen_create(t); ui_dynamic_tile_show(); } }
+static void open_sound(lv_event_t* e){ (void)e; lv_obj_t* t = ui_dynamic_tile_acquire(); if (t){ setting_sound_screen_create(t); ui_dynamic_tile_show(); } }
+static void open_storage(lv_event_t* e){ (void)e; lv_obj_t* t = ui_dynamic_tile_acquire(); if (t){ setting_storage_screen_create(t); ui_dynamic_tile_show(); } }
 static void refresh_values(lv_obj_t* content)
 {
     if (!content) return;
@@ -46,12 +45,13 @@ static void screen_events(lv_event_t* e)
     if (lv_event_get_code(e) == LV_EVENT_GESTURE) {
         if (lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_RIGHT) {
             lv_indev_wait_release(lv_indev_active());
-            load_screen(smenu_screen, get_main_screen(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+            ui_dynamic_tile_close();
+            smenu_screen = NULL;
         }
     }
-    else if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOADED) {
+    /*else if (lv_event_get_code(e) == LV_EVENT_SCREEN_LOADED) {
         refresh_values(smenu_content);
-    }
+    }*/
 }
 
 static lv_obj_t* make_row(lv_obj_t* parent, const char* label_txt, const char* value_txt, lv_event_cb_t cb)
@@ -108,20 +108,6 @@ void settings_menu_screen_create(lv_obj_t* parent)
     //lv_obj_set_style_pad_top(title, 10, 0);
     lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 10);
 
-    // Back button in the top-left corner: "<"
-    lv_obj_t* back_btn = lv_btn_create(smenu_screen);
-    lv_obj_remove_style_all(back_btn);
-    lv_obj_set_size(back_btn, 48, 48);
-    //lv_obj_set_style_bg_opa(back_btn, LV_OPA_20, 0);
-    //lv_obj_set_style_bg_color(back_btn, lv_color_white(), 0);
-    lv_obj_set_style_radius(back_btn, 8, 0);
-    lv_obj_align(back_btn, LV_ALIGN_TOP_LEFT, 40, 6);
-    lv_obj_add_event_cb(back_btn, back_to_main, LV_EVENT_CLICKED, NULL);
-    lv_obj_t* back_lbl = lv_label_create(back_btn);
-    lv_obj_set_style_text_font(back_lbl, &font_bold_32, 0);
-    lv_label_set_text(back_lbl, "<");
-    lv_obj_center(back_lbl);
-
     // Content list
     smenu_content = lv_obj_create(smenu_screen);
     lv_obj_add_flag(smenu_content, LV_OBJ_FLAG_GESTURE_BUBBLE);
@@ -141,7 +127,7 @@ void settings_menu_screen_create(lv_obj_t* parent)
     r3 = make_row(smenu_content, "Sound", "--", open_sound);
     r4 = make_row(smenu_content, "Storage", "Tools", open_storage);
 
-    //refresh_values(smenu_content);
+    refresh_values(smenu_content);
     lv_obj_add_event_cb(smenu_screen, screen_events, LV_EVENT_ALL, NULL);
 }
 

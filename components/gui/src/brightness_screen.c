@@ -133,7 +133,10 @@ static void screen_events(lv_event_t* e)
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
         if (dir == LV_DIR_RIGHT) {
             lv_indev_wait_release(lv_indev_active());
-            load_screen(brightness_screen, get_main_screen(), LV_SCR_LOAD_ANIM_MOVE_RIGHT);
+            // Navigate back to controls tile and destroy dynamic tile
+            ui_dynamic_tile_close();
+            // Local pointer becomes invalid after tile deletion; reset
+            brightness_screen = NULL;
         }
     }
 }

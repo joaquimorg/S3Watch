@@ -181,15 +181,37 @@ static void click_event_cb(lv_event_t* e)
     switch (ctrl) {
     case CTRL_BRIGHTNESS:
         ESP_LOGI(TAG, "Brightness control clicked");
-            load_screen(NULL, brightness_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+        lv_indev_wait_release(lv_indev_active());
+        {
+            lv_obj_t* t = ui_dynamic_tile_acquire();
+            if (t) {
+                // Create the content into the dynamic tile and switch to it
+                lv_smartwatch_brightness_create(t);
+                ui_dynamic_tile_show();
+            }
+        }
         break;
     case CTRL_BATTERY:
         ESP_LOGI(TAG, "Battery control clicked");
-            load_screen(NULL, batt_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+        lv_indev_wait_release(lv_indev_active());
+        {
+            lv_obj_t* t = ui_dynamic_tile_acquire();
+            if (t) {
+                lv_smartwatch_batt_create(t);
+                ui_dynamic_tile_show();
+            }
+        }
         break;
     case CTRL_SETTINGS:
         ESP_LOGI(TAG, "Settings clicked");
-            load_screen(NULL, settings_menu_screen_get(), LV_SCR_LOAD_ANIM_MOVE_LEFT);
+        lv_indev_wait_release(lv_indev_active());
+        {
+            lv_obj_t* t = ui_dynamic_tile_acquire();
+            if (t) {
+                settings_menu_screen_create(t);
+                ui_dynamic_tile_show();
+            }
+        }
         break;
     default:
         break;

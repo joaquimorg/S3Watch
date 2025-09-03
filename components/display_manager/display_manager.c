@@ -187,7 +187,7 @@ void display_manager_init(void) {
     (void)esp_pm_lock_acquire(s_no_ls_lock);
   }
 #endif
-
+/*
   // Configure GPIO wake-ups so user input can wake CPU from light sleep
   // Only meaningful if PM/light-sleep is enabled in project config
 #if CONFIG_PM_ENABLE
@@ -215,7 +215,7 @@ void display_manager_init(void) {
 #endif
   (void)esp_sleep_enable_gpio_wakeup();
 #endif // CONFIG_PM_ENABLE
-
+*/
   // Higher priority so UI updates aren't delayed by other workloads
   xTaskCreate(display_manager_task, "display_mgr", 4000, NULL, 3, NULL);
 }

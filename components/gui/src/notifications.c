@@ -85,6 +85,7 @@ static const AppMeta k_known_apps[] = {
     { "sms",                                "SMS",          &image_sms_48 },
     { "com.android.messaging",              "SMS",          &image_sms_48 },
     { "com.google.android.apps.messaging",  "SMS",          &image_sms_48 },
+    { "com.google.android.apps.messagi",    "SMS",          &image_sms_48 },
     { "call",                               "Call",         &image_call_48 },
     { "com.google.android.dialer",          "Call",         &image_call_48 },
     { "com.google.android.gm",              "Gmail",        &image_gmail_48 },
@@ -418,13 +419,13 @@ void notifications_screen_create(lv_obj_t* parent)
 
     // Build one reusable card and enable swipe/press events on container
     // Listen to all events here; the handler filters by code.    
-    //lv_obj_add_flag(notification_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_flag(notification_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
     build_single_card(notification_screen);
 
     // Ensure gestures on the card bubble up to the container (where handler is attached)
-    /*if (card) {
+    if (card) {
         lv_obj_add_flag(card, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE | LV_OBJ_FLAG_CLICKABLE);
-    }*/
+    }
 
     // Pager indicator at bottom-center (dots with active highlight)
     pager_cont = lv_obj_create(notification_screen);

@@ -46,6 +46,9 @@ static void (*_nordic_uart_callback)(enum nordic_uart_callback_type callback_typ
 static uart_receive_callback_t _uart_receive_callback = NULL;
 static bool s_low_power_pref = false;
 
+
+/// @brief Apply connection parameters based on power preference
+/// @param  
 static void _apply_conn_params(void)
 {
     if (ble_conn_hdl == 0) return;
@@ -54,9 +57,9 @@ static void _apply_conn_params(void)
     if (rc != 0) return;
     struct ble_gap_upd_params params;
     if (s_low_power_pref) {
-        params.itvl_min = 80;   // 100 ms
-        params.itvl_max = 120;  // 150 ms
-        params.latency  = 30;   // allow skipping 30 intervals
+        params.itvl_min = 160;
+        params.itvl_max = 200;
+        params.latency  = 15;
         params.supervision_timeout = 600; // 6.0 s
     } else {
         // More responsive when active

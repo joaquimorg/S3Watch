@@ -30,17 +30,12 @@ static lv_obj_t* tile3;
 static lv_obj_t* tile4;
 
 static lv_obj_t* active_screen;
-static volatile bool s_back_busy = false;
 static lv_obj_t* dynamic_tile = NULL; // temporary tile right of controls
 static lv_obj_t* dynamic_subtile = NULL; // second-level tile to the right of dynamic tile
-static bool s_nav_suppress = false; // suppress auto-clean during programmatic navigation
+
 
 lv_obj_t* get_main_screen(void) { return main_screen; }
 
-static void clear_back_busy_cb(lv_timer_t* t) {
-  (void)t;
-  s_back_busy = false;
-}
 // static lv_obj_t* mainTileView;
 
 // lv_obj_t* tileClock;
@@ -54,9 +49,6 @@ static void clear_back_busy_cb(lv_timer_t* t) {
 
 static lv_style_t main_style;
 static void tileview_change_cb(lv_event_t* e);
-static void clear_nav_suppress_async(void* u);
-static void reset_pointer_indev_async(void* u);
-static lv_obj_t* s_indev_reset_target = NULL;
 
 void init_theme(void) {
 
@@ -97,7 +89,8 @@ void swatch_tileview(void)
   lv_obj_add_flag(main_screen, LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM);
 
   // Observe tile changes to clean up dynamic tiles when not visible
-  lv_obj_add_event_cb(main_screen, tileview_change_cb, LV_EVENT_VALUE_CHANGED, NULL);
+  //lv_obj_add_event_cb(main_screen, tileview_change_cb, LV_EVENT_VALUE_CHANGED, NULL);
+  lv_obj_add_event_cb(main_screen, tileview_change_cb, LV_EVENT_ALL, NULL);
 
   /*Tile1:*/
   tile1 = lv_tileview_add_tile(main_screen, 0, 0, LV_DIR_BOTTOM);
@@ -113,17 +106,15 @@ void swatch_tileview(void)
 
   /*Tile4:*/
   tile4 = lv_tileview_add_tile(main_screen, 1, 1, (lv_dir_t)(LV_DIR_LEFT | LV_DIR_RIGHT));
-  control_screen_create(tile4);  
+  control_screen_create(tile4);
 
 }
 
 static void tileview_change_cb(lv_event_t* e)
 {
+
   if (lv_event_get_code(e) != LV_EVENT_VALUE_CHANGED) return;
-  if (s_nav_suppress) {
-    // Ignore auto-clean while we are navigating programmatically
-    return;
-  }
+  
   lv_obj_t* act = lv_tileview_get_tile_active(main_screen);
   // Delete level-2 if not active
   if (dynamic_subtile && act != dynamic_subtile) {
@@ -145,48 +136,33 @@ lv_obj_t* ui_dynamic_tile_acquire(void) {
   if (dynamic_tile) {
     // Clean existing content for reuse
     lv_obj_clean(dynamic_tile);
+    ESP_LOGI(TAG, "Reusing dynamic tile (2,1)");    
     return dynamic_tile;
   }
   dynamic_tile = lv_tileview_add_tile(main_screen, 2, 1, (lv_dir_t)(LV_DIR_LEFT | LV_DIR_RIGHT));
   if (dynamic_tile) {
     // Match main style and sizing
-    lv_obj_add_style(dynamic_tile, &main_style, 0);
-    lv_obj_set_size(dynamic_tile, LV_PCT(100), LV_PCT(100));
+    //lv_obj_add_style(dynamic_tile, &main_style, 0);
+    //lv_obj_set_size(dynamic_tile, LV_PCT(100), LV_PCT(100));
+    lv_obj_update_layout(main_screen);
     ESP_LOGI(TAG, "Created dynamic tile (2,1)");
   }
   return dynamic_tile;
 }
 
-static void set_dynamic_tile_async(void* user) {
-  (void)user;
-  if (!main_screen || !dynamic_tile) return;
-  s_nav_suppress = true;
-  // Ensure layout is up-to-date before switching
-  lv_obj_update_layout(main_screen);
-  lv_obj_update_layout(dynamic_tile);
-  // Move to controls tile as a stable origin, then jump to dynamic tile
-  if (lv_tileview_get_tile_active(main_screen) != tile4 && tile4) {
-    lv_tileview_set_tile(main_screen, tile4, LV_ANIM_OFF);
-  }
-  // Point indev reset to the new tile
-  s_indev_reset_target = dynamic_tile;
-  lv_tileview_set_tile(main_screen, dynamic_tile, LV_ANIM_ON);
-  // Force immediate refresh so the new objects are fully realized
-  lv_refr_now(NULL);
-  // Clear suppression after this tick
-  lv_async_call(clear_nav_suppress_async, NULL);
-  // Reset touch indev so first tap/click is recognized on the new tile
-  lv_async_call(reset_pointer_indev_async, NULL);
-}
 
 // Focus the dynamic tile (ensure tileview is the active screen)
-void ui_dynamic_tile_show(void) {
+void ui_dynamic_tile_show(void) {  
   if (!dynamic_tile || !main_screen) return;
+  ESP_LOGI(TAG, "Showing dynamic tile (2,1)");
+  
   if (active_screen_get() != get_main_screen()) {
     load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_OVER_TOP);
   }
-  // Always defer tile switch until after any pending loads/layout
-  lv_async_call(set_dynamic_tile_async, NULL);
+  lv_tileview_set_tile(main_screen, dynamic_tile, LV_ANIM_ON);
+  // FIX bug for first action
+  lv_tileview_set_tile(main_screen, dynamic_tile, LV_ANIM_ON);
+  
 }
 
 // Acquire or create a second-level tile at (3,1)
@@ -196,56 +172,43 @@ lv_obj_t* ui_dynamic_subtile_acquire(void) {
     lv_obj_clean(dynamic_subtile);
     return dynamic_subtile;
   }
-  dynamic_subtile = lv_tileview_add_tile(main_screen, 3, 1, LV_DIR_LEFT);
+  dynamic_subtile = lv_tileview_add_tile(main_screen, 3, 1, (lv_dir_t)(LV_DIR_LEFT | LV_DIR_RIGHT));
   if (dynamic_subtile) {
-    lv_obj_add_style(dynamic_subtile, &main_style, 0);
-    lv_obj_set_size(dynamic_subtile, LV_PCT(100), LV_PCT(100));
+    //lv_obj_add_style(dynamic_subtile, &main_style, 0);
+    //lv_obj_set_size(dynamic_subtile, LV_PCT(100), LV_PCT(100));   
+    lv_obj_update_layout(main_screen); 
+    //lv_obj_update_layout(dynamic_tile); 
     ESP_LOGI(TAG, "Created dynamic subtile (3,1)");
   }
   return dynamic_subtile;
 }
 
-static void set_dynamic_subtile_async(void* user) {
-  (void)user;
-  if (!main_screen || !dynamic_tile || !dynamic_subtile) return;
-  s_nav_suppress = true;
-  lv_obj_update_layout(main_screen);
-  lv_obj_update_layout(dynamic_tile);
-  lv_obj_update_layout(dynamic_subtile);
-  if (lv_tileview_get_tile_active(main_screen) != tile4 && tile4) {
-    lv_tileview_set_tile(main_screen, tile4, LV_ANIM_OFF);
-  }
-  if (lv_tileview_get_tile_active(main_screen) != dynamic_tile) {
-    lv_tileview_set_tile(main_screen, dynamic_tile, LV_ANIM_OFF);
-  }
-  s_indev_reset_target = dynamic_subtile;
-  lv_tileview_set_tile(main_screen, dynamic_subtile, LV_ANIM_ON);
-  lv_refr_now(NULL);
-  lv_async_call(clear_nav_suppress_async, NULL);
-  lv_async_call(reset_pointer_indev_async, NULL);
-}
 
 void ui_dynamic_subtile_show(void) {
   if (!dynamic_subtile || !main_screen) return;
+  ESP_LOGI(TAG, "Showing dynamic tile (3,1)");
   if (active_screen_get() != get_main_screen()) {
     load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_OVER_TOP);
   }
-  lv_async_call(set_dynamic_subtile_async, NULL);
+  
+  lv_tileview_set_tile(main_screen, dynamic_tile, LV_ANIM_ON);
+  lv_tileview_set_tile(main_screen, dynamic_subtile, LV_ANIM_ON);
+
 }
 
 void ui_dynamic_subtile_close(void) {
   if (!main_screen) return;
   if (dynamic_subtile) {
-    s_nav_suppress = true;
+
     if (dynamic_tile) {
       lv_tileview_set_tile(main_screen, dynamic_tile, LV_ANIM_ON);
-    } else if (tile4) {
+    }
+    else if (tile4) {
       lv_tileview_set_tile(main_screen, tile4, LV_ANIM_ON);
     }
     ESP_LOGI(TAG, "Deleting dynamic subtile (3,1)");
     lv_obj_del(dynamic_subtile);
     dynamic_subtile = NULL;
-    lv_async_call(clear_nav_suppress_async, NULL);
   }
 }
 
@@ -254,44 +217,14 @@ void ui_dynamic_tile_close(void) {
   if (!main_screen) return;
   if (dynamic_tile) {
     // Navigate back to controls tile then delete
-    s_nav_suppress = true;
     if (tile4) {
       lv_tileview_set_tile(main_screen, tile4, LV_ANIM_ON);
     }
     ESP_LOGI(TAG, "Deleting dynamic tile (2,1)");
     lv_obj_del(dynamic_tile);
     dynamic_tile = NULL;
-    lv_async_call(clear_nav_suppress_async, NULL);
   }
 }
-
-static void clear_nav_suppress_async(void* u)
-{
-  (void)u;
-  s_nav_suppress = false;
-}
-
-static void reset_pointer_indev_async(void* u)
-{
-  (void)u;
-  // Prefer the BSP's touch indev when available
-  lv_indev_t* indev = bsp_display_get_input_dev();
-  if (indev) {
-    lv_indev_reset(indev, s_indev_reset_target ? s_indev_reset_target : main_screen);
-    s_indev_reset_target = NULL;
-    return;
-  }
-  // Fallback: reset all pointer indevs
-  lv_indev_t* it = NULL;
-  while ((it = lv_indev_get_next(it)) != NULL) {
-    if (lv_indev_get_type(it) == LV_INDEV_TYPE_POINTER) {
-      lv_indev_reset(it, s_indev_reset_target ? s_indev_reset_target : main_screen);
-    }
-  }
-  s_indev_reset_target = NULL;
-}
-
-/* gesture reset removed; we now avoid animations so first touch works immediately */
 
 void create_main_screen(void) {
 
@@ -305,8 +238,10 @@ void create_main_screen(void) {
   // Init All screens
   // Create settings sub-screens dynamically when needed via dynamic tile
 
+  vTaskDelay(pdMS_TO_TICKS(100));
+
   load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_NONE);
-  lv_tileview_set_tile(main_screen, tile2, LV_ANIM_ON);
+  lv_tileview_set_tile(main_screen, tile2, LV_ANIM_OFF);
 
 }
 

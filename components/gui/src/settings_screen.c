@@ -181,7 +181,7 @@ static void click_event_cb(lv_event_t* e)
     switch (ctrl) {
     case CTRL_BRIGHTNESS:
         ESP_LOGI(TAG, "Brightness control clicked");
-        lv_indev_wait_release(lv_indev_active());
+        //lv_indev_wait_release(lv_indev_active());
         {
             lv_obj_t* t = ui_dynamic_tile_acquire();
             if (t) {
@@ -193,7 +193,7 @@ static void click_event_cb(lv_event_t* e)
         break;
     case CTRL_BATTERY:
         ESP_LOGI(TAG, "Battery control clicked");
-        lv_indev_wait_release(lv_indev_active());
+        //lv_indev_wait_release(lv_indev_active());
         {
             lv_obj_t* t = ui_dynamic_tile_acquire();
             if (t) {
@@ -204,7 +204,7 @@ static void click_event_cb(lv_event_t* e)
         break;
     case CTRL_SETTINGS:
         ESP_LOGI(TAG, "Settings clicked");
-        lv_indev_wait_release(lv_indev_active());
+        //lv_indev_wait_release(lv_indev_active());
         {
             lv_obj_t* t = ui_dynamic_tile_acquire();
             if (t) {

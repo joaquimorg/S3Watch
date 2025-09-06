@@ -1,0 +1,7 @@
+{
+  "brightness": 40,
+  "display_timeout_ms": 30000,
+  "sound_enabled": true,
+  "notify_volume": 80,
+  "step_goal": 8000
+}

@@ -22,6 +22,22 @@
 #include "ui.h"
 #include "audio_alert.h"
 
+typedef struct {
+    char* ts; char* app; char* title; char* msg;
+} notif_async_t;
+
+static void notif_async_cb(void* p)
+{
+    notif_async_t* c = (notif_async_t*)p;
+    ui_show_messages_tile();
+    notifications_show(c->app, c->title, c->msg, c->ts);
+    free(c->ts);
+    free(c->app);
+    free(c->title);
+    free(c->msg);
+    free(c);
+}
+
 static const char* TAG = "BLE_SYNC";
 
 // Define event base for BLE connection status
@@ -58,12 +74,30 @@ static void handle_notification_fields(const char* timestamp,
     ESP_LOGI(TAG, "Notification: app='%s' title='%s' message='%s' ts='%s'",
         app ? app : "", title ? title : "", message ? message : "", timestamp ? timestamp : "");
 
-    // Wake display for visibility
+    // Wake display for visibility and ensure LVGL is running
     display_manager_turn_on();
-    bsp_display_lock(10);
-    ui_show_messages_tile();
-    notifications_show(app, title, message, timestamp);
-    bsp_display_unlock();
+    // Try to acquire LVGL lock with a reasonable timeout; avoid calling
+    // LVGL APIs without the lock to prevent races when the display is turning off.
+    bool locked = false;
+    for (int i = 0; i < 3 && !locked; ++i) {
+        locked = bsp_display_lock(150);
+        if (!locked) vTaskDelay(pdMS_TO_TICKS(10));
+    }
+    if (locked) {
+        ui_show_messages_tile();
+        notifications_show(app, title, message, timestamp);
+        bsp_display_unlock();
+    } else {
+        // Fallback: defer safely to LVGL thread by copying strings
+        notif_async_t* ctx = (notif_async_t*)calloc(1, sizeof(notif_async_t));
+        if (ctx) {
+            ctx->ts = timestamp ? strdup(timestamp) : NULL;
+            ctx->app = app ? strdup(app) : NULL;
+            ctx->title = title ? strdup(title) : NULL;
+            ctx->msg = message ? strdup(message) : NULL;
+            lv_async_call(notif_async_cb, ctx);
+        }
+    }
 
     // Play notification sound if enabled
     audio_alert_notify();

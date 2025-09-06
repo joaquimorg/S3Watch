@@ -46,7 +46,7 @@ void lv_smartwatch_batt_create(lv_obj_t* screen)
     lv_obj_add_style(batt_screen, &cmain_style, 0);
     lv_obj_set_size(batt_screen, lv_pct(100), lv_pct(100));
     // Let gestures bubble to tileview so horizontal swipes work
-    lv_obj_add_flag(batt_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
+    //lv_obj_add_flag(batt_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     //lv_obj_remove_flag(batt_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_clear_flag(batt_screen, LV_OBJ_FLAG_SCROLLABLE);
 
@@ -135,6 +135,9 @@ lv_obj_t* batt_screen_get(void)
 static void batt_screen_events(lv_event_t* e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
+
+    // Log Events
+    //ESP_LOGI(TAG, "Battery screen event: %d", event_code);
 
     if (event_code == LV_EVENT_GESTURE) {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());

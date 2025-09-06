@@ -20,9 +20,29 @@
 
 static const char *TAG = "MAIN";
 
+/*
+#define CONFIG_LV_USE_LOG 1
+#define CONFIG_LV_LOG_LEVEL LV_LOG_LEVEL_INFO  // or DEBUG/TRACE
+
+static void lvgl_log_cb(lv_log_level_t level, const char *buf)
+{
+    // buf usually already ends with '\n'; don't add another.
+    switch (level) {
+    case LV_LOG_LEVEL_ERROR: ESP_LOGE("LVGL", "%s", buf); break;
+    case LV_LOG_LEVEL_WARN:  ESP_LOGW("LVGL", "%s", buf); break;
+    case LV_LOG_LEVEL_USER:  // falls through to INFO
+    case LV_LOG_LEVEL_INFO:  ESP_LOGI("LVGL", "%s", buf); break;
+    //case LV_LOG_LEVEL_DEBUG: ESP_LOGD("LVGL", "%s", buf); break;
+    case LV_LOG_LEVEL_TRACE: ESP_LOGV("LVGL", "%s", buf); break;
+    default:                 ESP_LOGI("LVGL", "%s", buf); break;
+    }
+}*/
+
 extern "C" void app_main(void) {
 
   // esp_log_level_set("lcd_panel.io.spi", ESP_LOG_DEBUG);
+
+  //lv_log_register_print_cb(lvgl_log_cb);
 
   // Create default event loop for component event handlers
   esp_event_loop_create_default();
@@ -40,9 +60,6 @@ extern "C" void app_main(void) {
 
   settings_init();
 
-  // Play a subtle startup tone once the system is up
-  audio_alert_play_startup();
-
   // UI task chama display_manager_init() após criar o ecrã
 
   // UI e BLE subscrevem eventos diretamente; sem acoplamento no main
@@ -54,6 +71,9 @@ extern "C" void app_main(void) {
   
   // Sensor sampling can run at a lower priority without affecting UX
   //xTaskCreate(sensors_task, "sensors", 4096, NULL, 3, NULL);
+
+  // Play a subtle startup tone once the system is up
+  audio_alert_play_startup();
 
   // Now enable PM with light sleep allowed (still blocked while screen is ON)
   esp_pm_config_t pm_cfg = {

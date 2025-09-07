@@ -46,8 +46,8 @@ void setting_step_goal_screen_create(lv_obj_t* parent)
     // Allow gestures to bubble for tileview swipes
     lv_obj_add_flag(sstepgoal_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     lv_obj_add_flag(sstepgoal_screen, LV_OBJ_FLAG_USER_1);
-    lv_obj_add_event_cb(sstepgoal_screen, screen_events, LV_EVENT_GESTURE, NULL);
-    lv_obj_add_event_cb(sstepgoal_screen, on_delete, LV_EVENT_DELETE, NULL);
+    //lv_obj_add_event_cb(sstepgoal_screen, screen_events, LV_EVENT_GESTURE, NULL);
+    //lv_obj_add_event_cb(sstepgoal_screen, on_delete, LV_EVENT_DELETE, NULL);
 
     // Header
     lv_obj_t* hdr = lv_obj_create(sstepgoal_screen);
@@ -100,11 +100,11 @@ static void on_delete(lv_event_t* e)
     sstepgoal_screen = NULL;
 }
 
-lv_obj_t* setting_step_goal_screen_get(void)
+lv_obj_t* setting_step_goal_screen_get(lv_obj_t* parent)
 {
     if (!sstepgoal_screen) {
         bsp_display_lock(0);
-        setting_step_goal_screen_create(NULL);
+        setting_step_goal_screen_create(parent);
         bsp_display_unlock();
     }
     return sstepgoal_screen;

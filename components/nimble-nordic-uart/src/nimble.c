@@ -57,10 +57,10 @@ static void _apply_conn_params(void)
     if (rc != 0) return;
     struct ble_gap_upd_params params;
     if (s_low_power_pref) {
-        params.itvl_min = 160;
-        params.itvl_max = 200;
-        params.latency  = 15;
-        params.supervision_timeout = 600; // 6.0 s
+        params.itvl_min = 400;
+        params.itvl_max = 800;
+        params.latency  = 8;
+        params.supervision_timeout = 800; // 6.0 s
     } else {
         // More responsive when active
         params.itvl_min = 24;   // 30 ms

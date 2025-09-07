@@ -14,6 +14,9 @@
 #include "settings.h"
 #include "ui.h"
 // Power management
+#include "esp_wifi.h"
+#include "esp_bt.h"
+#include "esp_sleep.h"
 #include "esp_pm.h"
 // UI/BLE reagem a eventos de energia; remover ponte direta aqui
 #include "audio_alert.h"
@@ -38,11 +41,19 @@ static void lvgl_log_cb(lv_log_level_t level, const char *buf)
     }
 }*/
 
+static void power_init(void) {
+    esp_wifi_stop();
+    esp_wifi_deinit();
+
+    esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT); // only BLE 
+}
+
 extern "C" void app_main(void) {
 
   // esp_log_level_set("lcd_panel.io.spi", ESP_LOG_DEBUG);
 
   //lv_log_register_print_cb(lvgl_log_cb);
+  power_init();
 
   // Create default event loop for component event handlers
   esp_event_loop_create_default();
@@ -81,5 +92,5 @@ extern "C" void app_main(void) {
       .min_freq_mhz = 80,
       .light_sleep_enable = true,
   };
-  (void)esp_pm_configure(&pm_cfg);
+  ESP_ERROR_CHECK(esp_pm_configure(&pm_cfg));
 }

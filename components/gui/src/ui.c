@@ -157,7 +157,7 @@ void ui_dynamic_tile_show(void) {
   ESP_LOGI(TAG, "Showing dynamic tile (2,1)");
   
   if (active_screen_get() != get_main_screen()) {
-    load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_OVER_TOP);
+    load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_NONE);
   }
   lv_tileview_set_tile(main_screen, dynamic_tile, LV_ANIM_ON);
   // FIX bug for first action
@@ -177,7 +177,7 @@ lv_obj_t* ui_dynamic_subtile_acquire(void) {
     //lv_obj_add_style(dynamic_subtile, &main_style, 0);
     //lv_obj_set_size(dynamic_subtile, LV_PCT(100), LV_PCT(100));   
     lv_obj_update_layout(main_screen); 
-    //lv_obj_update_layout(dynamic_tile); 
+    lv_obj_update_layout(dynamic_tile); 
     ESP_LOGI(TAG, "Created dynamic subtile (3,1)");
   }
   return dynamic_subtile;
@@ -188,10 +188,11 @@ void ui_dynamic_subtile_show(void) {
   if (!dynamic_subtile || !main_screen) return;
   ESP_LOGI(TAG, "Showing dynamic tile (3,1)");
   if (active_screen_get() != get_main_screen()) {
-    load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_OVER_TOP);
+    load_screen(NULL, get_main_screen(), LV_SCR_LOAD_ANIM_NONE);
   }
   
-  lv_tileview_set_tile(main_screen, dynamic_tile, LV_ANIM_ON);
+  
+  lv_tileview_set_tile(main_screen, dynamic_subtile, LV_ANIM_ON);
   lv_tileview_set_tile(main_screen, dynamic_subtile, LV_ANIM_ON);
 
 }

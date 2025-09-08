@@ -46,8 +46,8 @@ void setting_step_goal_screen_create(lv_obj_t* parent)
     // Allow gestures to bubble for tileview swipes
     lv_obj_add_flag(sstepgoal_screen, LV_OBJ_FLAG_GESTURE_BUBBLE);
     lv_obj_add_flag(sstepgoal_screen, LV_OBJ_FLAG_USER_1);
-    //lv_obj_add_event_cb(sstepgoal_screen, screen_events, LV_EVENT_GESTURE, NULL);
-    //lv_obj_add_event_cb(sstepgoal_screen, on_delete, LV_EVENT_DELETE, NULL);
+    lv_obj_add_event_cb(sstepgoal_screen, screen_events, LV_EVENT_GESTURE, NULL);
+    lv_obj_add_event_cb(sstepgoal_screen, on_delete, LV_EVENT_DELETE, NULL);
 
     // Header
     lv_obj_t* hdr = lv_obj_create(sstepgoal_screen);

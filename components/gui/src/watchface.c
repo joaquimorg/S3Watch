@@ -75,9 +75,9 @@ void watchface_create(lv_obj_t* parent) {
     lv_obj_remove_flag(watchface_screen, LV_OBJ_FLAG_SCROLLABLE);
     
 
-    LV_IMAGE_DECLARE(background_wf);
+    LV_IMAGE_DECLARE(background_wf_2);
     lv_obj_t* image = lv_image_create(watchface_screen);
-    lv_image_set_src(image, &background_wf);
+    lv_image_set_src(image, &background_wf_2);
     lv_obj_set_align(image, LV_ALIGN_CENTER);
 
     label_hour = lv_label_create(watchface_screen);

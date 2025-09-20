@@ -70,9 +70,34 @@ void display_manager_turn_off(void) { display_turn_off_internal(); }
 void display_manager_turn_on(void) {
   if (!display_on) {
     ESP_LOGI(TAG, "Turning display on");
-    // Wake the panel first, then resume LVGL and restore brightness
+    // Wake the panel first, clear panel, then resume LVGL and restore brightness
     bsp_display_wake();
+    (void)bsp_display_clear_black();
     lvgl_port_resume();
+
+    if (lvgl_port_lock(200)) {
+#if LVGL_VERSION_MAJOR >= 9
+      lv_display_t *disp = lv_display_get_default();
+      if (disp) {
+        lv_obj_t *scr = lv_scr_act();
+        if (scr) {
+          lv_obj_invalidate(scr);
+        }
+        lv_refr_now(disp);
+      }
+#else
+      lv_disp_t *disp = lv_disp_get_default();
+      if (disp) {
+        lv_obj_t *scr = lv_disp_get_scr_act(disp);
+        if (scr) {
+          lv_obj_invalidate(scr);
+        }
+        lv_refr_now(disp);
+      }
+#endif
+      lvgl_port_unlock();
+    }
+
     bsp_display_brightness_set(settings_get_brightness());
     // Re-enable touch input and release touch reset
     lv_indev_t *indev = bsp_display_get_input_dev();

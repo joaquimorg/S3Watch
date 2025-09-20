@@ -13,6 +13,20 @@
 // Keep the last N notifications and allow swipe left/right
 #define MAX_NOTIFICATIONS 5
 
+LV_IMAGE_DECLARE(image_notification_48);
+LV_IMAGE_DECLARE(image_sms_48);
+LV_IMAGE_DECLARE(image_call_48);
+LV_IMAGE_DECLARE(image_gmail_48);
+LV_IMAGE_DECLARE(image_whatsapp_48);
+LV_IMAGE_DECLARE(image_messenger_48);
+LV_IMAGE_DECLARE(image_telegram_48);
+LV_IMAGE_DECLARE(image_outlook_48);
+LV_IMAGE_DECLARE(image_youtube_48);
+LV_IMAGE_DECLARE(image_teams_48);
+LV_IMAGE_DECLARE(image_instagram_48);
+LV_IMAGE_DECLARE(image_tiktok_48);
+LV_IMAGE_DECLARE(image_x_48);
+
 typedef struct NotificationItem {
     char app[32];
     char title[64];
@@ -32,6 +46,7 @@ static lv_obj_t *lbl_app;
 static lv_obj_t *lbl_time;
 static lv_obj_t *lbl_title;
 static lv_obj_t *lbl_message;
+static lv_obj_t *hdr_separator;
 static lv_obj_t *pager_cont;      // bottom-center pager (dots)
 static lv_obj_t *pager_dots[MAX_NOTIFICATIONS];
 static int active_idx = 0;        // current shown index (0 = most recent)
@@ -43,6 +58,17 @@ static void set_label_text(lv_obj_t* lbl, const char* txt)
     if (!lbl) return;
     if (!txt) txt = "";
     lv_label_set_text(lbl, txt);
+}
+
+static void show_empty_state(void)
+{
+    if (avatar_img) {
+        lv_image_set_src(avatar_img, &image_notification_48);
+    }
+    set_label_text(lbl_app, "Notifications");
+    set_label_text(lbl_title, "You don't have\nnew notifications...");
+    set_label_text(lbl_message, "");
+    set_label_text(lbl_time, "");
 }
 
 // Format "YYYY-MM-DD HH:MM" from ISO timestamp
@@ -60,20 +86,6 @@ static void format_datetime_ymd_hhmm(const char* iso_ts, char* out, size_t out_s
     out[10] = ' ';
     out[11] = t[1]; out[12] = t[2]; out[13] = ':'; out[14] = t[4]; out[15] = t[5]; out[16] = '\0';
 }
-
-LV_IMAGE_DECLARE(image_notification_48);
-LV_IMAGE_DECLARE(image_sms_48);
-LV_IMAGE_DECLARE(image_call_48);
-LV_IMAGE_DECLARE(image_gmail_48);
-LV_IMAGE_DECLARE(image_whatsapp_48);
-LV_IMAGE_DECLARE(image_messenger_48);
-LV_IMAGE_DECLARE(image_telegram_48);
-LV_IMAGE_DECLARE(image_outlook_48);
-LV_IMAGE_DECLARE(image_youtube_48);
-LV_IMAGE_DECLARE(image_teams_48);
-LV_IMAGE_DECLARE(image_instagram_48);
-LV_IMAGE_DECLARE(image_tiktok_48);
-LV_IMAGE_DECLARE(image_x_48);
 
 typedef struct AppMeta {
     const char* id;
@@ -120,7 +132,10 @@ static const AppMeta* get_app_meta(const char* app_id)
 
 static void update_card_content(int idx)
 {
-    if (idx < 0 || idx >= notif_count) return;
+    if (idx < 0 || idx >= notif_count) {
+        show_empty_state();
+        return;
+    }
     char dt[17];
     format_datetime_ymd_hhmm(notif_buf[idx].ts_iso, dt, sizeof(dt));
     /*if (lbl_num[idx]) {
@@ -171,7 +186,7 @@ static void build_single_card(lv_obj_t* parent)
     //lv_obj_set_size(hdr_card, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(hdr_card, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(hdr_card, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_EVENLY);
-    lv_obj_set_size(hdr_card, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_size(hdr_card, lv_pct(100), 50);
     lv_obj_set_align(hdr_card, LV_ALIGN_TOP_MID);
 
     /*avatar = lv_obj_create(hdr_card);
@@ -193,6 +208,17 @@ static void build_single_card(lv_obj_t* parent)
     lv_obj_set_style_pad_left(lbl_app, 12, 0);
     lv_label_set_text(lbl_app, "Notifications");
     lv_label_set_long_mode(lbl_app, LV_LABEL_LONG_SCROLL_CIRCULAR);
+
+    hdr_separator = lv_obj_create(card);
+    lv_obj_remove_style_all(hdr_separator);
+    lv_obj_set_height(hdr_separator, 1);
+    lv_obj_set_width(hdr_separator, lv_pct(100));
+    lv_obj_set_style_bg_color(hdr_separator, lv_color_hex(0x4E4E4E), 0);
+    lv_obj_set_style_bg_opa(hdr_separator, LV_OPA_COVER, 0);
+    lv_obj_set_style_pad_top(hdr_separator, 0, 0);
+    lv_obj_set_style_pad_bottom(hdr_separator, 0, 0);
+    lv_obj_set_style_margin_top(hdr_separator, 0, 0);
+    //lv_obj_set_style_margin_bottom(hdr_separator, 8, 0);
     //lv_obj_set_size(lbl_app, lv_pct(100), 52);
 
     lbl_title = lv_label_create(card);
@@ -351,6 +377,34 @@ static void start_slide_to(int new_idx, int dir)
     lv_anim_start(&a_out_f);
 }
 
+static void delete_notification_at(int idx)
+{
+    if (idx < 0 || idx >= notif_count) {
+        return;
+    }
+    for (int i = idx; i < notif_count - 1; ++i) {
+        notif_buf[i] = notif_buf[i + 1];
+    }
+    notif_count--;
+    if (notif_count <= 0) {
+        notif_count = 0;
+        active_idx = 0;
+        notif_is_animating = false;
+        show_empty_state();
+        update_pager(active_idx);
+        return;
+    }
+    if (active_idx > idx) {
+        active_idx--;
+    }
+    if (active_idx >= notif_count) {
+        active_idx = notif_count - 1;
+    }
+    notif_is_animating = false;
+    update_card_content(active_idx);
+    update_pager(active_idx);
+}
+
 static void gesture_event_cb(lv_event_t* e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -377,6 +431,13 @@ static void gesture_event_cb(lv_event_t* e)
             load_screen(notification_screen, watchface_screen_get(), LV_SCR_LOAD_ANIM_MOVE_TOP);
         }
         return;*/
+    }
+    if (code == LV_EVENT_LONG_PRESSED) {
+        if (!notif_is_animating && notif_count > 0) {
+            lv_indev_wait_release(lv_indev_active());
+            delete_notification_at(active_idx);
+        }
+        return;
     }
     if (code == LV_EVENT_PRESSED) {
         lv_indev_get_point(lv_indev_active(), &press_start);

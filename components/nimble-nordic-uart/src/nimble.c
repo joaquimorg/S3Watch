@@ -45,6 +45,7 @@ static uint16_t notify_char_attr_hdl;
 static void (*_nordic_uart_callback)(enum nordic_uart_callback_type callback_type) = NULL;
 static uart_receive_callback_t _uart_receive_callback = NULL;
 static bool s_low_power_pref = false;
+static bool s_adv_enabled = true;
 
 
 /// @brief Apply connection parameters based on power preference
@@ -75,6 +76,7 @@ esp_err_t nordic_uart_yield(uart_receive_callback_t uart_receive_callback) {
     _uart_receive_callback = uart_receive_callback;
     return ESP_OK;
 }
+
 
 static int _uart_receive(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt* ctxt, void* arg) {
     if (_uart_receive_callback) {
@@ -118,20 +120,21 @@ static const struct ble_gatt_svc_def gat_svcs[] = {
 
 static int ble_gap_event_cb(struct ble_gap_event* event, void* arg);
 
-static void ble_app_advertise(void) {
+static int ble_app_advertise(void) {
+    if (!s_adv_enabled) {
+        ESP_LOGD(_TAG, "Advertising disabled; skip start");
+        return 0;
+    }
+
     struct ble_hs_adv_fields fields, fields_ext;
     memset(&fields, 0, sizeof(fields));
 
-    // fields.flags = BLE_HS_ADV_F_DISC_GEN | BLE_HS_ADV_F_DISC_LTD;
     fields.flags = BLE_HS_ADV_F_DISC_GEN | BLE_HS_ADV_F_BREDR_UNSUP;
 
     fields.tx_pwr_lvl_is_present = 1;
     fields.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
 
     const char* name = ble_svc_gap_device_name();
-    /*fields.name = (uint8_t*)name;
-    fields.name_len = strlen(name);
-    fields.name_is_complete = 1;*/
 
     fields.uuids128_is_complete = 1;
     fields.uuids128 = &SERVICE_UUID;
@@ -140,13 +143,14 @@ static void ble_app_advertise(void) {
     int err = ble_gap_adv_set_fields(&fields);
     if (err) {
         ESP_LOGE(_TAG, "ble_gap_adv_set_fields, err %d", err);
+        return err;
     }
 
     memset(&fields_ext, 0, sizeof(fields_ext));
     fields_ext.flags = fields.flags;
     fields_ext.name = (uint8_t*)name;
-    fields_ext.name_len = strlen(name);
-    fields_ext.name_is_complete = 1;
+    fields_ext.name_len = name ? strlen(name) : 0;
+    fields_ext.name_is_complete = (fields_ext.name_len > 0);
     err = ble_gap_adv_rsp_set_fields(&fields_ext);
     if (err) {
         ESP_LOGE(_TAG, "ble_gap_adv_rsp_set_fields fields_ext, name might be too long, err %d", err);
@@ -163,8 +167,14 @@ static void ble_app_advertise(void) {
 
     err = ble_gap_adv_start(ble_addr_type, NULL, BLE_HS_FOREVER, &adv_params, ble_gap_event_cb, NULL);
     if (err) {
-        ESP_LOGE(_TAG, "Advertising start failed: err %d", err);
+        if (err == BLE_HS_EALREADY) {
+            ESP_LOGD(_TAG, "Advertising already running");
+            err = 0;
+        } else {
+            ESP_LOGE(_TAG, "Advertising start failed: err %d", err);
+        }
     }
+    return err;
 }
 
 static int ble_gap_event_cb(struct ble_gap_event* event, void* arg) {
@@ -189,19 +199,20 @@ static int ble_gap_event_cb(struct ble_gap_event* event, void* arg) {
                 _nordic_uart_callback(NORDIC_UART_CONNECTED);
         }
         else {
-            ble_app_advertise();
+            (void)ble_app_advertise();
         }
         break;
     case BLE_GAP_EVENT_DISCONNECT:
         _nordic_uart_linebuf_append('\003'); // send Ctrl-C
         ESP_LOGI(_TAG, "BLE_GAP_EVENT_DISCONNECT");
+        ble_conn_hdl = 0;
         if (_nordic_uart_callback)
             _nordic_uart_callback(NORDIC_UART_DISCONNECTED);
-        ble_app_advertise();
+        (void)ble_app_advertise();
         break;
     case BLE_GAP_EVENT_ADV_COMPLETE:
         ESP_LOGI(_TAG, "BLE_GAP_EVENT_ADV_COMPLETE");
-        ble_app_advertise();
+        (void)ble_app_advertise();
         break;
     case BLE_GAP_EVENT_SUBSCRIBE:
         if (event->subscribe.attr_handle == notify_char_attr_hdl) {
@@ -228,15 +239,18 @@ static void ble_app_on_sync_cb(void) {
     if (ret != 0) {
         ESP_LOGE(_TAG, "Error ble_hs_id_infer_auto: %d", ret);
     }
-    ble_app_advertise();
+    (void)ble_app_advertise();
 }
 
 // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/nimble/index.html#_CPPv434esp_nimble_hci_and_controller_initv
 static void ble_host_task(void* param) {
     ESP_LOGI(_TAG, "BLE Host Task Started");
+    char* linebuf_at_start = _nordic_uart_get_linebuf();
     nimble_port_run(); // This function will return only when nimble_port_stop() is executed.
     nimble_port_freertos_deinit();
-    _nordic_uart_buf_deinit();
+    if (_nordic_uart_get_linebuf() == linebuf_at_start && linebuf_at_start != NULL) {
+        _nordic_uart_buf_deinit();
+    }
 }
 
 // Split the message in BLE_SEND_MTU and send it.
@@ -262,6 +276,7 @@ esp_err_t _nordic_uart_send(const char* message) {
     }
     return ESP_OK;
 }
+
 
 void nordic_uart_set_low_power_mode(bool enable)
 {
@@ -290,7 +305,11 @@ esp_err_t _nordic_uart_start(const char* device_name, void (*callback)(enum nord
     }
 
     _nordic_uart_callback = callback;
-    _nordic_uart_buf_init();
+    if (_nordic_uart_buf_init() != ESP_OK) {
+        ESP_LOGE(_TAG, "Failed to init Nordic UART buffers");
+        return ESP_FAIL;
+    }
+    s_adv_enabled = true;
 
     // Initialize controller and NimBLE host
     esp_err_t ret = nimble_port_init();    
@@ -325,13 +344,25 @@ esp_err_t _nordic_uart_start(const char* device_name, void (*callback)(enum nord
     return ESP_OK;
 }
 
-esp_err_t _nordic_uart_stop(void) {
-    esp_err_t rc = ble_gap_adv_stop();
-    if (rc) {
-        // if already stoped BLE, some error is raised. but no problem.
-        ESP_LOGD(_TAG, "Error in stopping advertisement with err code = %d", rc);
-        return ESP_FAIL;
 
+esp_err_t _nordic_uart_stop(void) {
+    s_adv_enabled = false;
+    if (ble_conn_hdl != 0) {
+        int term_rc = ble_gap_terminate(ble_conn_hdl, BLE_ERR_REM_USER_CONN_TERM);
+        if (term_rc != 0) {
+            ESP_LOGW(_TAG, "ble_gap_terminate failed: %d", term_rc);
+        }
+        ble_conn_hdl = 0;
+    }
+
+    int rc = ble_gap_adv_stop();
+    if (rc != 0) {
+        // Allow common benign codes when advertising already stopped
+        if (rc == BLE_HS_EALREADY || rc == BLE_HS_EINVAL) {
+            ESP_LOGD(_TAG, "Advertisement stop benign code: %d", rc);
+        } else {
+            ESP_LOGW(_TAG, "Error stopping advertisement: %d", rc);
+        }
     }
 
     int ret = nimble_port_stop();
@@ -344,8 +375,47 @@ esp_err_t _nordic_uart_stop(void) {
     }
 
     _nordic_uart_buf_deinit();
-
     _nordic_uart_callback = NULL;
 
     return ESP_OK;
 }
+
+esp_err_t nordic_uart_disconnect(void)
+{
+    if (ble_conn_hdl == 0) {
+        return ESP_OK;
+    }
+
+    int rc = ble_gap_terminate(ble_conn_hdl, BLE_ERR_REM_USER_CONN_TERM);
+    if (rc != 0) {
+        if (rc == BLE_HS_EALREADY || rc == BLE_HS_ENOTCONN) {
+            ESP_LOGD(_TAG, "Disconnect benign code: %d", rc);
+            return ESP_OK;
+        }
+        ESP_LOGW(_TAG, "ble_gap_terminate failed: %d", rc);
+        return ESP_FAIL;
+    }
+    return ESP_OK;
+}
+
+esp_err_t nordic_uart_set_advertising_enabled(bool enable)
+{
+    s_adv_enabled = enable;
+    if (enable) {
+        int rc = ble_app_advertise();
+        return (rc == 0) ? ESP_OK : ESP_FAIL;
+    }
+
+    int rc = ble_gap_adv_stop();
+    if (rc != 0) {
+        if (rc == BLE_HS_EALREADY || rc == BLE_HS_EINVAL || rc == BLE_HS_EBUSY) {
+            ESP_LOGD(_TAG, "Advertisement stop benign code: %d", rc);
+            return ESP_OK;
+        } else {
+            ESP_LOGW(_TAG, "Error stopping advertisement: %d", rc);
+            return ESP_FAIL;
+        }
+    }
+    return ESP_OK;
+}
+

@@ -97,3 +97,7 @@ esp_err_t _nordic_uart_buf_init() {
 bool _nordic_uart_linebuf_initialized() { //
   return _nordic_uart_rx_line_buf != NULL;
 }
+
+char* _nordic_uart_get_linebuf(void) {
+  return _nordic_uart_rx_line_buf;
+}

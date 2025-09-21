@@ -83,7 +83,6 @@ void display_manager_turn_on(void) {
         if (scr) {
           lv_obj_invalidate(scr);
         }
-        lv_refr_now(disp);
       }
 #else
       lv_disp_t *disp = lv_disp_get_default();
@@ -92,7 +91,6 @@ void display_manager_turn_on(void) {
         if (scr) {
           lv_obj_invalidate(scr);
         }
-        lv_refr_now(disp);
       }
 #endif
       lvgl_port_unlock();

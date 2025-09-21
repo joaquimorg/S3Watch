@@ -6,6 +6,7 @@
 #include <time.h>
 
 #include "cJSON.h"
+#include "esp_err.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/ringbuf.h"
@@ -48,6 +49,8 @@ static volatile bool s_ble_connected = false;
 static TimerHandle_t s_status_timer = NULL;
 static TimerHandle_t s_time_sync_timer = NULL;
 static bool s_time_sync_requested = false;
+static bool s_ble_enabled = false;
+static bool s_ble_stack_started = false;
 
 static void status_timer_cb(TimerHandle_t xTimer)
 {
@@ -250,7 +253,7 @@ static void power_ble_evt(void* handler_arg, esp_event_base_t base, int32_t id, 
 
 esp_err_t ble_sync_init(void)
 {
-    esp_err_t err = nordic_uart_start("ESP32 S3 Watch", nordic_uart_callback);
+    esp_err_t err = ble_sync_set_enabled(true);
     if (err != ESP_OK) {
         return err;
     }
@@ -260,7 +263,7 @@ esp_err_t ble_sync_init(void)
     // Periodic status every 5 minutes when connected
     if (!s_status_timer) {
         s_status_timer = xTimerCreate("ble_status_5m", pdMS_TO_TICKS(5 * 60 * 1000), pdTRUE, NULL, status_timer_cb);
-        if (s_status_timer) {
+        if (s_status_timer && s_ble_enabled) {
             xTimerStart(s_status_timer, 0);
         }
     }
@@ -273,6 +276,10 @@ esp_err_t ble_sync_init(void)
 
 esp_err_t ble_sync_send_status(int battery_percent, bool charging)
 {
+    if (!s_ble_enabled) {
+        return ESP_ERR_INVALID_STATE;
+    }
+
     cJSON* root = cJSON_CreateObject();
     if (!root) {
         return ESP_FAIL;
@@ -294,4 +301,75 @@ esp_err_t ble_sync_send_status(int battery_percent, bool charging)
     esp_err_t err = nordic_uart_sendln(json_str);
     free(json_str);
     return err;
+}
+
+esp_err_t ble_sync_set_enabled(bool enabled)
+{
+    if (enabled == s_ble_enabled) {
+        return ESP_OK;
+    }
+
+    if (enabled) {
+        s_ble_connected = false;
+        if (!s_ble_stack_started) {
+            esp_err_t err = nordic_uart_start("ESP32 S3 Watch", nordic_uart_callback);
+            if (err == ESP_FAIL && _nordic_uart_linebuf_initialized()) {
+                ESP_LOGW(TAG, "Start failed: buffers still allocated, resetting");
+                _nordic_uart_buf_deinit();
+                err = nordic_uart_start("ESP32 S3 Watch", nordic_uart_callback);
+            }
+            if (err != ESP_OK) {
+                ESP_LOGE(TAG, "Failed to start BLE stack: %s", esp_err_to_name(err));
+                return err;
+            }
+            s_ble_stack_started = true;
+        }
+
+        s_ble_enabled = true;
+        s_time_sync_requested = false;
+
+        esp_err_t adv_err = nordic_uart_set_advertising_enabled(true);
+        if (adv_err != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to start advertising: %s", esp_err_to_name(adv_err));
+            s_ble_enabled = false;
+            return adv_err;
+        }
+
+        if (s_status_timer) {
+            xTimerStart(s_status_timer, 0);
+        }
+        ESP_LOGI(TAG, "BLE enabled");
+        return ESP_OK;
+    }
+
+    s_ble_enabled = false;
+    s_ble_connected = false;
+    s_time_sync_requested = false;
+
+    if (s_status_timer) {
+        xTimerStop(s_status_timer, 0);
+    }
+    if (s_time_sync_timer) {
+        xTimerStop(s_time_sync_timer, 0);
+    }
+
+    if (s_ble_stack_started) {
+        esp_err_t adv_err = nordic_uart_set_advertising_enabled(false);
+        if (adv_err != ESP_OK) {
+            ESP_LOGW(TAG, "Stopping advertising returned %s", esp_err_to_name(adv_err));
+        }
+        esp_err_t disc_err = nordic_uart_disconnect();
+        if (disc_err != ESP_OK) {
+            ESP_LOGW(TAG, "Disconnect returned %s", esp_err_to_name(disc_err));
+        }
+    }
+
+    (void)esp_event_post(BLE_SYNC_EVENT_BASE, BLE_SYNC_EVT_DISCONNECTED, NULL, 0, 0);
+    ESP_LOGI(TAG, "BLE disabled");
+    return ESP_OK;
+}
+
+bool ble_sync_is_enabled(void)
+{
+    return s_ble_enabled;
 }

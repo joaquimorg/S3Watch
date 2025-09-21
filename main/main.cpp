@@ -20,6 +20,7 @@
 #include "esp_pm.h"
 // UI/BLE reagem a eventos de energia; remover ponte direta aqui
 #include "audio_alert.h"
+#include "ble_sync.h"
 
 static const char *TAG = "MAIN";
 
@@ -70,6 +71,11 @@ extern "C" void app_main(void) {
   bsp_extra_init();
 
   settings_init();
+
+  esp_err_t ble_cfg_err = ble_sync_set_enabled(settings_get_bluetooth_enabled());
+  if (ble_cfg_err != ESP_OK) {
+    ESP_LOGE(TAG, "Failed to apply stored BLE state: %s", esp_err_to_name(ble_cfg_err));
+  }
 
   // UI task chama display_manager_init() após criar o ecrã
 

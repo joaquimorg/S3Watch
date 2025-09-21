@@ -17,6 +17,8 @@ void settings_set_display_timeout(uint32_t timeout);
 uint32_t settings_get_display_timeout(void);
 void settings_set_sound(bool enabled);
 bool settings_get_sound(void);
+void settings_set_bluetooth_enabled(bool enabled);
+bool settings_get_bluetooth_enabled(void);
 
 // Notification volume (0-100)
 void settings_set_notify_volume(uint8_t vol_percent);

@@ -3,9 +3,12 @@
 #include "ui_fonts.h"
 #include "batt_screen.h"
 #include "brightness_screen.h"
+#include "setting_flashlight_screen.h"
 #include "esp_log.h"
 #include "settings_menu_screen.h"
 #include "rtc_lib.h"
+#include "ble_sync.h"
+#include "esp_err.h"
 
 #include "ui.h"
 #include "watchface.h"
@@ -71,18 +74,18 @@ void control_screen_create(lv_obj_t* parent)
 
     lv_style_set_layout(&cmain_style, LV_LAYOUT_FLEX);
     lv_style_set_flex_flow(&cmain_style, LV_FLEX_FLOW_ROW_WRAP);
-    lv_style_set_flex_main_place(&cmain_style, LV_FLEX_ALIGN_START);
+    lv_style_set_flex_main_place(&cmain_style, LV_FLEX_ALIGN_CENTER);
     lv_style_set_flex_cross_place(&cmain_style, LV_FLEX_ALIGN_CENTER);
-    lv_style_set_flex_track_place(&cmain_style, LV_FLEX_ALIGN_START);
-    lv_style_set_pad_row(&cmain_style, 16);
-    lv_style_set_pad_column(&cmain_style, 16);
-    lv_style_set_pad_top(&cmain_style, 25);
+    lv_style_set_flex_track_place(&cmain_style, LV_FLEX_ALIGN_CENTER);
+    lv_style_set_pad_row(&cmain_style, 14);
+    lv_style_set_pad_column(&cmain_style, 14);
+    //lv_style_set_pad_top(&cmain_style, 25);
 
 
     control_screen = lv_obj_create(parent);
     lv_obj_remove_style_all(control_screen);
     lv_obj_add_style(control_screen, &cmain_style, 0);
-    lv_obj_set_size(control_screen, lv_pct(100), lv_pct(90));
+    lv_obj_set_size(control_screen, lv_pct(100), lv_pct(100));
     lv_obj_center(control_screen);
     //lv_obj_remove_flag(control_screen, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_clear_flag(control_screen, LV_OBJ_FLAG_SCROLLABLE);
@@ -104,8 +107,8 @@ void control_screen_create(lv_obj_t* parent)
     for (uint32_t i = 0; i < 6; i++) {
         lv_obj_t* item = lv_obj_create(control_screen);
         lv_obj_remove_style_all(item);
-        lv_obj_set_width(item, lv_pct(48));
-        lv_obj_set_height(item, 120);
+        lv_obj_set_width(item, lv_pct(46));
+        lv_obj_set_height(item, 110);
         lv_obj_set_style_bg_color(item, lv_color_hex(0xffffff), 0);
         lv_obj_set_style_bg_opa(item, 38, 0);
         lv_obj_set_style_radius(item, 16, 0);
@@ -128,8 +131,12 @@ void control_screen_create(lv_obj_t* parent)
                 else lv_obj_clear_state(item, LV_STATE_CHECKED);
             }
             if (i == CTRL_BLUETOOTH) {
-                /* Default to enabled (unchecked = off? we make checked=enabled for consistency) */
-                lv_obj_add_state(item, LV_STATE_CHECKED);
+                bool ble_on = ble_sync_is_enabled();
+                if (ble_on) {
+                    lv_obj_add_state(item, LV_STATE_CHECKED);
+                } else {
+                    lv_obj_clear_state(item, LV_STATE_CHECKED);
+                }
             }
         }
         else {
@@ -181,7 +188,6 @@ static void click_event_cb(lv_event_t* e)
     switch (ctrl) {
     case CTRL_BRIGHTNESS:
         ESP_LOGI(TAG, "Brightness control clicked");
-        //lv_indev_wait_release(lv_indev_active());
         {
             lv_obj_t* t = ui_dynamic_tile_acquire();
             if (t) {
@@ -193,7 +199,6 @@ static void click_event_cb(lv_event_t* e)
         break;
     case CTRL_BATTERY:
         ESP_LOGI(TAG, "Battery control clicked");
-        //lv_indev_wait_release(lv_indev_active());
         {
             lv_obj_t* t = ui_dynamic_tile_acquire();
             if (t) {
@@ -202,9 +207,20 @@ static void click_event_cb(lv_event_t* e)
             }
         }
         break;
+    case CTRL_FLASHLIGHT:
+        ESP_LOGI(TAG, "Flashlight control clicked");
+        //lv_indev_wait_release(lv_indev_active());
+        {
+            lv_obj_t* t = ui_dynamic_tile_acquire();
+            if (t) {
+                setting_flashlight_screen_create(t);
+                ui_dynamic_tile_show();
+            }
+        }
+        break;
     case CTRL_SETTINGS:
         ESP_LOGI(TAG, "Settings clicked");
-        //lv_indev_wait_release(lv_indev_active());
+         //lv_indev_wait_release(lv_indev_active());
         {
             lv_obj_t* t = ui_dynamic_tile_acquire();
             if (t) {
@@ -230,13 +246,21 @@ static void toggle_event_cb(lv_event_t* e)
         settings_set_sound(!checked);
         break;
     case CTRL_BLUETOOTH:
-        /* Simple enable/disable of BLE Nordic UART */
-        /*if (checked) {
-            nordic_uart_start("ESP32 S3 Watch", NULL);
-        } else {
-            nordic_uart_stop();
-        }*/
+    {
+        bool enable = checked;
+        esp_err_t err = ble_sync_set_enabled(enable);
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to %s Bluetooth: %s", enable ? "enable" : "disable", esp_err_to_name(err));
+            if (enable) {
+                lv_obj_clear_state(obj, LV_STATE_CHECKED);
+            } else {
+                lv_obj_add_state(obj, LV_STATE_CHECKED);
+            }
+            return;
+        }
+        settings_set_bluetooth_enabled(enable);
         break;
+    }
     default:
         break;
     }

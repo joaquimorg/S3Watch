@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 
+#include <esp_err.h>
 #include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/ringbuf.h>
@@ -31,6 +32,8 @@ esp_err_t nordic_uart_start(const char *device_name, void (*callback)(enum nordi
 
 // Function to stop the Nordic UART service
 esp_err_t nordic_uart_stop(void);
+esp_err_t nordic_uart_disconnect(void);
+esp_err_t nordic_uart_set_advertising_enabled(bool enable);
 
 // Function to send a message over Nordic UART
 // - message: String message to be sent
@@ -50,6 +53,7 @@ esp_err_t _nordic_uart_buf_init();
 esp_err_t _nordic_uart_send_line_buf_to_ring_buf();
 esp_err_t _nordic_uart_linebuf_append(char c);
 bool _nordic_uart_linebuf_initialized();
+char* _nordic_uart_get_linebuf(void);
 
 esp_err_t _nordic_uart_start(const char *device_name, void (*callback)(enum nordic_uart_callback_type callback_type));
 esp_err_t _nordic_uart_stop(void);

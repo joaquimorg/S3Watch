@@ -18,6 +18,7 @@ static const char *TAG = "SETTINGS";
 static uint8_t brightness = 30;
 static uint32_t display_timeout_ms = 30000;
 static bool sound_enabled = true;
+static bool bluetooth_enabled = true;
 static uint8_t notify_volume = 100; // percent 0..100 (louder default)
 static uint32_t step_goal = 8000;
 static bool spiffs_ready = false;
@@ -114,6 +115,7 @@ static bool settings_write_json(void)
     cJSON_AddNumberToObject(root, "brightness", brightness);
     cJSON_AddNumberToObject(root, "display_timeout_ms", (double)display_timeout_ms);
     cJSON_AddBoolToObject(root, "sound_enabled", sound_enabled);
+    cJSON_AddBoolToObject(root, "bluetooth_enabled", bluetooth_enabled);
     cJSON_AddNumberToObject(root, "notify_volume", (double)notify_volume);
     cJSON_AddNumberToObject(root, "step_goal", (double)step_goal);
 
@@ -170,6 +172,8 @@ static bool settings_read_json(void)
     if (cJSON_IsNumber(j)) display_timeout_ms = (uint32_t)j->valuedouble;
     j = cJSON_GetObjectItem(root, "sound_enabled");
     if (cJSON_IsBool(j)) sound_enabled = cJSON_IsTrue(j);
+    j = cJSON_GetObjectItem(root, "bluetooth_enabled");
+    if (cJSON_IsBool(j)) bluetooth_enabled = cJSON_IsTrue(j);
     j = cJSON_GetObjectItem(root, "notify_volume");
     if (cJSON_IsNumber(j)) notify_volume = (uint8_t)j->valuedouble;
     j = cJSON_GetObjectItem(root, "step_goal");
@@ -237,6 +241,21 @@ bool settings_get_sound(void) {
     return sound_enabled;
 }
 
+void settings_set_bluetooth_enabled(bool enabled)
+{
+    if (bluetooth_enabled == enabled) {
+        return;
+    }
+    bluetooth_enabled = enabled;
+    ESP_LOGI(TAG, "Bluetooth %s", enabled ? "enabled" : "disabled");
+    schedule_save();
+}
+
+bool settings_get_bluetooth_enabled(void)
+{
+    return bluetooth_enabled;
+}
+
 void settings_set_notify_volume(uint8_t vol_percent)
 {
     if (vol_percent > 100) vol_percent = 100;
@@ -277,6 +296,7 @@ static void apply_defaults(void)
     sound_enabled = true;
     notify_volume = 100;
     step_goal = 8000;
+    bluetooth_enabled = true;
 }
 
 bool settings_reset_defaults(void)

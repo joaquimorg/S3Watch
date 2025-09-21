@@ -101,8 +101,8 @@ void swatch_tileview(void)
   watchface_create(tile2);
 
   /*Tile3:*/
-  tile3 = lv_tileview_add_tile(main_screen, 0, 2, LV_DIR_TOP);
-  steps_screen_create(tile3);
+  //tile3 = lv_tileview_add_tile(main_screen, 0, 2, LV_DIR_TOP);
+  //steps_screen_create(tile3);
 
   /*Tile4:*/
   tile4 = lv_tileview_add_tile(main_screen, 1, 1, (lv_dir_t)(LV_DIR_LEFT | LV_DIR_RIGHT));

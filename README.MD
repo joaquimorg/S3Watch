@@ -27,16 +27,17 @@ Onboard TF card slot for extended storage and fast data transfer, flexible for d
 The benefits of using AXP2101 include efficient power management, support for multiple output voltages, charging and battery management functions, and optimization for battery life
 The AMOLED screen has the advantages of higher contrast, wider viewing angle, richer colors, faster response, thinner design, lower power consumption, and flexibility
 
-# Building and Flashing
+# Building and Flashing (Visual Studio Code + ESP-IDF)
 
-This project uses the ESP-IDF framework. To build and flash the firmware, follow these steps:
+This project targets the ESP32-S3 and works seamlessly with the ESP-IDF VS Code extension. The steps below assume you are using Visual Studio Code with the official ESP-IDF tooling:
 
-1.  **Install ESP-IDF:** Follow the official ESP-IDF Get Started guide for your operating system: [ESP-IDF Get Started](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/get-started/index.html)
-2.  **Navigate to the project directory:** 
-3.  **Set the target:** `idf.py set-target esp32s3`
-4.  **Build the project:** `idf.py build`
-5.  **Flash the firmware:** `idf.py -p <PORT> flash` (Replace `<PORT>` with your serial port, e.g., `COMx` on Windows or `/dev/ttyUSBx` on Linux/macOS)
-6.  **Monitor serial output:** `idf.py -p <PORT> monitor`
+1.  **Install prerequisites:** Install [Visual Studio Code](https://code.visualstudio.com/) and add the official [ESP-IDF Extension](https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension). When prompted, let the extension install the ESP-IDF tools or point it to an existing ESP-IDF 5.x setup.
+2.  **Configure the extension:** Open the command palette (`Ctrl+Shift+P`) and run `ESP-IDF: Configure ESP-IDF extension`. Follow the wizard to select your ESP-IDF directory, Python environment, and tools folder. The wizard will also verify the toolchain installation.
+3.  **Open the project folder:** Use `File → Open Folder...` to open the repository root (`S3Watch`). The ESP-IDF status bar should appear at the bottom once the extension detects the project.
+4.  **Set the target:** From the ESP-IDF status bar, choose `Set Target` (or run `ESP-IDF: Set Target` from the command palette) and select `esp32s3`.
+5.  **Build:** Click `Build Project` in the status bar or run `ESP-IDF: Build Project`. The extension launches `idf.py build` in an integrated terminal and streams the output.
+6.  **Select the serial port:** Connect the Waveshare board via USB, then use `ESP-IDF: Select Serial Port` to choose the appropriate port (e.g., `COMx` on Windows or `/dev/ttyUSBx` on Linux/macOS).
+7.  **Flash and monitor:** Trigger `ESP-IDF: Flash (UART)` to program the firmware. For combined flashing and serial monitoring, use `ESP-IDF: Flash and Monitor`. The integrated monitor can be closed with `Ctrl+]` followed by `Ctrl+d`
 
 # Dependencies
 

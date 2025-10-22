@@ -235,6 +235,7 @@ static void build_single_card(lv_obj_t* parent)
     lv_label_set_text(lbl_message, "");
     lv_obj_set_width(lbl_message, lv_pct(100));
     lv_label_set_long_mode(lbl_message, LV_LABEL_LONG_WRAP);
+    lv_obj_set_style_text_align(lbl_message, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_style_text_color(lbl_message, lv_color_hex(0xF0F0F0), 0);
     lv_obj_set_style_text_font(lbl_message, &font_normal_26, 0);
 

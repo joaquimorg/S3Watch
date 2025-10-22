@@ -7,4 +7,4 @@ idf_component_register(
 )
 
 ## enable the next line to upload the spiffs content
-#spiffs_create_partition_image(storage ../spiffs FLASH_IN_PROJECT)
+spiffs_create_partition_image(storage ../spiffs FLASH_IN_PROJECT)
